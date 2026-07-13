@@ -1,181 +1,247 @@
 (function () {
   "use strict";
 
-  var FALLBACK_DATA = {
-    updatedAt: "2026-07-13",
-    reviewCandidateCount: 10,
-    prototypes: []
-  };
-
+  var PLACEHOLDER_PREVIEW = "assets/previews/placeholder.svg";
   var state = {
-    approved: [],
-    filtered: []
+    prototypes: [],
+    updatedAt: ""
   };
 
   var elements = {
     form: document.getElementById("filters"),
     search: document.getElementById("prototype-search"),
     project: document.getElementById("project-filter"),
+    projectField: document.getElementById("project-filter-field"),
     type: document.getElementById("type-filter"),
-    status: document.getElementById("status-filter"),
+    typeField: document.getElementById("type-filter-field"),
+    reset: document.getElementById("clear-filters"),
+    summary: document.getElementById("directory-summary"),
+    resultCount: document.getElementById("result-count"),
     grid: document.getElementById("prototype-grid"),
     empty: document.getElementById("empty-state"),
     emptyTitle: document.getElementById("empty-title"),
-    emptyDescription: document.getElementById("empty-description"),
-    publishedCount: document.getElementById("published-count"),
-    reviewCount: document.getElementById("review-count"),
-    lastUpdated: document.getElementById("last-updated"),
-    resultCount: document.getElementById("result-count")
+    emptyDescription: document.getElementById("empty-description")
   };
 
   function cleanText(value) {
     return typeof value === "string" ? value.trim() : "";
   }
 
-  function isSafeRelativePath(value) {
+  function isValidDate(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return false;
+    }
+
+    var date = new Date(value + "T00:00:00Z");
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  }
+
+  function isSafeRelativePath(value, requiredPrefix) {
     var path = cleanText(value);
-    if (!path) {
+    var decodedPath;
+
+    if (!path || /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/|\\)/i.test(path)) {
       return false;
     }
 
-    if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|\/|\\)/i.test(path)) {
+    try {
+      decodedPath = decodeURIComponent(path);
+    } catch (error) {
       return false;
     }
 
-    return !path.split(/[\\/]/).some(function (segment) {
-      return segment === "..";
+    if (/[\\?#]/.test(decodedPath) || !decodedPath.startsWith(requiredPrefix)) {
+      return false;
+    }
+
+    return !decodedPath.split("/").some(function (segment) {
+      return !segment || segment === "." || segment === "..";
     });
   }
 
-  function normalizePrototype(item) {
-    var entry = item && typeof item === "object" ? item : {};
-    return {
-      id: cleanText(entry.id),
-      name: cleanText(entry.name),
-      project: cleanText(entry.project),
-      description: cleanText(entry.description),
-      type: cleanText(entry.type),
-      status: cleanText(entry.status).toLowerCase(),
-      version: cleanText(entry.version),
-      updatedAt: cleanText(entry.updatedAt),
-      preview: isSafeRelativePath(entry.preview) ? cleanText(entry.preview) : "assets/previews/placeholder.svg",
-      prototypePath: isSafeRelativePath(entry.prototypePath) ? cleanText(entry.prototypePath) : "",
-      sourcePath: isSafeRelativePath(entry.sourcePath) ? cleanText(entry.sourcePath) : "",
-      approvedBy: cleanText(entry.approvedBy),
-      approvalReference: cleanText(entry.approvalReference),
-      device: cleanText(entry.device)
+  function normalisePrototype(value) {
+    var item = value && typeof value === "object" ? value : {};
+    var sourcePath = cleanText(item.sourcePath);
+
+    if (sourcePath && !isSafeRelativePath(sourcePath, "prototypes/")) {
+      throw new Error("Invalid public source path.");
+    }
+
+    var prototype = {
+      id: cleanText(item.id),
+      name: cleanText(item.name),
+      project: cleanText(item.project),
+      description: cleanText(item.description),
+      type: cleanText(item.type),
+      status: cleanText(item.status),
+      version: cleanText(item.version),
+      updatedAt: cleanText(item.updatedAt),
+      preview: cleanText(item.preview),
+      previewAlt: cleanText(item.previewAlt),
+      prototypePath: cleanText(item.prototypePath),
+      sourcePath: sourcePath,
+      approvedBy: cleanText(item.approvedBy),
+      approvalReference: cleanText(item.approvalReference),
+      device: cleanText(item.device)
     };
+
+    var requiredText = [
+      prototype.id,
+      prototype.name,
+      prototype.project,
+      prototype.description,
+      prototype.type,
+      prototype.updatedAt,
+      prototype.preview,
+      prototype.previewAlt,
+      prototype.prototypePath,
+      prototype.approvedBy,
+      prototype.approvalReference
+    ];
+
+    if (requiredText.some(function (field) { return !field; })) {
+      throw new Error("Prototype metadata is incomplete.");
+    }
+
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(prototype.id)) {
+      throw new Error("Prototype ID is invalid.");
+    }
+
+    if (prototype.status !== "approved") {
+      throw new Error("Only approved prototypes may be published.");
+    }
+
+    if (!isValidDate(prototype.updatedAt)) {
+      throw new Error("Prototype date is invalid.");
+    }
+
+    if (!isSafeRelativePath(prototype.preview, "assets/previews/")) {
+      throw new Error("Preview path is invalid.");
+    }
+
+    if (!isSafeRelativePath(prototype.prototypePath, "prototypes/") || !/\.html$/i.test(prototype.prototypePath)) {
+      throw new Error("Prototype path is invalid.");
+    }
+
+    return prototype;
   }
 
   function formatDate(value) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) {
-      return value || "Not recorded";
-    }
-
-    var date = new Date(value + "T00:00:00");
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
     return new Intl.DateTimeFormat("en-GB", {
       day: "numeric",
       month: "long",
-      year: "numeric"
-    }).format(date);
+      year: "numeric",
+      timeZone: "UTC"
+    }).format(new Date(value + "T00:00:00Z"));
   }
 
-  function sortedUnique(items, key) {
+  function pluralise(count, singular) {
+    return count + " " + singular + (count === 1 ? "" : "s");
+  }
+
+  function uniqueValues(items, key) {
     return Array.from(new Set(items.map(function (item) {
       return item[key];
-    }).filter(Boolean))).sort(function (a, b) {
-      return a.localeCompare(b);
+    }).filter(Boolean))).sort(function (left, right) {
+      return left.localeCompare(right);
     });
   }
 
-  function populateSelect(select, values) {
+  function configureFilter(select, field, values) {
+    while (select.options.length > 1) {
+      select.remove(1);
+    }
+
     values.forEach(function (value) {
       var option = document.createElement("option");
       option.value = value;
       option.textContent = value;
       select.appendChild(option);
     });
+
+    var useful = values.length > 1;
+    field.hidden = !useful;
+    select.disabled = !useful;
+    if (!useful) {
+      select.value = "";
+    }
   }
 
-  function createPill(text, approved) {
-    var pill = document.createElement("span");
-    pill.className = approved ? "pill pill-approved" : "pill";
-    pill.textContent = text;
-    return pill;
+  function addMetadata(list, label, value, className) {
+    if (!value) {
+      return;
+    }
+
+    var item = document.createElement("div");
+    item.className = "metadata-item";
+
+    var term = document.createElement("dt");
+    term.textContent = label;
+
+    var description = document.createElement("dd");
+    description.textContent = value;
+    if (className) {
+      description.className = className;
+    }
+
+    item.appendChild(term);
+    item.appendChild(description);
+    list.appendChild(item);
   }
 
-  function createCard(prototype) {
-    var article = document.createElement("article");
-    article.className = "prototype-card";
-    article.dataset.prototypeId = prototype.id;
+  function createCard(prototype, index) {
+    var card = document.createElement("article");
+    card.className = "prototype-card";
+    card.dataset.prototypeId = prototype.id;
 
     var preview = document.createElement("div");
     preview.className = "preview-frame";
 
     var image = document.createElement("img");
     image.src = prototype.preview;
-    image.alt = prototype.preview.indexOf("placeholder.svg") >= 0
-      ? "Preview unavailable for " + prototype.name
-      : "Preview of " + prototype.name;
-    image.loading = "lazy";
+    image.alt = prototype.previewAlt;
+    image.width = 960;
+    image.height = 600;
     image.decoding = "async";
+    image.loading = index === 0 ? "eager" : "lazy";
+    if (index === 0) {
+      image.setAttribute("fetchpriority", "high");
+    }
     image.addEventListener("error", function () {
-      image.src = "assets/previews/placeholder.svg";
-      image.alt = "Preview unavailable for " + prototype.name;
+      image.src = PLACEHOLDER_PREVIEW;
+      image.alt = "Preview unavailable for " + prototype.name + ".";
     }, { once: true });
     preview.appendChild(image);
-
-    if (prototype.device) {
-      var device = document.createElement("span");
-      device.className = "device-badge";
-      device.textContent = prototype.device;
-      preview.appendChild(device);
-    }
 
     var body = document.createElement("div");
     body.className = "card-body";
 
-    var meta = document.createElement("div");
-    meta.className = "card-meta";
-    meta.appendChild(createPill("Approved", true));
-    if (prototype.type) {
-      meta.appendChild(createPill(prototype.type, false));
-    }
-
-    var project = document.createElement("p");
-    project.className = "card-project";
-    project.textContent = prototype.project || "Product";
-
     var title = document.createElement("h3");
     title.className = "card-title";
-    title.textContent = prototype.name || "Untitled prototype";
+    title.textContent = prototype.name;
 
     var description = document.createElement("p");
     description.className = "card-description";
-    description.textContent = prototype.description || "No description supplied.";
+    description.textContent = prototype.description;
 
-    var details = document.createElement("div");
-    details.className = "card-details";
-    details.appendChild(document.createTextNode("Updated " + formatDate(prototype.updatedAt)));
-    if (prototype.version) {
-      details.appendChild(document.createTextNode("Version " + prototype.version));
-    }
+    var metadata = document.createElement("dl");
+    metadata.className = "card-metadata";
+    addMetadata(metadata, "Project", prototype.project);
+    addMetadata(metadata, "Type", prototype.type);
+    addMetadata(metadata, "Status", "Approved for review", "status-value");
+    addMetadata(metadata, "Device", prototype.device);
+    addMetadata(metadata, "Updated", formatDate(prototype.updatedAt));
+    addMetadata(metadata, "Version", prototype.version);
+
+    var link = document.createElement("a");
+    link.className = "card-link";
+    link.href = prototype.prototypePath;
+    link.textContent = "Open Prototype";
+    link.setAttribute("aria-label", "Open prototype: " + prototype.name);
 
     var actions = document.createElement("div");
     actions.className = "card-actions";
-
-    if (prototype.prototypePath) {
-      var viewLink = document.createElement("a");
-      viewLink.className = "card-link";
-      viewLink.href = prototype.prototypePath;
-      viewLink.textContent = "View Prototype";
-      viewLink.setAttribute("aria-label", "View prototype: " + prototype.name);
-      actions.appendChild(viewLink);
-    }
+    actions.appendChild(link);
 
     if (prototype.sourcePath) {
       var referenceLink = document.createElement("a");
@@ -186,111 +252,122 @@
       actions.appendChild(referenceLink);
     }
 
-    body.appendChild(meta);
-    body.appendChild(project);
     body.appendChild(title);
     body.appendChild(description);
-    body.appendChild(details);
+    body.appendChild(metadata);
     body.appendChild(actions);
-    article.appendChild(preview);
-    article.appendChild(body);
-    return article;
+    card.appendChild(preview);
+    card.appendChild(body);
+
+    return card;
   }
 
   function hasActiveFilters() {
     return Boolean(
       elements.search.value.trim() ||
       elements.project.value ||
-      elements.type.value ||
-      elements.status.value
+      elements.type.value
     );
   }
 
-  function render() {
-    elements.grid.replaceChildren();
-
-    state.filtered.forEach(function (prototype) {
-      elements.grid.appendChild(createCard(prototype));
+  function render(prototypes) {
+    var fragment = document.createDocumentFragment();
+    prototypes.forEach(function (prototype, index) {
+      fragment.appendChild(createCard(prototype, index));
     });
 
-    var count = state.filtered.length;
-    elements.resultCount.textContent = count + (count === 1 ? " prototype" : " prototypes");
-    elements.empty.hidden = count > 0;
+    elements.grid.replaceChildren(fragment);
+    elements.grid.hidden = prototypes.length === 0;
+    elements.empty.hidden = prototypes.length !== 0;
 
-    if (count === 0 && state.approved.length === 0) {
-      elements.emptyTitle.textContent = "No approved prototypes yet";
-      elements.emptyDescription.textContent = "Approved prototypes will appear here.";
-    } else if (count === 0 && hasActiveFilters()) {
-      elements.emptyTitle.textContent = "No matches";
-      elements.emptyDescription.textContent = "Try another search or clear the filters.";
+    var active = hasActiveFilters();
+    elements.reset.hidden = !active;
+    elements.reset.disabled = !active;
+
+    if (prototypes.length === 0) {
+      elements.emptyTitle.textContent = active ? "No matching prototypes" : "No approved prototypes";
+      elements.emptyDescription.textContent = active
+        ? "Change or reset the current search and filters."
+        : "Approved prototypes will appear here.";
     }
 
-    elements.grid.setAttribute("aria-busy", "false");
+    elements.resultCount.textContent = active
+      ? pluralise(prototypes.length, "result") + " of " + pluralise(state.prototypes.length, "prototype")
+      : pluralise(prototypes.length, "approved prototype");
   }
 
   function applyFilters() {
-    var query = elements.search.value.trim().toLowerCase();
+    var search = elements.search.value.trim().toLowerCase();
     var project = elements.project.value;
     var type = elements.type.value;
-    var status = elements.status.value;
 
-    state.filtered = state.approved.filter(function (prototype) {
-      var searchable = [prototype.name, prototype.description, prototype.project, prototype.type]
-        .join(" ")
-        .toLowerCase();
-
-      return (!query || searchable.indexOf(query) >= 0) &&
+    var filtered = state.prototypes.filter(function (prototype) {
+      var searchText = (prototype.name + " " + prototype.description).toLowerCase();
+      return (!search || searchText.includes(search)) &&
         (!project || prototype.project === project) &&
-        (!type || prototype.type === type) &&
-        (!status || prototype.status === status);
+        (!type || prototype.type === type);
     });
 
-    render();
+    render(filtered);
   }
 
-  function initialise(data) {
-    var payload = data && typeof data === "object" ? data : FALLBACK_DATA;
-    var prototypes = Array.isArray(payload.prototypes) ? payload.prototypes : [];
+  function showLoadError() {
+    elements.summary.textContent = "Directory unavailable";
+    elements.resultCount.textContent = "Prototype data could not be loaded.";
+    elements.grid.hidden = true;
+    elements.empty.hidden = false;
+    elements.emptyTitle.textContent = "Could not load prototypes";
+    elements.emptyDescription.textContent = "Refresh the page or try again later.";
+    elements.form.hidden = true;
+  }
 
-    state.approved = prototypes
-      .map(normalizePrototype)
-      .filter(function (prototype) {
-        return prototype.status === "approved";
-      });
-    state.filtered = state.approved.slice();
-
-    elements.publishedCount.textContent = String(state.approved.length);
-    elements.reviewCount.textContent = String(Number.isFinite(payload.reviewCandidateCount) ? payload.reviewCandidateCount : 0);
-    elements.lastUpdated.textContent = formatDate(cleanText(payload.updatedAt));
-
-    populateSelect(elements.project, sortedUnique(state.approved, "project"));
-    populateSelect(elements.type, sortedUnique(state.approved, "type"));
-
-    elements.form.addEventListener("input", applyFilters);
-    elements.form.addEventListener("change", applyFilters);
-    elements.form.addEventListener("reset", function () {
-      window.requestAnimationFrame(applyFilters);
+  function bindEvents() {
+    elements.search.addEventListener("input", applyFilters);
+    elements.project.addEventListener("change", applyFilters);
+    elements.type.addEventListener("change", applyFilters);
+    elements.form.addEventListener("reset", function (event) {
+      event.preventDefault();
+      elements.search.value = "";
+      elements.project.value = "";
+      elements.type.value = "";
+      applyFilters();
+      elements.search.focus();
     });
-
-    render();
   }
 
-  function loadData() {
-    if (window.location.protocol === "file:") {
-      return Promise.resolve(FALLBACK_DATA);
+  async function loadDirectory() {
+    try {
+      var response = await fetch("./prototypes.json");
+      if (!response.ok) {
+        throw new Error("Prototype data request failed.");
+      }
+
+      var data = await response.json();
+      if (!data || !Array.isArray(data.prototypes) || !isValidDate(cleanText(data.updatedAt))) {
+        throw new Error("Prototype directory metadata is invalid.");
+      }
+
+      var prototypes = data.prototypes.map(normalisePrototype);
+      var ids = new Set(prototypes.map(function (prototype) { return prototype.id; }));
+      if (ids.size !== prototypes.length) {
+        throw new Error("Prototype IDs must be unique.");
+      }
+
+      state.prototypes = prototypes;
+      state.updatedAt = cleanText(data.updatedAt);
+
+      configureFilter(elements.project, elements.projectField, uniqueValues(prototypes, "project"));
+      configureFilter(elements.type, elements.typeField, uniqueValues(prototypes, "type"));
+      elements.summary.textContent = pluralise(prototypes.length, "approved prototype") +
+        " · Updated " + formatDate(state.updatedAt);
+      elements.grid.setAttribute("aria-busy", "false");
+      applyFilters();
+    } catch (error) {
+      elements.grid.setAttribute("aria-busy", "false");
+      showLoadError();
     }
-
-    return window.fetch("prototypes.json", { cache: "no-store" })
-      .then(function (response) {
-        if (!response.ok) {
-          throw new Error("Prototype metadata could not be loaded.");
-        }
-        return response.json();
-      })
-      .catch(function () {
-        return FALLBACK_DATA;
-      });
   }
 
-  loadData().then(initialise);
+  bindEvents();
+  loadDirectory();
 }());

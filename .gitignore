@@ -1,6 +1,9 @@
 # Local audit evidence is intentionally excluded from the public repository.
 /audit/
 
+# Local Vercel project state must not be published.
+.vercel/
+
 # Operating-system artifacts.
 .DS_Store
 Thumbs.db

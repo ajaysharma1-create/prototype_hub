@@ -1,5 +1,22 @@
 {
   "updatedAt": "2026-07-13",
-  "reviewCandidateCount": 10,
-  "prototypes": []
+  "prototypes": [
+    {
+      "id": "mentorship-credits-pricing",
+      "name": "Mentorship Credits Pricing",
+      "project": "Credit Purchase",
+      "description": "Public and logged-in credit-pack pricing with alternate names and currencies.",
+      "type": "Pricing experience",
+      "status": "approved",
+      "version": "",
+      "updatedAt": "2026-07-13",
+      "preview": "assets/previews/mentorship-credits-pricing.webp",
+      "previewAlt": "MentorUnion mentorship credits pricing prototype showing three credit-pack options in the public landing-page view.",
+      "prototypePath": "prototypes/proposed_pricing_unified.html",
+      "sourcePath": "",
+      "approvedBy": "Product Manager",
+      "approvalReference": "Direct PM instruction to publish the current proposed_pricing_unified.html - 2026-07-13",
+      "device": "Responsive web"
+    }
+  ]
 }
