@@ -35,6 +35,12 @@ prototype-hub/
 │       ├── app.js
 │       └── styles.css
 └── prototypes/
+    ├── mentee-direct-onboarding/
+    │   ├── onboarding-app.html
+    │   ├── mentorunion-schema.css
+    │   └── assets/
+    │       ├── favicon.png
+    │       └── mentor-union-logo.png
     └── proposed_pricing_unified.html
 ```
 
@@ -44,7 +50,7 @@ The local `audit/` directory contains ignored validation evidence. It is not par
 
 1. Confirm explicit Product Manager approval for the exact artifact being published.
 2. Copy the final shareable artifact and any required local assets into `prototypes/` using relative, stable paths.
-3. Capture an accurate 16:10 preview from a clean default state and place it in `assets/previews/`.
+3. Capture an accurate 16:10 preview from a clean default or documented entry state and place it in `assets/previews/`.
 4. Add complete, verified metadata to `prototypes.json`.
 5. Confirm that the copied artifact and metadata contain no private paths, credentials, personal data, or confidential notes.
 6. Validate the preview, directory link, prototype interactions, search, applicable filters, keyboard use, and responsive layout.
@@ -81,7 +87,7 @@ The renderer rejects incomplete entries, non-approved status values, duplicate I
 
 ## Preview assets
 
-Use a 16:10 image, preferably 960 × 600 pixels in WebP format. Capture the prototype’s default state without open menus, modals, selections, tooltips, or test data. Do not use stock imagery. Add factual alternative text that describes what is visible.
+Use a 16:10 image, preferably 960 × 600 pixels in WebP format. Capture a clean default or documented entry state without incidental menus, selections, tooltips, or test data. An intentional flow-entry panel may be open when it is the clearest representation of the prototype. Do not use stock imagery. Add factual alternative text that describes what is visible.
 
 If a preview fails to load, the directory replaces it with `assets/previews/placeholder.svg`. The fallback is a safeguard, not a substitute for checking the real preview before publication.
 
@@ -97,7 +103,7 @@ Import the repository into Vercel as a static project:
 
 The project needs no `vercel.json`, rewrite, build output, server function, or environment variable. All internal deployment routes use relative paths and resolve to physical files, so direct prototype routes and refreshes work without a fallback rule.
 
-The current pricing prototype requests Google Fonts from `fonts.googleapis.com` and `fonts.gstatic.com`; system-font fallbacks keep it usable when those requests are unavailable. The hub itself has no external runtime dependency.
+The current prototypes request Google-hosted fonts: the pricing prototype uses typography families, and the onboarding prototype uses Material Symbols. Their core flows remain local, but onboarding icon glyphs may not render correctly when the Material Symbols request is unavailable. The hub itself has no external runtime dependency.
 
 Do not connect or deploy a Vercel project until the repository owner authorises it.
 
@@ -121,7 +127,13 @@ Prototype interactions may intentionally simulate product actions. Any inert pol
 
 ### Current prototype limitations
 
+#### Mentorship Credits Pricing
+
 `proposed_pricing_unified.html` is a review prototype, not a live purchase surface. Authentication, checkout, and recommendation actions are simulated; refund, terms, privacy, and contact links are intentionally inactive. Pack naming, selected pack benefits, and USD readiness remain proposals for review rather than launch commitments. Its only external dependency is optional Google Fonts typography.
+
+#### Mentee Direct Onboarding
+
+`onboarding-app.html` is a front-end review prototype. OAuth, phone verification, OTP resend, account/profile persistence, welcome-credit allocation, mentor matching, and booking are simulated. Verification writes entered values only to page memory and the browser console; reviewers should not enter real personal data. Mentor identities are generic fictional labels in the public copy, while roles, ratings, and counts are illustrative. Several mentor-directory controls are presentational only. Google-hosted Material Symbols is its only external runtime dependency. The card temporarily uses the neutral preview placeholder until an accurate flow-entry capture is generated.
 
 ## Maintenance ownership
 

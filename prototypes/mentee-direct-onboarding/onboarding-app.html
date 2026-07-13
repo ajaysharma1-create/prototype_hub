@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MentorUnion — Find your mentor</title>
+<meta name="description" content="MentorUnion mentee onboarding — get matched 1:1 with senior leaders. Interactive prototype.">
+<meta name="theme-color" content="#121212">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MentorUnion — Mentee Onboarding Prototype">
+<meta property="og:description" content="Interactive walkthrough: landing → guided signup → personalised mentor match.">
+<meta property="og:image" content="assets/favicon.png">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<link rel="stylesheet" href="mentorunion-schema.css">
+<style>
+/* ============ working-site layout — every control is from mentorunion-schema.css ============ */
+html{-webkit-text-size-adjust:100%}
+body{min-height:100vh;min-height:100dvh;overflow-x:hidden}
+.site{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+
+/* top nav */
+.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:26px;padding:16px 34px;border-bottom:1px solid var(--line);background:rgba(18,18,18,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.nav .logo{height:24px}
+.nav .links{display:flex;gap:24px;margin-left:8px}
+.nav .links a{color:var(--mut);font:600 13.5px var(--ff)}
+.nav .links a:hover{color:var(--tx)}
+.nav .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.nav .login{color:var(--tx-3);font:600 13.5px var(--ff)}
+@media (max-width:760px){ .nav .links{display:none} .nav{padding:14px 18px} }
+
+/* hero — deliberately muted/dull so attention goes to the signup journey,
+   not to the landing page itself. One amber CTA funnels users into the flow. */
+.hero{flex:1;display:flex;align-items:center;max-width:1120px;width:100%;margin:0 auto;padding:64px 34px}
+.hero-inner{max-width:600px}
+.kicker{font:600 11px var(--ff);letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+.hero h1{margin:16px 0 0;font:600 30px/1.28 var(--ff);letter-spacing:-.01em;color:var(--tx-4)}
+.hero p.lead{margin:15px 0 0;max-width:520px;font:400 15px/1.6 var(--ff);color:var(--mut-2)}
+.hero p.lead b{color:var(--tx-4);font-weight:600}
+.hero .cta{display:flex;align-items:center;gap:18px;margin-top:28px;flex-wrap:wrap}
+.btn.linklike{min-height:auto;padding:4px 2px;background:none;border:none;color:var(--mut);font:600 13.5px var(--ff)}
+.btn.linklike:hover{color:var(--tx-3)}
+.hero .trustline{margin-top:32px;font:500 12px/1.6 var(--ff);color:var(--faint)}
+@media (max-width:520px){ .nav{gap:12px;padding:13px 16px} .hero{padding:34px 18px} .hero h1{font-size:25px} .hero .cta{gap:12px} .hero .cta .btn.primary{width:100%} .btn.linklike{width:100%;text-align:left} }
+
+.foot{border-top:1px solid var(--line);padding:22px 34px;display:flex;gap:14px;align-items:center;color:var(--faint);font:500 12px var(--ff);flex-wrap:wrap}
+.foot .logo{height:18px;opacity:.7}
+.foot .sp{margin-left:auto}
+
+/* ===== onboarding overlay ===== */
+#overlay{position:fixed;inset:0;z-index:100;display:none}
+#overlay.show{display:block}
+#overlay .scrim{position:absolute;inset:0;background:var(--scrim);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+#overlay .holder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px}
+#flowcard{width:min(452px,100%);max-height:92vh;max-height:92dvh;overflow:auto;-webkit-overflow-scrolling:touch;animation:mu-fade .28s ease}
+@keyframes mu-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#flowcard::-webkit-scrollbar{width:0}
+@media (max-width:480px){ #overlay .holder{padding:10px} #flowcard{max-height:96dvh;padding:20px 18px} }
+
+/* persistence indicator chip */
+.pstate{display:inline-flex;align-items:center;gap:6px;border-radius:6px;padding:3px 9px;font:700 9.5px var(--ff);letter-spacing:.04em;white-space:nowrap}
+.pstate .sym{font-size:13px}
+.pstate.session{background:var(--inset);color:var(--tx-4);border:1px solid var(--line-chip)}
+.pstate.saved{background:var(--acc-12);color:var(--acc);border:1px solid var(--acc-22)}
+
+/* mentors page */
+#mentors{display:none}
+#mentors.show{display:block}
+#mentors .am{min-height:100vh;min-height:100dvh}
+.matchbanner{display:flex;align-items:center;gap:11px;background:var(--acc-12);border:1px solid var(--acc-22);border-radius:12px;padding:13px 16px;margin-bottom:18px}
+.matchbanner .sym{color:var(--acc);font-size:20px}
+.matchbanner b{color:var(--tx-hi)}
+.matchbanner .x2{margin-left:auto;color:var(--mut);cursor:pointer;font-size:18px}
+@media (max-width:1180px){ #mentors .mcards{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:1024px){ #mentors .filters{display:none} }
+@media (max-width:860px){ #mentors .am .topbar{flex-wrap:wrap;gap:12px} #mentors .am .search{width:100%;max-width:none;margin-left:0;order:2} }
+@media (max-width:760px){ #mentors .mcards{grid-template-columns:1fr} #mentors .filters{display:none} #mentors .am .rail{display:none} #mentors .am .main{padding:18px 16px 28px} #mentors .agendas{gap:18px} }
+
+/* booking toast */
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:200;background:var(--panel);border:1px solid var(--acc-22);border-radius:12px;padding:13px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-modal);opacity:0;transition:opacity .25s,transform .25s;font:600 13px var(--ff);color:var(--tx)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast .sym{color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="site" id="site">
+  <!-- NAV -->
+  <nav class="nav">
+    <img class="logo" src="assets/mentor-union-logo.png" alt="MentorUnion">
+    <div class="links"><a onclick="showMentors()">Mentors</a></div>
+    <div class="right">
+      <a class="login" onclick="openFlow()">Log in</a>
+      <button class="btn ghost" style="min-height:40px" onclick="openFlow()">Sign up</button>
+    </div>
+  </nav>
+
+  <!-- LANDING (intentionally plain — the signup journey is the focus) -->
+  <main class="hero" id="landing">
+    <div class="hero-inner">
+      <div class="kicker">MentorUnion · mentee onboarding</div>
+      <h1>Get mentored by people who've done the job.</h1>
+      <p class="lead">Tell us where you're headed and we'll match you 1:1 with senior leaders. Your first <b>2 credits are on us</b>.</p>
+      <div class="cta">
+        <button class="btn primary lg" onclick="openFlow()">Sign up — claim 2 credits</button>
+        <button class="btn linklike" onclick="showMentors()">Browse mentors</button>
+      </div>
+      <div class="trustline">Mentors from Google · McKinsey · Swiggy · Unilever · Amazon · Bain · Microsoft</div>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <img class="logo" src="assets/mentor-union-logo.png" alt="MentorUnion">
+    <span>Mentee onboarding · working prototype</span>
+    <span class="sp">Built on the MentorUnion Design Schema</span>
+  </footer>
+</div>
+
+<!-- MENTORS PAGE -->
+<section id="mentors">
+  <div class="am">
+    <div class="rail">
+      <div class="ico" onclick="backToLanding()" title="Home"><span class="sym">home</span></div>
+      <div class="ico"><span class="sym">call</span></div>
+      <div class="ico on"><span class="sym">group</span></div>
+      <div class="ico"><span class="sym">menu_book</span></div>
+      <div class="ico"><i class="coin"></i></div>
+      <div class="ico"><span class="sym">receipt_long</span></div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <h2>All Mentors</h2>
+        <div class="search"><span class="sym">search</span>Search mentors, industries, domains and more…</div>
+      </div>
+      <div id="matchbanner"></div>
+      <div class="agendas" id="agendas"></div>
+      <div class="subchips" id="subchips">
+        <span class="sc on">All</span><span class="sc">Cover Letter</span><span class="sc">Resume Review</span><span class="sc">SOP &amp; Assignment</span><span class="sc">LinkedIn Profile</span><span class="sc">Professional Projects</span>
+      </div>
+      <div class="amlayout">
+        <aside class="filters">
+          <div class="fcard">
+            <div class="fh">Sort by<span class="sym">expand_less</span></div>
+            <div class="opt on"><span class="rd"></span>Best match (recommended)</div>
+            <div class="opt"><span class="rd"></span>Soonest available</div>
+            <div class="opt"><span class="rd"></span>Highest rated</div>
+            <div class="opt"><span class="rd"></span>Experience (high to low)</div>
+            <div class="grp">Functional Domain<span class="sym">expand_more</span></div>
+            <div class="grp">Expertise<span class="sym">expand_more</span></div>
+            <div class="grp">Industry<span class="sym">expand_more</span></div>
+            <div class="grp">Company / Brand<span class="sym">expand_more</span></div>
+            <div class="grp">Experience Level<span class="sym">expand_more</span></div>
+            <div class="grp">Rating<span class="sym">expand_more</span></div>
+            <div class="grp">Availability<span class="sym">expand_more</span></div>
+          </div>
+        </aside>
+        <div class="mcards" id="mcards"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ONBOARDING OVERLAY -->
+<div id="overlay">
+  <div class="scrim" onclick="closeFlow()"></div>
+  <div class="holder"><div class="card" id="flowcard"></div></div>
+</div>
+
+<div id="toast"><span class="sym">check_circle</span><span id="toastmsg"></span></div>
+
+<script>
+/* ============================================================
+   Data
+   ============================================================ */
+const DOMAINS = ['Consulting & Strategy','Sales, Brand & Marketing','Tech & Product',"Chief of Staff & Founder's Office",'Data Science & AI','Entrepreneurship & Startups','Communication & Leadership','PEVC, Banking & Investments','Accounting & Finance','Operations & Supply Chain','OB & Human Resource (People / HR)','Blockchain, Crypto & FinTech','Content Creation','Legal, Policies & Economics','Sustainability & ESG','Other / not sure yet'];
+const INDUSTRIES = ['Tech, IT, Telecom, AI and ML','Banking, Insurance & Financial Services','Consulting, Legal & Professional Services','Retail, E-commerce & Q-commerce','Education and EdTech','Media and Entertainment','Healthcare, Pharma & Medical Devices','Electronics & Consumer Goods','Logistics & Supply Chain','Automotive and EV','Hospitality and Tourism','Construction and Real Estate','FMCG','Government and Public Sector','Agriculture, AgriTech and FoodTech','Aerospace, Defense and SpaceTech','Chemicals and Petrochemicals','Oil, Gas, Solar and Energy','Non-Profit and Social Impact','Environment, Utilities and GreenTech','Other'];
+const COMPANIES = ['Big Tech','Consulting (MBB / Big 4)','Banking & Finance','High-growth / Q-commerce startups','Product / SaaS','FMCG / Consumer','Not sure yet'];
+const ATTRIB = ['LinkedIn','Instagram','YouTube','Google','Friend / referral','A mentor','College / university','Event / webinar',"Other / don't remember"];
+const STATUSES = ['Student / Fresher','Working professional','Founder / self-employed','On a career break / exploring'];
+const STAGES = {
+  'Student / Fresher':['In college — 1st/2nd year','In college — 3rd year','In college — final year','Postgrad','Graduated'],
+  'Working professional':['<1 year','1–3 years','3–5 years','5–8 years','8–12 years','12+ years'],
+  'Founder / self-employed':['<1 year','1–3 years','3–5 years','5–8 years','8–12 years','12+ years'],
+  'On a career break / exploring':['No prior experience','<1 year','1–3 years','3–5 years','5+ years']
+};
+const GOALS = {
+  'Student / Fresher':['In college — preparing for placements','In college — looking for projects or skills under a mentor','Graduated — looking for my first job','Planning higher studies / study abroad','Still exploring career paths'],
+  'Working professional':['Employed — targeting a promotion','Employed — switching to another domain or role','Employed — switching to another company','Unemployed — restarting after a career break','Unemployed — looking for a job in my current domain','Unemployed — looking for a job in another domain','Growing as a leader / upskilling'],
+  'Founder / self-employed':['Building my startup from 0 to 1','Raising funds / investor readiness','Growth and GTM','Scaling operations and team'],
+  'On a career break / exploring':['Restarting my career','Reskilling / changing direction','Exploring options']
+};
+const AGENDAS = ['Resume Prep','Mock Interview','Career Roadmap','Building Startup','Grow Your Brand','Case / Guesstimates','Pitchdeck Review'];
+// Fictional sample profiles and metrics for public prototype review.
+const MENTORS = [
+  {name:'Demo Mentor 01', role:'Director, Product · ex-Microsoft, ex-Swiggy', exp:'9+ yrs', calls:'140+ calls', rating:'4.9', domains:['Tech & Product','Data Science & AI'], agendas:['Career Roadmap','Mock Interview','Resume Prep'], credits:2},
+  {name:'Demo Mentor 02', role:'Partner · ex-McKinsey', exp:'12+ yrs', calls:'210+ calls', rating:'5.0', domains:['Consulting & Strategy'], agendas:['Case / Guesstimates','Career Roadmap'], credits:3},
+  {name:'Demo Mentor 03', role:'CXO · ex-Microsoft', exp:'15+ yrs', calls:'95+ calls', rating:'4.8', domains:['Communication & Leadership','Tech & Product'], agendas:['Career Roadmap','Grow Your Brand'], credits:2},
+  {name:'Demo Mentor 04', role:'VP Marketing · ex-Unilever', exp:'11+ yrs', calls:'130+ calls', rating:'4.9', domains:['Sales, Brand & Marketing'], agendas:['Grow Your Brand','Mock Interview'], credits:2},
+  {name:'Demo Mentor 05', role:'Founder · YC-backed', exp:'7+ yrs', calls:'80+ calls', rating:'4.7', domains:['Entrepreneurship & Startups'], agendas:['Building Startup','Pitchdeck Review'], credits:2},
+  {name:'Demo Mentor 06', role:'Sr Data Scientist · ex-Google', exp:'8+ yrs', calls:'110+ calls', rating:'5.0', domains:['Data Science & AI','Tech & Product'], agendas:['Mock Interview','Resume Prep'], credits:2},
+  {name:'Demo Mentor 07', role:'Principal PM · ex-Amazon', exp:'10+ yrs', calls:'120+ calls', rating:'4.8', domains:['Tech & Product',"Chief of Staff & Founder's Office"], agendas:['Resume Prep','Mock Interview','Career Roadmap'], credits:2},
+  {name:'Demo Mentor 08', role:'Director Strategy · ex-Bain', exp:'13+ yrs', calls:'160+ calls', rating:'4.9', domains:['Consulting & Strategy','PEVC, Banking & Investments'], agendas:['Case / Guesstimates','Career Roadmap'], credits:3}
+];
+
+/* ============================================================
+   Session state (NOTHING persists until phone OTP succeeds)
+   ============================================================ */
+let S, idx, otpTimer;
+function freshSession(){ return {method:null,firstName:'',lastName:'',email:'',phone:'',status:'',stage:'',goal:'',domains:[],industries:[],companies:[],attribution:'',committed:false}; }
+
+function flowOrder(){
+  const a=['entry'];
+  if(S.method==='phone' || S.method==='linkedin') a.push('name'); // google returns a usable name → name step skipped
+  a.push('status','stage','goal','domains','industry','companies','claim','otp','success');
+  return a;
+}
+const PROG = {entry:8,name:16,status:28,stage:42,goal:56,domains:70,industry:84,companies:92,claim:100,otp:100,success:100};
+
+function openFlow(){ S=freshSession(); idx=0; document.getElementById('overlay').classList.add('show'); render(); }
+function closeFlow(){ document.getElementById('overlay').classList.remove('show'); clearInterval(otpTimer); }
+function key(){ return flowOrder()[idx]; }
+function go(k){ idx=flowOrder().indexOf(k); render(); }
+function next(){ const f=flowOrder(); if(idx<f.length-1){ idx++; render(); } }
+function back(){ if(idx>0){ idx--; render(); } }
+
+/* ---- builders ---- */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function ddHTML(field, ph, opts){
+  const val=S[field];
+  const rows=opts.map(o=>`<div class="opt${o===val?' sel':''}" data-v="${esc(o)}">${esc(o)}</div>`).join('');
+  return `<div class="dd" data-field="${field}">
+    <button class="trig${val?'':' ph'}" type="button">${val?esc(val):ph}<span class="sym ch">expand_more</span></button>
+    <div class="menu">${rows}</div></div>`;
+}
+function chipsHTML(field, opts, max){
+  const sel=S[field];
+  const chips=opts.map(o=>{
+    const on=sel.includes(o);
+    const dim=!on && sel.length>=max;
+    return `<button type="button" class="chip${on?' sel':''}${dim?' dim':''}" data-v="${esc(o)}">${on?'<span class="sym">check</span>':''}${esc(o)}</button>`;
+  }).join('');
+  return `<div class="chips" data-field="${field}" data-max="${max}">${chips}</div>`;
+}
+function selbarHTML(field, max){
+  return `<div class="selbar"><span>Pick up to ${max}</span><span class="cnt"><b>${S[field].length}</b> / ${max} selected</span></div>`;
+}
+function ctop(){ return `<div class="ctop"><div class="prog"><i style="width:${PROG[key()]}%"></i></div>
+   <span class="pstate ${S.committed?'saved':'session'}"><span class="sym">${S.committed?'cloud_done':'lock'}</span>${S.committed?'SAVED':'SESSION ONLY'}</span>
+   <button class="x" onclick="closeFlow()"><span class="sym">close</span></button></div>`; }
+function foot(primary, label, opts){
+  opts=opts||{};
+  const dis = opts.enabled===false ? 'disabled' : '';
+  const skip = opts.skip ? `<button class="btn ghost" type="button" onclick="next()">Skip</button>` : `<button class="btn ghost" type="button" onclick="back()">Back</button>`;
+  const showBack = opts.back!==false;
+  return `<div class="cfoot">${showBack?skip:''}<button class="btn primary ${opts.lg?'lg':''}" id="primaryBtn" ${dis} onclick="${primary}">${label}</button></div>`;
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function render(){
+  const card=document.getElementById('flowcard'); const k=key(); card.classList.remove('narrow');
+  let h='';
+  if(k==='entry'){
+    h = `<div class="ctop"><div style="flex:1"></div><button class="x" onclick="closeFlow()"><span class="sym">close</span></button></div>
+      <div class="brand"><img src="assets/mentor-union-logo.png" alt="MentorUnion" style="height:24px"></div>
+      <div class="q"><h3>Create your account</h3><p class="sub">Get matched 1:1 with senior leaders — CXOs, founders and operators who've done the job.</p></div>
+      <div class="body">
+        <button class="btn oauth full" onclick="pickOAuth('google')"><span class="gl">${GG}</span>Continue with Google</button>
+        <button class="btn oauth full" onclick="pickOAuth('linkedin')"><span class="gl">${LI}</span>Continue with LinkedIn</button>
+        <div class="or"><span>or</span></div>
+        <label class="field"><span class="pfx">+91 <span class="sym" style="font-size:16px;color:var(--icon)">expand_more</span></span><input id="entryPhone" inputmode="numeric" placeholder="Phone number" value="${esc(S.phone)}" oninput="this.closest('.field').style.borderColor=''" onkeydown="if(event.key==='Enter')pickPhone()"></label>
+        <button class="btn primary full" onclick="pickPhone()">Continue</button>
+        <p class="fine">No email/password signup. We use your number only to secure your account. <a onclick="event.preventDefault()">Log in</a></p>
+        <p class="persist"><span class="sym">lock</span>Entry method & phone are held in this session only — not verified, no account yet.</p>
+      </div>`;
+  }
+  else if(k==='name'){
+    const fb = S.method==='linkedin';
+    h = ctop() + `
+      <div class="q"><span class="steplbl">${fb?'Signed in with LinkedIn':'Phone signup'}</span><h3>${fb?'Confirm your name':'What should we call you?'}</h3><p class="sub">${fb?"LinkedIn didn't return a usable name, so we need it before continuing.":'First name is enough — last name is optional.'}</p></div>
+      <div class="body">
+        <div class="frow">
+          <label class="field lbl"><span class="flabel">First name <span class="req">*</span></span><div class="field"><input id="fn" placeholder="Demo" value="${esc(S.firstName)}" oninput="S.firstName=this.value;upd()"></div></label>
+          <label class="field lbl"><span class="flabel">Last name <span class="opt">optional</span></span><div class="field"><input id="ln" placeholder="User" value="${esc(S.lastName)}" oninput="S.lastName=this.value"></div></label>
+        </div>
+        ${foot('next()','Continue',{enabled:!!S.firstName.trim()})}
+        <p class="persist"><span class="sym">lock</span>Saved to this session only — your account isn't created yet.</p>
+      </div>`;
+  }
+  else if(k==='status'){
+    const oauthNote = S.method==='google' ? `<div class="calm"><span class="sym">check_circle</span><p>Signed in with Google as <b>${esc(S.email)}</b>. We've got your name — straight to matching.</p></div>` : '';
+    h = ctop() + `
+      <div class="q"><span class="steplbl">Step 1 of 5 · about you</span><h3>I'm currently…</h3><p class="sub">Sets your persona so we rank the right mentors first.</p></div>
+      <div class="body">${oauthNote}${ddHTML('status','Select one',STATUSES)}
+        <div style="height:90px"></div>
+        ${foot('next()','Continue',{enabled:!!S.status})}
+        <p class="persist"><span class="sym">lock</span>Session only — editable later from your profile.</p>
+      </div>`;
+  }
+  else if(k==='stage'){
+    h = ctop() + `
+      <div class="q"><span class="steplbl">Step 2 of 5 · about you</span><h3>Your experience</h3></div>
+      <div class="body"><span class="ctx"><span class="sym">arrow_outward</span>Based on&nbsp;<b>${esc(S.status)}</b></span>
+        ${ddHTML('stage','Select one',STAGES[S.status]||[])}
+        <div style="height:60px"></div>
+        ${foot('next()','Continue',{enabled:!!S.stage})}
+        <p class="persist"><span class="sym">lock</span>Session only.</p></div>`;
+  }
+  else if(k==='goal'){
+    h = ctop() + `
+      <div class="q"><span class="steplbl">Step 3 of 5 · about you</span><h3>My goal right now</h3></div>
+      <div class="body"><span class="ctx"><span class="sym">arrow_outward</span>Goals for&nbsp;<b>${esc(S.status)}</b></span>
+        ${ddHTML('goal','Select one',GOALS[S.status]||[])}
+        <div style="height:30px"></div>
+        ${foot('next()','Continue',{enabled:!!S.goal})}
+        <p class="persist"><span class="sym">lock</span>Session only — durable trajectory signal.</p></div>`;
+  }
+  else if(k==='domains'){
+    h = ctop() + `
+      <div class="q"><span class="steplbl">Step 4 of 5 · matching</span><h3>What do you want to grow in?</h3><p class="sub">Your primary matching axis.</p></div>
+      <div class="body">${selbarHTML('domains',3)}${chipsHTML('domains',DOMAINS,3)}
+        ${foot('next()','Continue',{enabled:S.domains.length>0})}
+        <p class="persist"><span class="sym">lock</span>Session only · max 3 · canonical functional-domain taxonomy.</p></div>`;
+  }
+  else if(k==='industry'){
+    h = ctop() + `
+      <div class="q"><span class="steplbl">Step 5 of 5 · matching</span><h3>Which industry are you in or targeting?</h3><p class="sub">Secondary matching axis.</p></div>
+      <div class="body">${selbarHTML('industries',2)}${chipsHTML('industries',INDUSTRIES,2)}
+        ${foot('next()','Continue',{enabled:S.industries.length>0})}
+        <p class="persist"><span class="sym">lock</span>Session only · max 2 · top-20 by mentor coverage.</p></div>`;
+  }
+  else if(k==='companies'){
+    h = ctop() + `
+      <div class="q"><span class="steplbl">Optional · sharpen your match</span><h3>Where do you want to reach?</h3><p class="sub">Optional — it helps us prioritise mentors from the right rooms.</p></div>
+      <div class="body">${chipsHTML('companies',COMPANIES,9)}
+        <div class="calm" style="margin-top:6px"><span class="sym">auto_awesome</span><p>Shown only when it sharpens matching. You can <b>skip</b> straight to claiming your credits.</p></div>
+        ${foot('next()','Continue',{skip:true})}
+        <p class="persist"><span class="sym">lock</span>Session only · conditional precision step.</p></div>`;
+  }
+  else if(k==='claim'){
+    const editing = !S.phone || S._editPhone;
+    const phoneRow = !editing
+      ? `<div class="box"><span class="sym" style="color:var(--icon);font-size:18px;margin-right:8px">smartphone</span>+91 ${esc(S.phone)}<a class="edit" onclick="editPhone()">Edit<span class="sym">edit</span></a></div>`
+      : `<label class="field"><span class="pfx">+91 <span class="sym" style="font-size:16px;color:var(--icon)">expand_more</span></span><input id="claimPhone" inputmode="numeric" placeholder="Phone number" value="${esc(S.phone)}" oninput="S.phone=this.value;upd()"></label>`;
+    h = ctop() + `
+      <div class="q"><h3>Claim your 2 credits 🎉</h3><p class="sub">Last step. Verify your number to unlock your matches and your 2 welcome credits.</p></div>
+      <div class="body" style="gap:14px">
+        <div><span class="flabel">How did you hear about us? <span class="req">*</span></span>${ddHTML('attribution','Select one',ATTRIB)}</div>
+        <div><span class="flabel">Email <span class="opt">recommended</span>
+          <span class="info" tabindex="0"><span class="sym">info</span><span class="tip">Add an email for booking confirmations, calendar invites, receipts and account recovery. Optional — you can add it later. We won't verify it now.</span></span></span>
+          <label class="field"><span class="sym" style="color:var(--icon);font-size:18px">mail</span><input placeholder="you@email.com (optional)" value="${esc(S.email)}" oninput="S.email=this.value"></label></div>
+        <div><span class="flabel">Mobile number <span class="req">*</span></span>${phoneRow}</div>
+        <div class="callout"><i class="coin"></i><p><b>Verify your number to claim 2 credits.</b> A credit is the unit used to book MentorUnion mentor sessions.</p></div>
+        <button class="btn primary full lg" id="primaryBtn" ${claimReady()?'':'disabled'} onclick="next()"><span class="sym">verified</span>Verify &amp; claim 2 credits</button>
+        <p class="persist"><span class="sym">lock</span>Still session only — the next step (OTP) is what creates your account.</p>
+      </div>`;
+  }
+  else if(k==='otp'){
+    h = ctop() + `
+      <div class="q"><h3>Enter the code</h3><p class="sub">Sent on <b id="otpChannel">WhatsApp</b> to <b style="color:var(--tx-3)">+91 ${esc(S.phone||'00000 00000')}</b>. <a onclick="go('claim')">Wrong number? Edit</a></p></div>
+      <div class="body">
+        <div class="calm" style="background:var(--acc-12);border-color:var(--acc-22)"><span class="sym" style="color:var(--acc)">chat</span><p style="color:var(--tx-3)">We sent it on <b>WhatsApp</b>. No WhatsApp? <a onclick="useSMS()">Get it by SMS instead</a>.</p></div>
+        <div class="otp" id="otp">${[0,1,2,3,4,5].map(i=>`<input maxlength="1" inputmode="numeric" data-i="${i}">`).join('')}</div>
+        <div class="resend"><span class="muted" id="resendMsg">Didn't get it? Resend in 0:24</span><a id="resendBtn" style="display:none" onclick="resend()"><span class="sym">refresh</span>Resend</a></div>
+        <button class="btn primary full lg" id="primaryBtn" disabled onclick="commitAndFinish()"><span class="sym">verified</span>Verify &amp; claim 2 credits</button>
+        <p class="persist ok"><span class="sym">cloud_done</span>On verify: account created, phone verified, profile written, 2 credits granted.</p>
+      </div>`;
+  }
+  else if(k==='success'){
+    const m = bestMentor();
+    h = `<div class="ctop"><div class="prog"><i style="width:100%"></i></div><span class="pstate saved"><span class="sym">cloud_done</span>SAVED</span><button class="x" onclick="closeFlow()"><span class="sym">close</span></button></div>
+      <div class="body" style="align-items:center">
+        <div class="ok-badge"><span class="sym">check</span></div>
+        <h3 style="margin:12px 0 0;font:700 21px var(--ff);text-align:center;color:var(--tx-hi)">You're all set${S.firstName?', '+esc(S.firstName):''}</h3>
+        <div class="credit-chip"><i class="coin"></i><b>2 credits</b><span>added to your account</span></div>
+        <p class="sub" style="text-align:center;margin-top:10px">A credit is the unit used to book MentorUnion mentor sessions. Here's your strongest match to start with.</p>
+        <div class="m-card" style="width:100%;margin-top:6px">
+          <div class="ph"><span class="sym">person</span><span class="rt"><span class="sym">star</span>${m.rating}</span></div>
+          <div class="mb">
+            <span class="bestfor"><span class="sym">target</span>Best match for your goal</span>
+            <div class="m-name">${esc(m.name)} ${LIin}</div>
+            <div class="m-role">${esc(m.role)}</div>
+            <div class="m-meta">${esc(m.exp)} of experience · ${esc(m.calls)}</div>
+            <div class="m-tags">${m.domains.map(d=>`<span>${esc(d)}</span>`).join('')}</div>
+            <button class="btn primary full" onclick="book('${esc(m.name)}',${m.credits})"><span class="sym">videocam</span>Book — ${m.credits} credits (30 min)</button>
+          </div>
+        </div>
+        <button class="btn secondary full" style="margin-top:10px" onclick="goMentorsFromSuccess()">Browse all mentors</button>
+        <p class="persist ok"><span class="sym">cloud_done</span>Committed. Routed to a personalised recommendation — not a generic list.</p>
+      </div>`;
+  }
+  card.innerHTML=h;
+  if(k==='otp') initOtp();
+  const inp=card.querySelector('#fn'); if(inp) inp.focus();
+}
+
+/* ---- entry handlers ---- */
+function pickOAuth(p){
+  S.method=p;
+  if(p==='google'){ S.firstName='Demo'; S.lastName='User'; S.email='demo.user@example.com'; }
+  else { S.firstName=''; S.lastName=''; S.email='demo.user@linkedin.example'; } // simulate: no usable name → fallback name step
+  S.phone='';
+  next();
+}
+function pickPhone(){
+  const v=(document.getElementById('entryPhone').value||'').trim();
+  if(!v){ document.getElementById('entryPhone').closest('.field').style.borderColor='var(--req)'; return; }
+  S.method='phone'; S.phone=v; next();
+}
+function editPhone(){ S._editPhone=true; render(); setTimeout(()=>{var i=document.getElementById('claimPhone'); if(i){i.focus();}},0); }
+function claimReady(){ return !!S.attribution && !!(S.phone && S.phone.trim()); }
+function upd(){ // refresh primary button enabled-state without full re-render
+  const k=key(); const btn=document.getElementById('primaryBtn'); if(!btn) return;
+  if(k==='name') btn.disabled=!S.firstName.trim();
+  else if(k==='claim') btn.disabled=!claimReady();
+}
+
+/* ---- delegated: dropdowns & chips ---- */
+document.addEventListener('click',function(e){
+  const trig=e.target.closest('#flowcard .dd .trig');
+  if(trig){ e.stopPropagation(); trig.parentElement.classList.toggle('open'); return; }
+  const opt=e.target.closest('#flowcard .dd .opt');
+  if(opt){
+    const dd=opt.closest('.dd'); const field=dd.dataset.field;
+    S[field]=opt.dataset.v;
+    if(field==='status'){ S.stage=''; S.goal=''; } // reset dependent answers
+    dd.querySelectorAll('.opt').forEach(x=>x.classList.toggle('sel',x===opt));
+    const t=dd.querySelector('.trig'); t.classList.remove('ph'); t.childNodes[0].nodeValue=opt.dataset.v;
+    dd.classList.remove('open');
+    const btn=document.getElementById('primaryBtn');
+    if(btn){ const k=key(); if(['status','stage','goal'].includes(k)) btn.disabled=!S[k]; if(k==='claim') btn.disabled=!claimReady(); }
+    return;
+  }
+  const chip=e.target.closest('#flowcard .chips .chip');
+  if(chip){
+    const wrap=chip.closest('.chips'); const field=wrap.dataset.field; const max=+wrap.dataset.max;
+    const v=chip.dataset.v; const arr=S[field]; const i=arr.indexOf(v);
+    if(i>=0) arr.splice(i,1); else { if(arr.length>=max) return; arr.push(v); }
+    // re-render chips region only, then refresh the count + Continue state
+    wrap.outerHTML = chipsHTML(field,(field==='domains'?DOMAINS:field==='industries'?INDUSTRIES:COMPANIES),max);
+    const cnt=document.querySelector('#flowcard .selbar .cnt b'); if(cnt) cnt.textContent=S[field].length;
+    const btn=document.getElementById('primaryBtn');
+    if(btn){ const k=key(); if(k==='domains') btn.disabled=S.domains.length===0; if(k==='industry') btn.disabled=S.industries.length===0; }
+    return;
+  }
+  if(!e.target.closest('#flowcard .dd')) document.querySelectorAll('#flowcard .dd.open').forEach(d=>d.classList.remove('open'));
+});
+
+/* ---- OTP ---- */
+function initOtp(){
+  const wrap=document.getElementById('otp'); const inputs=[...wrap.querySelectorAll('input')];
+  inputs[0].focus();
+  inputs.forEach((inp,i)=>{
+    inp.addEventListener('input',()=>{
+      inp.value=inp.value.replace(/\D/g,'').slice(0,1);
+      if(inp.value && i<5) inputs[i+1].focus();
+      const code=inputs.map(x=>x.value).join('');
+      document.getElementById('primaryBtn').disabled = code.length<6;
+    });
+    inp.addEventListener('keydown',e=>{ if(e.key==='Backspace' && !inp.value && i>0) inputs[i-1].focus(); });
+  });
+  let t=24; const msg=document.getElementById('resendMsg'); const btn=document.getElementById('resendBtn');
+  clearInterval(otpTimer);
+  otpTimer=setInterval(()=>{ t--; if(t<=0){ clearInterval(otpTimer); msg.style.display='none'; btn.style.display='inline-flex'; } else { msg.textContent='Didn’t get it? Resend in 0:'+(t<10?'0':'')+t; } },1000);
+}
+function resend(){ document.getElementById('resendBtn').style.display='none'; const msg=document.getElementById('resendMsg'); msg.style.display='inline'; initOtp(); }
+function useSMS(){ document.getElementById('otpChannel').textContent='SMS'; toast('Code re-sent by SMS'); }
+
+/* ---- commit: the ONLY write ---- */
+function commitAndFinish(){
+  S.committed=true;
+  window.MENTORUNION_DB = JSON.parse(JSON.stringify(S));   // simulated DB write
+  console.log('%c[MentorUnion] Phone verified → committed to DB & granted 2 credits','color:#d2a25a',window.MENTORUNION_DB);
+  next(); // success
+}
+function bestMentor(){
+  const scored=MENTORS.map(m=>({m,score:m.domains.filter(d=>S.domains.includes(d)).length}));
+  scored.sort((a,b)=>b.score-a.score || (+b.m.rating)-(+a.m.rating));
+  return scored[0].m;
+}
+
+/* ---- success → mentors ---- */
+let bestName=null;
+function goMentorsFromSuccess(){ bestName=bestMentor().name; closeFlow(); showMentors(true); }
+function book(name,credits){ toast('Session requested with '+name+' — '+credits+' credits will be used at confirmation.'); }
+
+/* ============================================================
+   Mentors page
+   ============================================================ */
+function renderAgendas(active){
+  document.getElementById('agendas').innerHTML = AGENDAS.map(a=>`<a class="${a===active?'on':''}" onclick="renderMentors('${a.replace(/'/g,"\\'")}')">${a}</a>`).join('');
+}
+function renderMentors(agenda){
+  agenda=agenda||'Resume Prep'; renderAgendas(agenda);
+  const list=MENTORS.filter(m=>m.agendas.includes(agenda));
+  const data=list.length?list:MENTORS;
+  // best match (if arrived from onboarding) floats first
+  data.sort((a,b)=> (a.name===bestName?-1:b.name===bestName?1:0) || (+b.rating)-(+a.rating));
+  document.getElementById('mcards').innerHTML = data.map(m=>{
+    const isBest=m.name===bestName;
+    const cta = isBest
+      ? `<button class="btn primary full" onclick="book('${esc(m.name)}',${m.credits})"><span class="sym">videocam</span>Book — ${m.credits} credits</button>`
+      : `<button class="btn ghost full" onclick="book('${esc(m.name)}',${m.credits})">Schedule a call</button>`;
+    return `<div class="m-card"><div class="ph"><span class="sym">person</span><span class="rt"><span class="sym">star</span>${m.rating}</span></div>
+      <div class="mb">${isBest?'<span class="bestfor"><span class="sym">target</span>Best match for your goal</span>':''}
+        <div class="m-name">${esc(m.name)}</div><div class="m-role">${esc(m.role)}</div>
+        <div class="m-meta">${esc(m.exp)} · ${esc(m.calls)}</div>
+        <div class="m-tags">${m.domains.slice(0,1).map(d=>`<span>${esc(d)}</span>`).join('')}<span>${esc(agenda)}</span></div>
+        ${cta}</div></div>`;
+  }).join('');
+}
+function showMentors(fromOnboarding){
+  document.getElementById('site').style.display='none';
+  document.getElementById('mentors').classList.add('show');
+  const banner=document.getElementById('matchbanner');
+  if(fromOnboarding){
+    banner.innerHTML=`<span class="sym">check_circle</span><div><b>You're in — 2 credits added.</b> Pre-filtered to your goal. Session Agendas below are filters here, not part of signup.</div><span class="x2" onclick="this.parentElement.innerHTML=''">close</span>`;
+  } else { banner.innerHTML=''; }
+  renderMentors('Resume Prep');
+  window.scrollTo(0,0);
+}
+function backToLanding(){
+  document.getElementById('mentors').classList.remove('show');
+  document.getElementById('site').style.display='';
+  window.scrollTo(0,0);
+}
+
+/* subchips + sort toggles on the mentors page */
+document.querySelectorAll('#subchips .sc').forEach(s=>s.addEventListener('click',()=>{document.querySelectorAll('#subchips .sc').forEach(x=>x.classList.remove('on'));s.classList.add('on');}));
+document.querySelectorAll('#mentors .filters .opt').forEach(o=>o.addEventListener('click',()=>{document.querySelectorAll('#mentors .filters .opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');}));
+
+/* toast */
+let toastT;
+function toast(msg){ const t=document.getElementById('toast'); document.getElementById('toastmsg').textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),3200); }
+
+/* brand glyphs */
+const GG='<svg viewBox="0 0 48 48" width="20" height="20"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.1-11.3-7.6l-6.5 5C9.6 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C39.9 36.6 44 31 44 24c0-1.3-.1-2.3-.4-3.5z"/></svg>';
+const LI='<svg viewBox="0 0 24 24" width="20" height="20"><rect width="24" height="24" rx="4" fill="#0A66C2"/><path fill="#fff" d="M7.1 9.3H4.5V18h2.6V9.3zM5.8 8.1c.85 0 1.4-.57 1.4-1.28C7.17 6.08 6.65 5.5 5.8 5.5s-1.4.58-1.4 1.32c0 .71.55 1.28 1.4 1.28zM18.5 18v-4.8c0-2.46-1.32-3.6-3.07-3.6-1.42 0-2.05.78-2.4 1.33V9.3h-2.6V18h2.6v-4.6c0-1.05.74-1.5 1.4-1.5.66 0 1.47.46 1.47 1.53V18h2.6z"/></svg>';
+const LIin='<svg class="in" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#0A66C2"/><path fill="#fff" d="M7.1 9.3H4.5V18h2.6V9.3zM5.8 8.1c.85 0 1.4-.57 1.4-1.28C7.17 6.08 6.65 5.5 5.8 5.5s-1.4.58-1.4 1.32c0 .71.55 1.28 1.4 1.28zM18.5 18v-4.8c0-2.46-1.32-3.6-3.07-3.6-1.42 0-2.05.78-2.4 1.33V9.3h-2.6V18h2.6v-4.6c0-1.05.74-1.5 1.4-1.5.66 0 1.47.46 1.47 1.53V18h2.6z"/></svg>';
+
+/* init mentors grid (so Browse works even without onboarding) */
+renderMentors('Resume Prep');
+
+/* deep links: #signup opens the flow, #mentors shows the directory,
+   #step:KEY jumps to a step with demo data (reviewer / QA shortcut) */
+function seedDemo(){
+  S=freshSession();
+  S.method='phone'; S.firstName='Demo'; S.lastName='User'; S.phone='00000 00000';
+  S.status='Working professional'; S.stage='3–5 years'; S.goal='Employed — switching to another domain or role';
+  S.domains=['Consulting & Strategy','Tech & Product','Data Science & AI'];
+  S.industries=['Tech, IT, Telecom, AI and ML','Consulting, Legal & Professional Services'];
+  S.companies=['Big Tech','Consulting (MBB / Big 4)']; S.attribution='LinkedIn';
+}
+if(location.hash==='#signup') openFlow();
+else if(location.hash==='#mentors') showMentors();
+else if(location.hash.indexOf('#step:')===0){ seedDemo(); document.getElementById('overlay').classList.add('show'); go(location.hash.split(':')[1]); }
+</script>
+</body>
+</html>
