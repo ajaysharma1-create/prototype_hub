@@ -1,0 +1,6 @@
+# Local audit evidence is intentionally excluded from the public repository.
+/audit/
+
+# Operating-system artifacts.
+.DS_Store
+Thumbs.db

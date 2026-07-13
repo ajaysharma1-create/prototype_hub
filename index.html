@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The central directory for approved MentorUnion product and design prototypes.">
+  <meta name="color-scheme" content="dark">
+  <title>Prototype Hub</title>
+  <link rel="icon" href="assets/icons/hub-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/shared/styles.css">
+  <script src="assets/shared/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#prototype-directory">Skip to prototype directory</a>
+
+  <header class="site-header">
+    <div class="nav-inner">
+      <a class="brand" href="index.html" aria-label="Prototype Hub home">MentorUnion</a>
+      <span class="header-label">Prototype Hub</span>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">PROTOTYPE DIRECTORY</p>
+      <h1 id="page-title">Approved prototypes</h1>
+      <p class="hero-copy">Open approved product and design prototypes.</p>
+
+      <dl class="summary" aria-label="Directory summary">
+        <div class="summary-item">
+          <dt>Published</dt>
+          <dd id="published-count">0</dd>
+        </div>
+        <div class="summary-item">
+          <dt>Under review</dt>
+          <dd id="review-count">0</dd>
+        </div>
+        <div class="summary-item">
+          <dt>Updated</dt>
+          <dd id="last-updated">13 July 2026</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="directory" id="prototype-directory" aria-labelledby="directory-title">
+      <div class="section-heading">
+        <h2 id="directory-title">All prototypes</h2>
+        <p id="result-count" class="result-count" aria-live="polite">0 prototypes</p>
+      </div>
+
+      <form class="filters" id="filters" role="search" aria-label="Filter approved prototypes">
+        <div class="filter-field search-field">
+          <label for="prototype-search">Search</label>
+          <div class="search-control">
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
+              <path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>
+            </svg>
+            <input id="prototype-search" name="search" type="search" placeholder="Name or description" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="filter-field">
+          <label for="project-filter">Project</label>
+          <select id="project-filter" name="project">
+            <option value="">All projects</option>
+          </select>
+        </div>
+
+        <div class="filter-field">
+          <label for="type-filter">Type</label>
+          <select id="type-filter" name="type">
+            <option value="">All types</option>
+          </select>
+        </div>
+
+        <div class="filter-field">
+          <label for="status-filter">Status</label>
+          <select id="status-filter" name="status">
+            <option value="">All statuses</option>
+            <option value="approved">Approved</option>
+          </select>
+        </div>
+
+        <button class="clear-button" id="clear-filters" type="reset">Clear filters</button>
+      </form>
+
+      <div class="prototype-grid" id="prototype-grid" aria-live="polite" aria-busy="true"></div>
+
+      <div class="empty-state" id="empty-state" hidden>
+        <h3 id="empty-title">No approved prototypes yet</h3>
+        <p id="empty-description">Approved prototypes will appear here.</p>
+      </div>
+
+      <noscript>
+        <div class="empty-state noscript-state">
+          <h3>JavaScript is required to load the directory</h3>
+          <p>Enable JavaScript to render approved prototype metadata from prototypes.json.</p>
+        </div>
+      </noscript>
+    </section>
+  </main>
+
+  <footer class="site-footer page-shell">
+    <p>MentorUnion · Prototype Hub</p>
+  </footer>
+</body>
+</html>

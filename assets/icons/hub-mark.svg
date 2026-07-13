@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-labelledby="title">
+  <title>Prototype Hub mark</title>
+  <rect width="40" height="40" rx="11" fill="#17211b"/>
+  <path d="M11 12.5h18v15H11z" fill="none" stroke="#f7f8f4" stroke-width="1.8"/>
+  <path d="M15 17h10M15 21h6" fill="none" stroke="#93c7a3" stroke-linecap="round" stroke-width="1.8"/>
+  <circle cx="26" cy="26" r="4.5" fill="#e3eee6" stroke="#17211b" stroke-width="1.5"/>
+  <path d="m24.5 26 1 1 2-2.2" fill="none" stroke="#2f6848" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/>
+</svg>
