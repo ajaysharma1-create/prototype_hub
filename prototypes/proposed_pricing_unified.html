@@ -315,10 +315,7 @@
     }
 
     .plan-card.popular {
-      border-color: transparent;
-      background:
-        linear-gradient(var(--surface-raised), var(--surface-raised)) padding-box,
-        linear-gradient(135deg, var(--cyan), var(--yellow), var(--orange)) border-box;
+      background: var(--surface-raised);
       box-shadow: 0 20px 48px rgba(0, 0, 0, .32);
     }
 
@@ -338,6 +335,7 @@
       transition: opacity var(--selection-speed) var(--ease-out);
     }
 
+    html[data-audience="landing"] .plan-grid:not(.has-selection) .plan-card.popular::before,
     html[data-audience="landing"] .plan-card.is-selected::before { opacity: 1; }
 
     .plan-card.is-selected {
@@ -346,10 +344,13 @@
     }
 
     .plan-card.popular.is-selected {
-      background:
-        linear-gradient(var(--surface-selected), var(--surface-selected)) padding-box,
-        linear-gradient(135deg, var(--cyan), var(--yellow), var(--orange)) border-box;
+      background: var(--surface-selected);
       box-shadow: 0 14px 36px rgba(0, 0, 0, .3);
+    }
+
+    html[data-audience="landing"] .plan-grid.has-selection .plan-card.popular:not(.is-selected) {
+      background: var(--surface);
+      box-shadow: none;
     }
 
     .plan-selector {
@@ -1764,7 +1765,7 @@
         </div>
         <div class="explainer-item">
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="6" r="3.2" fill="none" stroke="#39B6D8" stroke-width="1.6"/><path d="M3.5 15 Q 9 10.5 14.5 15" fill="none" stroke="#39B6D8" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <span>Different mentors may need 1, 2 or 3 credits per session. You’ll see the exact number on their profile before you book.</span>
+          <span>Mentors use 1, 2 or 3 credits per session. Check their profile before booking.</span>
         </div>
         <div class="explainer-item">
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="2.5" y="4" width="13" height="10" rx="2" fill="none" stroke="#39B6D8" stroke-width="1.6"/><path d="M11 9 L13 9" stroke="#39B6D8" stroke-width="1.6" stroke-linecap="round"/></svg>
