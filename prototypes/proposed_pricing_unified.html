@@ -471,8 +471,10 @@
       font-weight: 650;
       white-space: nowrap;
     }
+
+    [data-pack="p25"] .savings-label { color: var(--orange); font-weight: 750; }
     .mobile-validity { display: none; }
-    .card-details { margin-top: 24px; }
+    .card-details { margin-top: 24px; flex-grow: 1; }
     .card-details > summary { display: none; }
 
     .feature-list {
@@ -580,7 +582,6 @@
       transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out);
     }
 
-    .audience { margin-top: auto; padding-top: 26px; color: var(--text-faint); font-size: 13px; line-height: 1.5; }
 
     .plan-cta {
       position: relative;
@@ -986,7 +987,6 @@
       .card-details:not([open]) > .feature-list { display: none !important; }
       .feature-list { padding-bottom: 14px; gap: 11px; }
       .feature { font-size: 13.5px; }
-      .audience { padding-top: 10px; font-size: 12.5px; }
       .plan-cta { min-height: 48px; font-size: 14.5px; }
       .popular-badge { position: static; align-self: flex-start; transform: none; margin: -10px 0 14px; }
       .custom-credits { margin-top: 24px; padding: 22px 20px; flex-direction: column; gap: 10px; }
@@ -1297,6 +1297,7 @@
     .effective-rate { color: var(--text); }
     .reference-total { color: var(--text-muted); }
     .savings-label { color: var(--gold); }
+    [data-pack="p25"] .savings-label { color: var(--gold); font-weight: 800; }
 
     .mobile-validity {
       display: none;
@@ -1320,13 +1321,6 @@
 
     .feature svg { width: 16px; height: 16px; margin-top: 3px; }
     .feature svg path { stroke: var(--gold); }
-
-    .audience {
-      padding-top: 22px;
-      color: var(--text-muted);
-      font-size: 13px;
-      line-height: 1.55;
-    }
 
     .plan-cta,
     .popular .plan-cta {
@@ -1739,7 +1733,6 @@
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">Standard support<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="Standard support response time" data-tooltip="Response target: 24–48 hours."></button></span></span></div>
               </div>
             </details>
-            <p class="audience">Suitable for: a single focused goal.</p>
             <button class="plan-cta" type="button" data-pack-cta="p4">Get started with 4 credits</button>
           </article>
 
@@ -1773,7 +1766,6 @@
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">AI bot for mentor discovery<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="More information about the AI bot for mentor discovery" data-tooltip="An AI bot helps you discover mentors on the platform."></button></span></span></div>
               </div>
             </details>
-            <p class="audience">Suitable for: one decision, several viewpoints.</p>
             <button class="plan-cta" type="button" data-pack-cta="p10">Get started with 10 credits</button>
           </article>
 
@@ -1807,7 +1799,6 @@
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Priority access to high-demand mentors</span></div>
               </div>
             </details>
-            <p class="audience">Suitable for: ambitious, long-horizon goals.</p>
             <button class="plan-cta" type="button" data-pack-cta="p25">Get started with 25 credits</button>
           </article>
         </div>
