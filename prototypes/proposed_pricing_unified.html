@@ -425,7 +425,63 @@
 
     .price { font-size: 28px; font-weight: 700; }
     .taxes { color: var(--text-faint); font-size: 13px; }
-    .unit-rate { flex-basis: 100%; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+    .unit-pricing {
+      min-width: 0;
+      min-height: 43px;
+      flex-basis: 100%;
+      display: grid;
+      align-content: start;
+      gap: 2px;
+    }
+
+    .effective-rate {
+      color: var(--text-soft);
+      font-size: 14px;
+      font-weight: 650;
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+
+    .rate-comparison {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.4;
+    }
+
+    .reference-rate {
+      position: relative;
+      display: inline-block;
+      flex: none;
+      color: var(--text-faint);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .reference-rate::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -.12em;
+      left: -.12em;
+      height: 1px;
+      transform: rotate(-8deg);
+      transform-origin: center;
+      background: currentColor;
+      opacity: .72;
+      pointer-events: none;
+    }
+
+    .savings-label {
+      flex: none;
+      padding-left: 8px;
+      border-left: 1px solid var(--border-strong);
+      color: var(--text-soft);
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
     .mobile-validity { display: none; }
     .card-details { margin-top: 24px; }
     .card-details > summary { display: none; }
@@ -1234,7 +1290,9 @@
 
     .price { font-size: 24px; font-weight: 650; line-height: 30px; }
     .taxes { color: var(--text-muted); font-size: 14px; }
-    .unit-rate { flex-basis: 100%; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+    .effective-rate { color: var(--text); }
+    .reference-rate { color: var(--text-muted); }
+    .savings-label { border-left-color: var(--divider); color: var(--gold); }
 
     .mobile-validity {
       display: none;
@@ -1640,15 +1698,20 @@
             </div>
             <p class="plan-description" data-copy-field="p4-description">One question, answered properly.</p>
             <div class="credit-count"><strong>4</strong><span>credits</span></div>
-            <div class="price-row"><span class="price" data-price-inr="₹4,500" data-price-usd="$47">₹4,500</span><span class="taxes">+ taxes</span><span class="unit-rate" data-price-inr="₹1,125 per credit" data-price-usd="$12 per credit">₹1,125 per credit</span></div>
+            <div class="price-row">
+              <span class="price" data-price-inr="₹4,500" data-price-usd="$47">₹4,500</span><span class="taxes">+ taxes</span>
+              <div class="unit-pricing">
+                <span class="effective-rate"><span class="sr-only">Current effective rate: </span><span data-price-inr="₹1,125 / credit" data-price-usd="$11.75 / credit">₹1,125 / credit</span></span>
+                <span class="rate-comparison"><span class="reference-rate"><span class="sr-only" data-price-inr="Reference custom-credit rate: ₹1,500 per credit" data-price-usd="Reference custom-credit rate: $16 per credit">Reference custom-credit rate: ₹1,500 per credit</span><span aria-hidden="true" data-price-inr="₹1,500 / credit" data-price-usd="$16 / credit">₹1,500 / credit</span></span><span class="savings-label" data-price-inr="Save 25%" data-price-usd="Save 27%">Save 25%</span></span>
+              </div>
+            </div>
             <p class="mobile-validity">Valid for 2 months</p>
             <details class="card-details">
-              <summary>What's included (7)<span class="disclosure-icon" aria-hidden="true">+</span></summary>
+              <summary>What's included (6)<span class="disclosure-icon" aria-hidden="true">+</span></summary>
               <div class="feature-list">
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Up to 4 one-on-one sessions</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Book any mentor on the platform</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">Transparent credit wallet<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="More information about the transparent credit wallet" data-tooltip="View your balance alongside recorded purchases and session deductions in one place."></button></span></span></div>
-                <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Save 25% vs custom credits</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Valid for 2 months</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Unused credits do not roll over</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">Standard support<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="Standard support response time" data-tooltip="Response target: 24–48 hours."></button></span></span></div>
@@ -1669,16 +1732,21 @@
             </div>
             <p class="plan-description" data-copy-field="p10-description">Hear more than one perspective.</p>
             <div class="credit-count"><strong>10</strong><span>credits</span></div>
-            <div class="price-row"><span class="price" data-price-inr="₹10,500" data-price-usd="$110">₹10,500</span><span class="taxes">+ taxes</span><span class="unit-rate" data-price-inr="₹1,050 per credit" data-price-usd="$11 per credit">₹1,050 per credit</span></div>
+            <div class="price-row">
+              <span class="price" data-price-inr="₹10,500" data-price-usd="$110">₹10,500</span><span class="taxes">+ taxes</span>
+              <div class="unit-pricing">
+                <span class="effective-rate"><span class="sr-only">Current effective rate: </span><span data-price-inr="₹1,050 / credit" data-price-usd="$11.00 / credit">₹1,050 / credit</span></span>
+                <span class="rate-comparison"><span class="reference-rate"><span class="sr-only" data-price-inr="Reference custom-credit rate: ₹1,500 per credit" data-price-usd="Reference custom-credit rate: $16 per credit">Reference custom-credit rate: ₹1,500 per credit</span><span aria-hidden="true" data-price-inr="₹1,500 / credit" data-price-usd="$16 / credit">₹1,500 / credit</span></span><span class="savings-label" data-price-inr="Save 30%" data-price-usd="Save 31%">Save 30%</span></span>
+              </div>
+            </div>
             <p class="mobile-validity">Valid for 4 months</p>
             <details class="card-details" open>
-              <summary>What's included (9)<span class="disclosure-icon" aria-hidden="true">+</span></summary>
+              <summary>What's included (8)<span class="disclosure-icon" aria-hidden="true">+</span></summary>
               <div class="feature-list">
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Up to 10 one-on-one sessions</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Book any mentor on the platform</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">Mentor discovery support<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="More information about mentor discovery support" data-tooltip="Get dedicated call support for mentor discovery."></button></span></span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">Transparent credit wallet<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="More information about the transparent credit wallet" data-tooltip="View your balance alongside recorded purchases and session deductions in one place."></button></span></span></div>
-                <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Save 30% vs custom credits</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Several mentors on the same question</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Valid for 4 months</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Unused credits roll over for 15 extra days</span></div>
@@ -1700,16 +1768,21 @@
             </div>
             <p class="plan-description" data-copy-field="p25-description">Room to work a big goal through.</p>
             <div class="credit-count"><strong>25</strong><span>credits</span></div>
-            <div class="price-row"><span class="price" data-price-inr="₹22,500" data-price-usd="$235">₹22,500</span><span class="taxes">+ taxes</span><span class="unit-rate" data-price-inr="₹900 per credit" data-price-usd="$9 per credit">₹900 per credit</span></div>
+            <div class="price-row">
+              <span class="price" data-price-inr="₹22,500" data-price-usd="$235">₹22,500</span><span class="taxes">+ taxes</span>
+              <div class="unit-pricing">
+                <span class="effective-rate"><span class="sr-only">Current effective rate: </span><span data-price-inr="₹900 / credit" data-price-usd="$9.40 / credit">₹900 / credit</span></span>
+                <span class="rate-comparison"><span class="reference-rate"><span class="sr-only" data-price-inr="Reference custom-credit rate: ₹1,500 per credit" data-price-usd="Reference custom-credit rate: $16 per credit">Reference custom-credit rate: ₹1,500 per credit</span><span aria-hidden="true" data-price-inr="₹1,500 / credit" data-price-usd="$16 / credit">₹1,500 / credit</span></span><span class="savings-label" data-price-inr="Save 40%" data-price-usd="Save 41%">Save 40%</span></span>
+              </div>
+            </div>
             <p class="mobile-validity">Valid for 6 months</p>
             <details class="card-details">
-              <summary>What's included (11)<span class="disclosure-icon" aria-hidden="true">+</span></summary>
+              <summary>What's included (10)<span class="disclosure-icon" aria-hidden="true">+</span></summary>
               <div class="feature-list">
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Up to 25 one-on-one sessions</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Book any mentor on the platform</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">Mentor discovery support<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="More information about mentor discovery support" data-tooltip="Get dedicated call support for mentor discovery."></button></span></span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">Transparent credit wallet<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="More information about the transparent credit wallet" data-tooltip="View your balance alongside recorded purchases and session deductions in one place."></button></span></span></div>
-                <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Save 40% vs custom credits</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Test, compare and refine across sessions</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Valid for 6 months — the longest runway</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Priority access to high-demand mentors</span></div>
