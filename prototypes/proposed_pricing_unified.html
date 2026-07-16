@@ -397,7 +397,7 @@
     .credit-count span { color: var(--text-muted); font-size: 16px; font-weight: 500; }
 
     .price-row {
-      min-height: 112px;
+      min-height: 84px;
       margin-top: 14px;
       padding-bottom: 24px;
       display: grid;
@@ -417,10 +417,10 @@
 
     .price { font-size: 28px; font-weight: 700; }
     .taxes { color: var(--text-faint); font-size: 13px; }
-    .savings-row {
-      min-height: 25px;
-      display: flex;
-      align-items: center;
+
+    .taxes-savings {
+      position: relative;
+      display: inline-flex;
     }
 
     .unit-pricing {
@@ -464,15 +464,19 @@
     }
 
     .savings-label {
+      /* overlays the band beside .effective-rate so the price block stays tight */
+      position: absolute;
+      top: calc(100% + 5px);
+      left: 0;
       display: inline-flex;
       align-items: center;
-      min-height: 23px;
-      padding: 3px 8px;
+      min-height: 19px;
+      padding: 2px 7px;
       border: 1px solid var(--border-soft);
       border-radius: 999px;
       background: rgba(255, 255, 255, .035);
       color: var(--text-soft);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 650;
       line-height: 1.2;
       white-space: nowrap;
@@ -1336,7 +1340,7 @@
     .credit-count span { color: var(--text-muted); font-size: 18px; }
 
     .price-row {
-      min-height: 104px;
+      min-height: 72px;
       margin-top: 12px;
       padding: 0;
       gap: 6px;
@@ -1723,7 +1727,7 @@
         <div class="explainer-item">
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="6" r="3.2" fill="none" stroke="#39B6D8" stroke-width="1.6"/><path d="M3.5 15 Q 9 10.5 14.5 15" fill="none" stroke="#39B6D8" stroke-width="1.6" stroke-linecap="round"/></svg>
           <span class="explainer-copy">
-            <span class="explainer-line">Calls cost between 1-3 credits</span>
+            <span class="explainer-line">Call costs between 1-3 credits</span>
             <span class="explainer-line">Check mentor's profile before booking</span>
           </span>
         </div>
@@ -1760,10 +1764,10 @@
               <div class="price-primary-line">
                 <span class="reference-total"><span class="sr-only" data-price-inr="Equivalent at the custom-credit rate: ₹6,000" data-price-usd="Equivalent at the custom-credit rate: $64">Equivalent at the custom-credit rate: ₹6,000</span><span aria-hidden="true" data-price-inr="₹6,000" data-price-usd="$64">₹6,000</span></span>
                 <span class="price" data-price-inr="₹4,500" data-price-usd="$47">₹4,500</span>
-                <span class="taxes">+ taxes</span>
-              </div>
-              <div class="savings-row">
-                <span class="savings-label" data-price-inr="Save 25%" data-price-usd="Save 27%">Save 25%</span>
+                <div class="taxes-savings">
+                  <span class="taxes">+ taxes</span>
+                  <span class="savings-label" data-price-inr="Save 25%" data-price-usd="Save 27%">Save 25%</span>
+                </div>
               </div>
               <div class="unit-pricing">
                 <span class="effective-rate"><span class="sr-only">Current effective rate: </span><span data-price-inr="₹1,125 / credit" data-price-usd="$11.75 / credit">₹1,125 / credit</span></span>
@@ -1798,10 +1802,10 @@
               <div class="price-primary-line">
                 <span class="reference-total"><span class="sr-only" data-price-inr="Equivalent at the custom-credit rate: ₹15,000" data-price-usd="Equivalent at the custom-credit rate: $160">Equivalent at the custom-credit rate: ₹15,000</span><span aria-hidden="true" data-price-inr="₹15,000" data-price-usd="$160">₹15,000</span></span>
                 <span class="price" data-price-inr="₹10,500" data-price-usd="$110">₹10,500</span>
-                <span class="taxes">+ taxes</span>
-              </div>
-              <div class="savings-row">
-                <span class="savings-label" data-price-inr="Save 30%" data-price-usd="Save 31%">Save 30%</span>
+                <div class="taxes-savings">
+                  <span class="taxes">+ taxes</span>
+                  <span class="savings-label" data-price-inr="Save 30%" data-price-usd="Save 31%">Save 30%</span>
+                </div>
               </div>
               <div class="unit-pricing">
                 <span class="effective-rate"><span class="sr-only">Current effective rate: </span><span data-price-inr="₹1,050 / credit" data-price-usd="$11.00 / credit">₹1,050 / credit</span></span>
@@ -1836,10 +1840,10 @@
               <div class="price-primary-line">
                 <span class="reference-total"><span class="sr-only" data-price-inr="Equivalent at the custom-credit rate: ₹37,500" data-price-usd="Equivalent at the custom-credit rate: $400">Equivalent at the custom-credit rate: ₹37,500</span><span aria-hidden="true" data-price-inr="₹37,500" data-price-usd="$400">₹37,500</span></span>
                 <span class="price" data-price-inr="₹22,500" data-price-usd="$235">₹22,500</span>
-                <span class="taxes">+ taxes</span>
-              </div>
-              <div class="savings-row">
-                <span class="savings-label" data-price-inr="Save 40%" data-price-usd="Save 41%">Save 40%</span>
+                <div class="taxes-savings">
+                  <span class="taxes">+ taxes</span>
+                  <span class="savings-label" data-price-inr="Save 40%" data-price-usd="Save 41%">Save 40%</span>
+                </div>
               </div>
               <div class="unit-pricing">
                 <span class="effective-rate"><span class="sr-only">Current effective rate: </span><span data-price-inr="₹900 / credit" data-price-usd="$9.40 / credit">₹900 / credit</span></span>
