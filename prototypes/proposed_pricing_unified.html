@@ -32,6 +32,7 @@
       --orange: #e38330;
       --accent: linear-gradient(90deg, var(--cyan), var(--yellow), var(--orange));
       --font: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+      --title-size: clamp(2.5rem, 5vw, 3.625rem);
       --content: 1200px;
       --nav-content: 1312px;
       --radius-card: 16px;
@@ -100,6 +101,9 @@
 
     .brand {
       flex: none;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
       font-size: 19px;
       font-weight: 800;
       letter-spacing: -.01em;
@@ -206,7 +210,7 @@
 
     h1 {
       margin: 0;
-      font-size: clamp(2.5rem, 5vw, 3.625rem);
+      font-size: var(--title-size);
       font-weight: 800;
       letter-spacing: -.02em;
       line-height: 1.05;
@@ -214,8 +218,7 @@
 
     .title-mark {
       display: block;
-      width: 542px;
-      max-width: 100%;
+      width: min(100%, calc(var(--title-size) * 542 / 58));
       height: auto;
       aspect-ratio: 542 / 35;
       margin-top: 4px;
@@ -418,16 +421,13 @@
     .price { font-size: 28px; font-weight: 700; }
     .taxes { color: var(--text-faint); font-size: 13px; }
 
-    .taxes-savings {
-      position: relative;
-      display: inline-flex;
-    }
-
     .unit-pricing {
       min-width: 0;
       min-height: 21px;
-      display: grid;
-      align-content: start;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 10px;
     }
 
     .effective-rate {
@@ -464,10 +464,7 @@
     }
 
     .savings-label {
-      /* overlays the band beside .effective-rate so the price block stays tight */
-      position: absolute;
-      top: calc(100% + 5px);
-      left: 0;
+      flex: none;
       display: inline-flex;
       align-items: center;
       min-height: 19px;
@@ -817,6 +814,12 @@
 
     details[open] > summary .disclosure-icon { transform: rotate(45deg); }
     .faq-answer { max-width: 700px; padding: 0 4px 22px; color: var(--text-muted); font-size: 14.5px; line-height: 1.7; }
+    .faq-answer p { margin: 0; }
+    .faq-answer p + ul { margin-top: 10px; }
+    .faq-answer ul { margin: 0; padding-left: 18px; display: grid; gap: 7px; }
+    .faq-answer ul + p { margin-top: 12px; }
+    .faq-answer li { padding-left: 2px; }
+    .faq-answer strong { color: var(--text-soft); font-weight: 650; }
 
     .trust-line {
       margin: 56px 0 72px;
@@ -829,7 +832,7 @@
     }
 
     .trust-line span { color: var(--text-faint); font-size: 14px; }
-    .trust-line a { color: var(--text-muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+    .trust-line a { min-height: 44px; display: inline-flex; align-items: center; color: var(--text-muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
 
     .site-footer { border-top: 1px solid #1c1c1c; }
     .footer-inner {
@@ -944,10 +947,12 @@
         gap: 24px;
       }
       .plan-description { min-height: 0; }
-    }
-
-    @media (min-width: 701px) and (max-width: 1023px) {
-      .plan-cta { width: min(100%, 360px); align-self: center; }
+      .custom-credits {
+        max-width: 760px;
+        margin-inline: auto;
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .custom-purchase { justify-content: flex-start; }
     }
 
     @media (max-width: 1100px) {
@@ -955,6 +960,7 @@
       .plan-grid { gap: 24px; }
       .plan-card { padding: 28px 22px; }
       .plan-name { font-size: 18px; }
+      .explainer-item { padding-inline: 22px; }
       .recommendation { padding: 40px; gap: 36px; }
     }
 
@@ -1014,7 +1020,7 @@
       .page-shell, .nav-inner, .footer-inner { width: calc(100% - 40px); }
       .hero { padding-top: 36px; }
       .eyebrow { margin-bottom: 14px; font-size: 12px; }
-      h1 { font-size: clamp(2.15rem, 10.5vw, 2.75rem); }
+      :root { --title-size: clamp(2.15rem, 10.5vw, 2.75rem); }
       .hero-copy { margin-top: 16px; font-size: 15px; }
       .credit-explainer { margin-top: 28px; grid-template-columns: 1fr; }
       .explainer-item { padding: 16px 18px; border-right: 0; border-bottom: 1px solid var(--border-soft); }
@@ -1571,6 +1577,8 @@
     @media (max-width: 1023px) {
       .plan-grid { grid-template-columns: 1fr; gap: 16px; }
       .plan-card { min-height: 0; }
+      .custom-credits { grid-template-columns: 100px minmax(0, 1fr); row-gap: 18px; }
+      .custom-purchase { grid-column: 1 / -1; }
     }
 
     @media (max-width: 700px) {
@@ -1712,6 +1720,7 @@
             <button type="button" data-currency="INR" aria-pressed="true">₹ INR</button>
             <button type="button" data-currency="USD" aria-pressed="false">$ USD</button>
           </div>
+          <div class="currency-note" hidden>USD prices are rounded; final billing at checkout.</div>
         </div>
       </section>
 
@@ -1726,15 +1735,15 @@
         <div class="explainer-item">
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="6" r="3.2" fill="none" stroke="#39B6D8" stroke-width="1.6"/><path d="M3.5 15 Q 9 10.5 14.5 15" fill="none" stroke="#39B6D8" stroke-width="1.6" stroke-linecap="round"/></svg>
           <span class="explainer-copy">
-            <span class="explainer-line">Call costs between 1-3 credits</span>
-            <span class="explainer-line">Check mentor's profile before booking</span>
+            <span class="explainer-line">A session costs 1–3 credits</span>
+            <span class="explainer-line">Check the mentor's profile before booking</span>
           </span>
         </div>
         <div class="explainer-item">
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="2.5" y="4" width="13" height="10" rx="2" fill="none" stroke="#39B6D8" stroke-width="1.6"/><path d="M11 9 L13 9" stroke="#39B6D8" stroke-width="1.6" stroke-linecap="round"/></svg>
           <span class="explainer-copy">
             <span class="explainer-line">Your unused credit balance</span>
-            <span class="explainer-line">remains safe in your wallet</span>
+            <span class="explainer-line">remains in your wallet</span>
           </span>
         </div>
       </section>
@@ -1763,13 +1772,11 @@
               <div class="price-primary-line">
                 <span class="reference-total"><span class="sr-only" data-price-inr="Equivalent at the custom-credit rate: ₹6,000" data-price-usd="Equivalent at the custom-credit rate: $64">Equivalent at the custom-credit rate: ₹6,000</span><span aria-hidden="true" data-price-inr="₹6,000" data-price-usd="$64">₹6,000</span></span>
                 <span class="price" data-price-inr="₹4,500" data-price-usd="$47">₹4,500</span>
-                <div class="taxes-savings">
-                  <span class="taxes">+ taxes</span>
-                  <span class="savings-label" data-price-inr="Save 25%" data-price-usd="Save 27%">Save 25%</span>
-                </div>
+                <span class="taxes">+ taxes</span>
               </div>
               <div class="unit-pricing">
                 <span class="effective-rate"><span class="sr-only">Current effective rate: </span><span data-price-inr="₹1,125 / credit" data-price-usd="$11.75 / credit">₹1,125 / credit</span></span>
+                <span class="savings-label" data-price-inr="Save 25%" data-price-usd="Save 27%">Save 25%</span>
               </div>
             </div>
             <p class="mobile-validity">Valid for 2 months</p>
@@ -1795,19 +1802,17 @@
             <div class="plan-title-row">
               <div class="plan-name-wrap"><span class="plan-name">Growth</span></div>
             </div>
-            <p class="plan-description">Shape direction with multiple perspectivess</p>
+            <p class="plan-description">Shape direction with multiple perspectives</p>
             <div class="credit-count"><strong>10</strong><span>credits</span></div>
             <div class="price-row">
               <div class="price-primary-line">
                 <span class="reference-total"><span class="sr-only" data-price-inr="Equivalent at the custom-credit rate: ₹15,000" data-price-usd="Equivalent at the custom-credit rate: $160">Equivalent at the custom-credit rate: ₹15,000</span><span aria-hidden="true" data-price-inr="₹15,000" data-price-usd="$160">₹15,000</span></span>
                 <span class="price" data-price-inr="₹10,500" data-price-usd="$110">₹10,500</span>
-                <div class="taxes-savings">
-                  <span class="taxes">+ taxes</span>
-                  <span class="savings-label" data-price-inr="Save 30%" data-price-usd="Save 31%">Save 30%</span>
-                </div>
+                <span class="taxes">+ taxes</span>
               </div>
               <div class="unit-pricing">
                 <span class="effective-rate"><span class="sr-only">Current effective rate: </span><span data-price-inr="₹1,050 / credit" data-price-usd="$11.00 / credit">₹1,050 / credit</span></span>
+                <span class="savings-label" data-price-inr="Save 30%" data-price-usd="Save 31%">Save 30%</span>
               </div>
             </div>
             <p class="mobile-validity">Valid for 4 months</p>
@@ -1839,13 +1844,11 @@
               <div class="price-primary-line">
                 <span class="reference-total"><span class="sr-only" data-price-inr="Equivalent at the custom-credit rate: ₹37,500" data-price-usd="Equivalent at the custom-credit rate: $400">Equivalent at the custom-credit rate: ₹37,500</span><span aria-hidden="true" data-price-inr="₹37,500" data-price-usd="$400">₹37,500</span></span>
                 <span class="price" data-price-inr="₹22,500" data-price-usd="$235">₹22,500</span>
-                <div class="taxes-savings">
-                  <span class="taxes">+ taxes</span>
-                  <span class="savings-label" data-price-inr="Save 40%" data-price-usd="Save 41%">Save 40%</span>
-                </div>
+                <span class="taxes">+ taxes</span>
               </div>
               <div class="unit-pricing">
                 <span class="effective-rate"><span class="sr-only">Current effective rate: </span><span data-price-inr="₹900 / credit" data-price-usd="$9.40 / credit">₹900 / credit</span></span>
+                <span class="savings-label" data-price-inr="Save 40%" data-price-usd="Save 41%">Save 40%</span>
               </div>
             </div>
             <p class="mobile-validity">Valid for 6 months</p>
@@ -1914,27 +1917,44 @@
         <h2 class="section-title" id="faq-title">Frequently asked questions</h2>
         <details>
           <summary>What is a credit?<span class="disclosure-icon" aria-hidden="true">+</span></summary>
-          <div class="faq-answer">1 credit = one 30-minute 1:1 session with a mentor. Credits are deducted only when you book, and unused credits stay in your wallet.</div>
+          <div class="faq-answer">A credit is what you spend to book mentorship sessions. Credits leave your wallet only when you book, and unused credits stay there until they expire.</div>
         </details>
         <details>
-          <summary>Do all mentors cost the same?<span class="disclosure-icon" aria-hidden="true">+</span></summary>
-          <div class="faq-answer">No. Each mentor requires 1, 2 or 3 credits per session, based on their experience. The requirement is shown on every mentor's profile.</div>
+          <summary>How many credits does a session cost?<span class="disclosure-icon" aria-hidden="true">+</span></summary>
+          <div class="faq-answer">Each 1:1 session runs up to 30 minutes and costs 1–3 credits, depending on the mentor. The exact cost is shown on the mentor's profile before you book.</div>
         </details>
         <details>
           <summary>How long are credits valid?<span class="disclosure-icon" aria-hidden="true">+</span></summary>
-          <div class="faq-answer">The 4-credit pack is valid for 2 months with no rollover. The 10-credit pack is valid for 4 months plus a 15-day rollover, and the 25-credit pack is valid for 6 months plus a 30-day rollover. Custom credits are valid for 60 days. Credits expiring soonest are used first; buying another pack does not extend existing credits beyond the stated rollover.</div>
+          <div class="faq-answer">
+            <p>Validity is counted from the purchase date:</p>
+            <ul>
+              <li><strong>Focus (4 credits)</strong> — 2 months, no rollover</li>
+              <li><strong>Growth (10 credits)</strong> — 4 months, plus 15-day rollover</li>
+              <li><strong>Accelerator (25 credits)</strong> — 6 months, plus 30-day rollover</li>
+              <li><strong>Custom credits</strong> — 60 days</li>
+            </ul>
+            <p>Credits expiring soonest are used first. Buying another pack does not extend credits you already hold beyond their stated rollover.</p>
+          </div>
         </details>
         <details>
           <summary>Is this a subscription?<span class="disclosure-icon" aria-hidden="true">+</span></summary>
-          <div class="faq-answer">No. Every pack is a one-time purchase. Nothing renews automatically.</div>
+          <div class="faq-answer">No. Every pack is a one-time purchase — nothing renews and you're never charged automatically.</div>
         </details>
         <details>
           <summary>What happens if I cancel a session?<span class="disclosure-icon" aria-hidden="true">+</span></summary>
-          <div class="faq-answer">Cancel at least 24 hours before a session and your credits return to your wallet. Cancellations within 24 hours use the credits. If a mentor cancels or doesn't show up, your credits are returned along with 1 bonus credit.</div>
+          <div class="faq-answer">
+            <p>It depends on when you cancel:</p>
+            <ul>
+              <li><strong>12+ hours before</strong> — your credit returns to your wallet with its original validity</li>
+              <li><strong>Within 12 hours</strong> — the credit is used, unless your mentor waives it</li>
+              <li><strong>Mentor cancels or doesn't show</strong> — your credit returns with extended validity</li>
+            </ul>
+            <p>For sessions booked less than 24 hours ahead, the cutoff is the halfway point between booking time and session start time.</p>
+          </div>
         </details>
         <details>
           <summary>How do I pay?<span class="disclosure-icon" aria-hidden="true">+</span></summary>
-          <div class="faq-answer">Payments are processed securely by Razorpay. Cards and UPI are supported. Prices are shown plus taxes; the exact amount appears at checkout.</div>
+          <div class="faq-answer">Cards and UPI, processed securely by Razorpay. Prices are shown plus taxes; the exact total appears at checkout before you pay.</div>
         </details>
       </section>
 
