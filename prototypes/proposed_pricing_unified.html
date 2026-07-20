@@ -1043,19 +1043,7 @@
       .price { font-size: 24px; }
       .taxes { font-size: 12.5px; }
       .mobile-validity { display: block; margin: 8px 0 0; color: var(--text-faint); font-size: 13px; }
-      .card-details { position: relative; z-index: 2; margin-top: 16px; border-top: 1px solid var(--border); }
-      .card-details > summary {
-        min-height: 48px;
-        padding: 12px 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        color: #c9c9c9;
-        font-size: 13.5px;
-        font-weight: 600;
-      }
-      .card-details:not([open]) > .feature-list { display: none !important; }
+      .card-details { position: relative; z-index: 2; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
       .feature-list { padding-bottom: 14px; gap: 11px; }
       .feature { font-size: 13.5px; }
       .plan-cta { min-height: 48px; font-size: 14.5px; }
@@ -1669,6 +1657,52 @@
 
     .checkout-button:hover { opacity: .9; }
 
+    @media (max-width: 700px), (max-width: 1000px) and (max-height: 500px) and (orientation: landscape) {
+      .plan-grid {
+        --mobile-content-preview: clamp(40px, 12vw, 56px);
+        --mobile-card-width: min(760px, calc(100vw - (2 * var(--mobile-content-preview))));
+        --mobile-track-gutter: max(var(--mobile-content-preview), calc((100vw - 760px) / 2));
+        width: 100vw;
+        max-width: none;
+        margin: 34px calc(50% - 50vw) 0;
+        padding: 16px var(--mobile-track-gutter) 28px;
+        display: flex;
+        align-items: stretch;
+        gap: 6px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-inline: contain;
+        scroll-padding-inline: var(--mobile-track-gutter);
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        touch-action: pan-x pan-y;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .plan-grid::-webkit-scrollbar { display: none; }
+
+      .plan-card {
+        width: var(--mobile-card-width);
+        min-width: var(--mobile-card-width);
+        max-width: var(--mobile-card-width);
+        flex: 0 0 var(--mobile-card-width);
+        scroll-snap-align: center;
+        scroll-snap-stop: always;
+      }
+
+      .popular-badge {
+        position: absolute;
+        top: -14px;
+        right: auto;
+        left: 50%;
+        align-self: auto;
+        margin: 0;
+        transform: translateX(-50%);
+      }
+
+      .card-details > .feature-list { display: flex !important; }
+    }
+
     @media (max-width: 520px) {
       .nav-inner { gap: 12px; }
       .brand { flex: 0 0 auto; }
@@ -1681,6 +1715,7 @@
     }
 
     @media (max-width: 374px) {
+      .plan-cta { padding-inline: 4px; font-size: 13px; }
       html[data-audience="logged-in"] .explainer-copy--session .explainer-line:first-child {
         font-size: 13.75px;
         letter-spacing: -.01em;
@@ -2556,7 +2591,8 @@
         does not indicate technical implementation or launch readiness.
       -->
       <section class="pricing-section" id="pricing" aria-label="Credit packs">
-        <div class="plan-grid" role="group" aria-label="Select a credit pack">
+        <p class="sr-only" id="pricing-swipe-instructions">Swipe horizontally, or focus this list and use the left and right arrow keys, to compare credit packs.</p>
+        <div class="plan-grid" role="group" aria-label="Select a credit pack" aria-describedby="pricing-swipe-instructions" tabindex="0">
           <article class="plan-card" data-pack="p4">
             <button class="plan-selector" type="button" aria-pressed="false" aria-label="Select 4-credit pack"><span class="sr-only">Select 4-credit pack</span></button>
             <div class="plan-icon" aria-hidden="true">
@@ -2579,8 +2615,7 @@
               </div>
             </div>
             <p class="mobile-validity">Valid for 2 months</p>
-            <details class="card-details">
-              <summary>What's included (5)<span class="disclosure-icon" aria-hidden="true">+</span></summary>
+            <div class="card-details">
               <div class="feature-list">
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Up to 4 one-on-one sessions</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Book any mentor on the platform</span></div>
@@ -2588,7 +2623,7 @@
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Unused credits do not roll over</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">Standard support<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="Standard support response time" data-tooltip="Response target: 24–48 hours."></button></span></span></div>
               </div>
-            </details>
+            </div>
             <button class="plan-cta" type="button" data-pack-cta="p4">Get started with 4 credits</button>
           </article>
 
@@ -2615,8 +2650,7 @@
               </div>
             </div>
             <p class="mobile-validity">Valid for 4 months</p>
-            <details class="card-details" open>
-              <summary>What's included (6)<span class="disclosure-icon" aria-hidden="true">+</span></summary>
+            <div class="card-details">
               <div class="feature-list">
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Up to 10 one-on-one sessions</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">AI bot for mentor discovery<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="More information about the AI bot for mentor discovery" data-tooltip="An AI bot helps you discover mentors on the platform."></button></span></span></div>
@@ -2625,7 +2659,7 @@
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Unused credits roll over +15 days</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">Faster support<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="Faster support response time" data-tooltip="Response target: within 24 hours."></button></span></span></div>
               </div>
-            </details>
+            </div>
             <button class="plan-cta" type="button" data-pack-cta="p10">Get started with 10 credits</button>
           </article>
 
@@ -2651,8 +2685,7 @@
               </div>
             </div>
             <p class="mobile-validity">Valid for 6 months</p>
-            <details class="card-details">
-              <summary>What's included (7)<span class="disclosure-icon" aria-hidden="true">+</span></summary>
+            <div class="card-details">
               <div class="feature-list">
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Up to 25 one-on-one sessions</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">AI bot for mentor discovery<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="More information about the AI bot for mentor discovery" data-tooltip="An AI bot helps you discover mentors on the platform."></button></span></span></div>
@@ -2662,7 +2695,7 @@
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Unused credits roll over +30 days</span></div>
                 <div class="feature"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 L6.5 12 L13 4.5" fill="none" stroke="#39B6D8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="feature-copy">Priority support<span class="feature-help"><button class="info-trigger" type="button" aria-expanded="false" aria-controls="feature-tooltip" aria-label="Priority support response time" data-tooltip="Response target: within 12 hours."></button></span></span></div>
               </div>
-            </details>
+            </div>
             <button class="plan-cta" type="button" data-pack-cta="p25">Get started with 25 credits</button>
           </article>
         </div>
@@ -3102,7 +3135,6 @@
       const navLinks = document.querySelector(".nav-links");
       const infoTriggers = [...document.querySelectorAll(".info-trigger")];
       const infoTooltip = document.querySelector("#feature-tooltip");
-      const mobileDetails = window.matchMedia("(max-width: 700px)");
       const mobileNavigation = window.matchMedia("(max-width: 820px)");
       let audience = "landing";
       let currency = "INR";
@@ -3242,12 +3274,6 @@
         });
       }
 
-      function syncCardDetails(mediaQuery) {
-        cards.forEach((card) => {
-          card.querySelector(".card-details").open = !mediaQuery.matches || card.dataset.pack === "p10";
-        });
-      }
-
       function lockPageScroll() {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
         previousBodyPadding = document.body.style.paddingRight;
@@ -3376,12 +3402,6 @@
         });
       });
 
-      document.querySelectorAll(".card-details").forEach((details) => {
-        details.addEventListener("toggle", () => {
-          if (!details.open && activeInfoTrigger && details.contains(activeInfoTrigger)) hideInfoTooltip();
-        });
-      });
-
       document.addEventListener("pointerdown", (event) => {
         if (!event.target.closest(".feature-help")) hideInfoTooltip();
         if (!event.target.closest(".nav-inner")) setMenuOpen(false);
@@ -3433,9 +3453,7 @@
         link.addEventListener("click", (event) => event.preventDefault());
       });
 
-      mobileDetails.addEventListener("change", (event) => syncCardDetails(event));
       mobileNavigation.addEventListener("change", () => setMenuOpen(false));
-      syncCardDetails(mobileDetails);
       setCurrency("INR");
       setAudience("landing", false);
     })();
@@ -3535,6 +3553,7 @@
       );
 
       const currencyButtons = [...document.querySelectorAll("[data-currency]")];
+      const planGrid = document.querySelector(".plan-grid");
       const cards = [...document.querySelectorAll(".plan-card")];
       const customCreditSection = document.querySelector(".custom-credits");
       const customCounter = customCreditSection.querySelector(".custom-counter");
@@ -3575,7 +3594,7 @@
       const paymentMethodGrid = dialog.querySelector(".payment-method-grid");
       const infoTriggers = [...document.querySelectorAll(".info-trigger")];
       const infoTooltip = document.querySelector("#feature-tooltip");
-      const mobileDetails = window.matchMedia("(max-width: 700px)");
+      const mobilePricingCards = window.matchMedia("(max-width: 700px), (max-width: 1000px) and (max-height: 500px) and (orientation: landscape)");
       const recommendationForm = document.querySelector(".recommendation-form");
       const recommendationTopicList = recommendationForm.querySelector(".topic-list");
       const recommendationTopics = [...recommendationTopicList.querySelectorAll(".topic")];
@@ -3599,6 +3618,7 @@
 
       let currency = "INR";
       let selectedPack = null;
+      let pricingScrollTimer = null;
       // No product default is documented; initialise at the verified minimum.
       let customQuantity = customCreditRules.min;
       let activePurchase = null;
@@ -3934,7 +3954,7 @@
 
       function selectPack(packKey) {
         selectedPack = packKey;
-        document.querySelector(".plan-grid").classList.toggle("has-selection", Boolean(selectedPack));
+        planGrid.classList.toggle("has-selection", Boolean(selectedPack));
         cards.forEach((card) => {
           const selected = card.dataset.pack === packKey;
           card.classList.toggle("is-selected", selected);
@@ -3942,9 +3962,52 @@
         });
       }
 
-      function syncCardDetails(mediaQuery) {
-        cards.forEach((card) => {
-          card.querySelector(".card-details").open = !mediaQuery.matches || card.dataset.pack === "p10";
+      function nearestPlanCard() {
+        const gridRect = planGrid.getBoundingClientRect();
+        const gridCentre = gridRect.left + (gridRect.width / 2);
+        return cards.reduce((nearest, card) => {
+          const cardRect = card.getBoundingClientRect();
+          const distance = Math.abs((cardRect.left + (cardRect.width / 2)) - gridCentre);
+          return !nearest || distance < nearest.distance ? { card, distance } : nearest;
+        }, null)?.card || cards[1];
+      }
+
+      function centrePlanCard(card, behaviour = "smooth") {
+        if (!mobilePricingCards.matches || !card) return;
+        const gridRect = planGrid.getBoundingClientRect();
+        const cardRect = card.getBoundingClientRect();
+        const targetLeft = planGrid.scrollLeft
+          + (cardRect.left + (cardRect.width / 2))
+          - (gridRect.left + (gridRect.width / 2));
+        if (Math.abs(targetLeft - planGrid.scrollLeft) < 1) return;
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        planGrid.scrollTo({ left: targetLeft, behavior: reducedMotion ? "auto" : behaviour });
+      }
+
+      function settleMobilePricingCards() {
+        if (!mobilePricingCards.matches) return;
+        const card = nearestPlanCard();
+        selectPack(card.dataset.pack);
+        centrePlanCard(card);
+      }
+
+      function queueMobilePricingSettle() {
+        if (!mobilePricingCards.matches) return;
+        window.clearTimeout(pricingScrollTimer);
+        pricingScrollTimer = window.setTimeout(settleMobilePricingCards, 120);
+      }
+
+      function syncMobilePricingCards(mediaQuery = mobilePricingCards) {
+        window.clearTimeout(pricingScrollTimer);
+        if (!mediaQuery.matches) {
+          planGrid.scrollLeft = 0;
+          return;
+        }
+
+        const selectedCard = cards.find((card) => card.dataset.pack === selectedPack) || cards[1];
+        if (!selectedPack) selectPack(selectedCard.dataset.pack);
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => centrePlanCard(selectedCard, "auto"));
         });
       }
 
@@ -4683,6 +4746,14 @@
         });
       });
 
+      cards.forEach((card) => {
+        const packKey = card.dataset.pack;
+        card.querySelector(".plan-selector").addEventListener("click", () => {
+          selectPack(packKey);
+          centrePlanCard(card);
+        });
+      });
+
       document.querySelectorAll("[data-pack-cta]").forEach((button) => {
         button.addEventListener("click", () => {
           const packKey = button.dataset.packCta;
@@ -4817,8 +4888,24 @@
         link.addEventListener("click", (event) => event.preventDefault());
       });
 
+      planGrid.addEventListener("scroll", queueMobilePricingSettle, { passive: true });
+      planGrid.addEventListener("keydown", (event) => {
+        if (!mobilePricingCards.matches || event.target !== planGrid) return;
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        event.preventDefault();
+        const currentIndex = Math.max(0, cards.findIndex((card) => card.dataset.pack === selectedPack));
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        const nextIndex = Math.min(cards.length - 1, Math.max(0, currentIndex + direction));
+        const nextCard = cards[nextIndex];
+        selectPack(nextCard.dataset.pack);
+        centrePlanCard(nextCard);
+      });
+      mobilePricingCards.addEventListener("change", (event) => syncMobilePricingCards(event));
+      window.addEventListener("resize", () => syncMobilePricingCards());
+      window.addEventListener("load", () => syncMobilePricingCards(), { once: true });
       populateCountryCodeOptions();
       resetOtpState();
+      syncMobilePricingCards();
       syncPaymentMethodUi();
       updateRecommendationCounter();
       setCurrency("INR");
