@@ -749,6 +749,7 @@
 
     .topic:hover, .topic[aria-pressed="true"] { border-color: var(--text); color: var(--text); }
     .topic[aria-pressed="true"] { background: #222; }
+    .topic:disabled { cursor: wait; opacity: .65; }
     .email-row { display: flex; gap: 12px; }
 
     .email-input {
@@ -784,7 +785,10 @@
     .faq details { border-top: 1px solid var(--border); }
     .faq details:last-child { border-bottom: 1px solid var(--border); }
 
-    .faq summary, .card-details summary {
+    .faq summary,
+    .card-details summary,
+    .included-value summary,
+    .recommendation-more > summary {
       list-style: none;
       cursor: pointer;
     }
@@ -1682,6 +1686,801 @@
         letter-spacing: -.01em;
       }
     }
+
+    html[data-audience="landing"] .plan-icon { display: none; }
+
+    textarea { font: inherit; }
+
+    .flow-dialog {
+      width: min(960px, calc(100% - 32px));
+      max-width: none;
+      max-height: calc(100dvh - 32px);
+      margin: auto;
+      padding: 0;
+      overflow: visible;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      transition: width 180ms var(--ease-out);
+    }
+
+    .flow-dialog[data-current-step="payment"] { width: min(900px, calc(100% - 32px)); }
+    .flow-dialog[data-current-step="fulfilment"],
+    .flow-dialog[data-current-step="fulfilment-failure"],
+    .flow-dialog[data-current-step="failure"],
+    .flow-dialog[data-current-step="success"] { width: min(520px, calc(100% - 32px)); }
+    .flow-dialog::backdrop { background: rgba(6, 6, 6, .82); backdrop-filter: blur(5px); }
+
+    .flow-dialog .modal-panel {
+      max-height: calc(100dvh - 32px);
+      padding: 36px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
+
+    .flow-dialog .modal-close { z-index: 4; }
+    .flow-step[hidden] { display: none !important; }
+
+    .flow-kicker {
+      margin: 0 52px 8px 0;
+      color: var(--text-faint);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .flow-title {
+      margin: 0 52px 0 0;
+      font-size: 27px;
+      font-weight: 750;
+      letter-spacing: -.02em;
+      line-height: 1.25;
+    }
+
+    .flow-copy {
+      max-width: 650px;
+      margin: 10px 52px 0 0;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .purchase-contact-layout {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .purchase-summary-card {
+      min-width: 0;
+      padding: 24px;
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
+      background: var(--surface-soft);
+    }
+
+    .checkout-section-title {
+      margin: 0 0 16px;
+      color: var(--text-faint);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .purchase-summary-top {
+      padding-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .purchase-order-owner { margin: 0 0 5px; color: var(--cyan); font-size: 11.5px; font-weight: 650; line-height: 1.4; }
+    .purchase-plan-name { margin: 0; font-size: 19px; font-weight: 700; line-height: 1.35; }
+    .purchase-credit-line { margin-top: 5px; color: var(--text-muted); font-size: 13px; line-height: 1.45; }
+
+    .purchase-facts { margin: 10px 0 0; display: grid; }
+    .purchase-facts > div {
+      min-width: 0;
+      min-height: 38px;
+      padding: 9px 0;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 18px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .purchase-facts > div:last-child { border-bottom: 0; }
+    .purchase-facts dt { color: var(--text-faint); font-size: 12px; line-height: 1.45; }
+    .purchase-facts dd { margin: 0; color: var(--text-soft); font-size: 12px; font-weight: 600; line-height: 1.45; text-align: right; }
+    .purchase-facts .purchase-discount dd { color: var(--cyan); }
+    .purchase-facts .purchase-total-row {
+      min-height: 52px;
+      margin-top: 2px;
+      padding-top: 14px;
+      border-bottom: 0;
+    }
+    .purchase-facts .purchase-total-row dt { color: var(--text-soft); font-weight: 650; }
+    .purchase-facts .purchase-total-row dd { color: var(--text); font-size: 19px; font-weight: 750; font-variant-numeric: tabular-nums; }
+    .purchase-original-context { display: block; margin-top: 2px; color: var(--text-faint); font-size: 10px; font-weight: 500; }
+    .purchase-savings-note { margin: 12px 0 0; color: var(--text-muted); font-size: 11.5px; line-height: 1.5; }
+    .purchase-savings-note strong { color: var(--text-soft); }
+
+    .included-value { margin-top: 8px; border-top: 1px solid var(--border); }
+    .included-value summary {
+      min-height: 44px;
+      padding: 11px 0 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text-soft);
+      font-size: 12.5px;
+      font-weight: 650;
+    }
+    .included-value ul { margin: 10px 0 0; padding: 0; display: grid; gap: 9px; list-style: none; }
+    .included-value li {
+      position: relative;
+      padding-left: 20px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .included-value li::before {
+      content: "";
+      position: absolute;
+      top: .48em;
+      left: 2px;
+      width: 8px;
+      height: 4px;
+      border-bottom: 1.5px solid var(--cyan);
+      border-left: 1.5px solid var(--cyan);
+      transform: rotate(-45deg);
+    }
+
+    .flow-form {
+      min-width: 0;
+      padding: 24px;
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
+      background: var(--surface-raised);
+    }
+
+    .logged-in-review { align-content: start; }
+    .logged-in-account-note {
+      padding: 15px;
+      display: grid;
+      gap: 5px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-soft);
+    }
+    .logged-in-account-note strong { color: var(--text-soft); font-size: 13px; line-height: 1.45; }
+    .logged-in-account-note span { color: var(--text-muted); font-size: 11.5px; line-height: 1.5; }
+    .logged-in-review .flow-actions { margin-top: 22px; }
+
+    .flow-field { display: grid; gap: 7px; }
+    .flow-field + .flow-field { margin-top: 13px; }
+    .flow-label { color: var(--text-soft); font-size: 12.5px; font-weight: 650; }
+    .flow-label .required { color: #f08b7f; }
+    .flow-input, .recommendation-textarea {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      border: 1px solid #333;
+      border-radius: 10px;
+      outline: 0;
+      background: #101010;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+    }
+    .flow-input:focus, .recommendation-textarea:focus {
+      border-color: var(--cyan);
+      background: #121212;
+      box-shadow: 0 0 0 1px var(--cyan);
+    }
+    .flow-input::placeholder, .recommendation-textarea::placeholder {
+      color: #777;
+      opacity: 1;
+    }
+    .flow-input[aria-invalid="true"],
+    .otp-input[aria-invalid="true"],
+    .email-input[aria-invalid="true"],
+    .recommendation-textarea[aria-invalid="true"] {
+      border-color: #e96f60;
+      box-shadow: 0 0 0 1px rgba(233, 111, 96, .45);
+    }
+    .flow-helper { margin: 0; color: var(--text-faint); font-size: 11.5px; line-height: 1.5; }
+    .field-error { margin: 0; color: #f08b7f; font-size: 12px; line-height: 1.5; }
+
+    .phone-input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .phone-number-control {
+      display: grid;
+      grid-template-columns: minmax(124px, 42%) minmax(0, 1fr);
+      min-width: 0;
+      min-height: 48px;
+      overflow: hidden;
+      border: 1px solid #333;
+      border-radius: 10px;
+      background: #101010;
+      transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+    }
+    .phone-number-control:focus-within {
+      border-color: var(--cyan);
+      background: #121212;
+      box-shadow: 0 0 0 1px var(--cyan);
+    }
+    .phone-number-control:has(.phone-national-input[aria-invalid="true"]) {
+      border-color: #e96f60;
+      box-shadow: 0 0 0 1px rgba(233, 111, 96, .45);
+    }
+    .country-code-select {
+      width: 100%;
+      min-width: 0;
+      min-height: 46px;
+      padding: 11px 30px 11px 12px;
+      border: 0;
+      border-right: 1px solid #333;
+      border-radius: 0;
+      outline: 0;
+      appearance: none;
+      background-color: transparent;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1.5 5 5 5-5' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      color: var(--text-soft);
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.5;
+      cursor: pointer;
+    }
+    .country-code-select option { background: #171717; color: var(--text); }
+    .country-code-select:disabled { cursor: not-allowed; opacity: .62; }
+    .phone-number-control .phone-national-input {
+      min-width: 0;
+      min-height: 46px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .phone-number-control .phone-national-input:focus {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .flow-inline-button {
+      min-width: 104px;
+      min-height: 48px;
+      padding: 10px 13px;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: #181818;
+      color: var(--text-soft);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .flow-inline-button:hover:not(:disabled) { border-color: var(--cyan); color: var(--text); }
+    .flow-inline-button:disabled { cursor: not-allowed; opacity: .52; }
+    .flow-inline-button[aria-busy="true"] { cursor: wait; }
+
+    .verification-panel {
+      margin-top: 12px;
+      padding: 14px;
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      background: #101010;
+    }
+    .verification-panel[hidden] { display: none; }
+    .otp-heading-row, .otp-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .otp-heading-row strong { color: var(--text-soft); font-size: 12.5px; }
+    .otp-edit, .otp-resend {
+      min-height: 44px;
+      margin-block: -6px;
+      padding: 4px 2px;
+      border: 0;
+      background: transparent;
+      color: var(--cyan);
+      font: inherit;
+      font-size: 11.5px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .otp-edit:hover:not(:disabled), .otp-resend:hover:not(:disabled) { color: var(--text); }
+    .otp-edit:disabled, .otp-resend:disabled { color: var(--text-faint); cursor: not-allowed; }
+    .otp-sent-to { margin: 2px 0 11px; color: var(--text-faint); font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+    .otp-entry-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .otp-inputs { display: grid; grid-template-columns: repeat(4, minmax(42px, 1fr)); gap: 8px; }
+    .otp-input {
+      width: 100%;
+      height: 48px;
+      padding: 0;
+      border: 1px solid #333;
+      border-radius: 10px;
+      outline: 0;
+      background: #090909;
+      color: var(--text);
+      font: inherit;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+      text-align: center;
+      caret-color: var(--cyan);
+    }
+    .otp-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
+    .otp-input:disabled { color: var(--text-muted); opacity: .72; }
+    .otp-verify { min-width: 92px; min-height: 44px; padding: 9px 14px; }
+    .otp-footer { min-height: 34px; margin-top: 6px; align-items: flex-start; }
+    .otp-status { margin: 7px 0 0; color: var(--text-muted); font-size: 11.5px; line-height: 1.45; }
+    .otp-status.is-verified { color: #7fd0b2; }
+    .otp-error { margin-top: 4px; }
+
+    .contact-purpose {
+      margin: 0 0 17px;
+      padding: 0;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .flow-actions {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .flow-button {
+      min-height: 46px;
+      padding: 11px 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 650;
+      line-height: 1.25;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 150ms ease, background 150ms ease, color 150ms ease, opacity 150ms ease;
+    }
+    .flow-button.primary { background: var(--accent); color: #111; font-weight: 750; }
+    .flow-button.primary:hover:not(:disabled) { filter: brightness(1.06); }
+    .flow-button.primary:disabled { background: #2c2c2c; color: #858585; }
+    .flow-button.secondary { border-color: var(--border-strong); background: transparent; color: var(--text-soft); }
+    .flow-button.secondary:hover:not(:disabled) { border-color: var(--text-muted); color: var(--text); }
+    .flow-button.tertiary { min-height: 44px; padding-inline: 10px; border: 0; background: transparent; color: var(--text-faint); }
+    .flow-button.tertiary:hover:not(:disabled) { color: var(--text); }
+    .flow-button:disabled { cursor: not-allowed; opacity: .54; }
+    .flow-button[aria-busy="true"] { cursor: wait; opacity: .7; }
+
+    .button-spinner {
+      width: 15px;
+      height: 15px;
+      display: inline-block;
+      flex: none;
+      margin-right: 2px;
+      border: 2px solid rgba(17, 17, 17, .3);
+      border-top-color: #111;
+      border-radius: 50%;
+      vertical-align: -2px;
+      animation: flow-spin .7s linear infinite;
+    }
+    @keyframes flow-spin { to { transform: rotate(360deg); } }
+
+    .demo-checkout-banner {
+      margin: 0 52px 18px 0;
+      padding: 10px 13px;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      border: 1px solid rgba(57, 182, 216, .28);
+      border-radius: 10px;
+      background: rgba(57, 182, 216, .08);
+      color: #c7e9f1;
+      font-size: 11.5px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .razorpay-shell {
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr);
+      border: 1px solid #26324a;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 22px 54px rgba(0, 0, 0, .36);
+      color: #182033;
+    }
+
+    .razorpay-order {
+      min-width: 0;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      background: #10182c;
+      color: #fff;
+    }
+    .razorpay-merchant { color: #aebbd6; font-size: 11px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+    .razorpay-order h3 { margin: 11px 0 0; font-size: 19px; line-height: 1.4; }
+    .razorpay-order-credits { margin: 5px 0 0; color: #aebbd6; font-size: 12.5px; line-height: 1.5; }
+    .razorpay-amount { margin-top: 28px; }
+    .razorpay-amount span { display: block; color: #8fa0c2; font-size: 11.5px; }
+    .razorpay-amount strong { display: block; margin-top: 6px; font-size: 26px; font-variant-numeric: tabular-nums; }
+    .razorpay-tax-note { margin: 5px 0 0; color: #8fa0c2; font-size: 11.5px; line-height: 1.45; }
+    .razorpay-contact { margin: 28px 0 0; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.12); }
+    .razorpay-contact span { display: block; color: #8fa0c2; font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; }
+    .razorpay-contact strong { display: block; margin-top: 5px; overflow-wrap: anywhere; font-size: 11.5px; font-weight: 550; line-height: 1.5; }
+    .razorpay-secured { margin-top: auto; padding-top: 28px; color: #8fa0c2; font-size: 10.5px; line-height: 1.45; }
+    .razorpay-secured strong { color: #dfe7f7; font-size: 13px; font-style: italic; letter-spacing: -.02em; }
+
+    .razorpay-payment { min-width: 0; padding: 28px; background: #f7f8fb; }
+    .razorpay-payment-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+    .razorpay-back {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 8px 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #526078;
+      font-size: 12px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .razorpay-back:hover { background: #e9edf5; color: #182033; }
+    .razorpay-back:disabled { cursor: wait; opacity: .5; }
+    .razorpay-wordmark { color: #5f6b80; font-size: 11px; white-space: nowrap; }
+    .razorpay-wordmark strong { color: #2f5bea; font-size: 14px; font-style: italic; }
+    .razorpay-payment h2 { margin: 22px 0 0; color: #11182a; font-size: 21px; letter-spacing: -.015em; }
+    .razorpay-payment-copy { margin: 7px 0 0; color: #667087; font-size: 12px; line-height: 1.5; }
+
+    .payment-methods { margin: 20px 0 0; padding: 0; border: 0; }
+    .payment-methods legend { padding: 0; color: #4c586f; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .payment-method-grid { margin-top: 10px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .payment-method-option {
+      min-width: 0;
+      min-height: 64px;
+      padding: 11px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #d9deea;
+      border-radius: 10px;
+      background: #fff;
+      color: #252d40;
+      cursor: pointer;
+    }
+    .payment-method-option.is-selected { border-color: #2f5bea; box-shadow: 0 0 0 1px #2f5bea; }
+    .payment-method-option input { width: 17px; height: 17px; margin: 0; accent-color: #2f5bea; }
+    .payment-method-option strong { display: block; font-size: 12.5px; }
+    .payment-method-option span span { display: block; margin-top: 2px; color: #5f6b80; font-size: 10.5px; line-height: 1.35; }
+
+    .payment-method-detail {
+      min-height: 105px;
+      margin-top: 12px;
+      padding: 15px;
+      border: 1px solid #e0e4ec;
+      border-radius: 10px;
+      background: #fff;
+    }
+    .payment-method-detail h3 { margin: 0; color: #252d40; font-size: 12.5px; }
+    .payment-method-detail p { margin: 6px 0 0; color: #5f6b80; font-size: 11px; line-height: 1.5; }
+    .upi-apps { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 7px; }
+    .upi-apps span {
+      min-height: 30px;
+      padding: 6px 9px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #dce1ea;
+      border-radius: 7px;
+      background: #fafbfc;
+      color: #4e5870;
+      font-size: 10.5px;
+      font-weight: 650;
+    }
+    .mock-card-line { margin-top: 12px; display: grid; grid-template-columns: minmax(0, 1fr) 72px 58px; gap: 7px; }
+    .mock-card-line span {
+      min-height: 34px;
+      padding: 8px 9px;
+      border: 1px solid #dce1ea;
+      border-radius: 7px;
+      background: #fafbfc;
+      color: #9aa2b1;
+      font-size: 10.5px;
+    }
+
+    .payment-demo-actions { margin-top: 16px; display: grid; gap: 8px; }
+    .razorpay-pay {
+      min-height: 48px;
+      padding: 11px 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 0;
+      border-radius: 9px;
+      background: #2f5bea;
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 750;
+      line-height: 1.3;
+      cursor: pointer;
+    }
+    .razorpay-pay:hover:not(:disabled) { background: #2449c7; }
+    .razorpay-pay:disabled { cursor: wait; opacity: .7; }
+    .razorpay-pay .button-spinner { border-color: rgba(255,255,255,.35); border-top-color: #fff; }
+    .razorpay-fail-demo {
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 0;
+      background: transparent;
+      color: #5f6b80;
+      font-size: 11px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+    .razorpay-fail-demo:hover:not(:disabled) { color: #333d52; }
+    .razorpay-payment :focus-visible { outline-color: #2f5bea; }
+    .payment-method-grid.is-single { grid-template-columns: minmax(0, 1fr); }
+
+    .outcome-state { padding: 30px 10px 6px; text-align: center; }
+    .outcome-icon {
+      width: 66px;
+      height: 66px;
+      margin: 0 auto 18px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border-strong);
+      border-radius: 50%;
+      background: var(--surface-soft);
+      color: var(--text);
+      font-size: 30px;
+      line-height: 1;
+    }
+    .outcome-icon.success { border-color: rgba(57, 182, 216, .35); background: rgba(57, 182, 216, .09); color: var(--cyan); }
+    .outcome-icon.failure { border-color: rgba(240, 139, 127, .35); background: rgba(240, 139, 127, .08); color: #f08b7f; }
+    .fulfilment-spinner {
+      width: 54px;
+      height: 54px;
+      margin: 2px auto 20px;
+      border: 2px solid var(--border-strong);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: flow-spin .8s linear infinite;
+    }
+    .outcome-state .flow-title, .outcome-state .flow-copy { max-width: 420px; margin-right: auto; margin-left: auto; }
+    .outcome-summary {
+      margin: 22px auto 0;
+      padding: 15px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      background: var(--surface-soft);
+      text-align: left;
+    }
+    .outcome-summary span { color: var(--text-muted); font-size: 12px; line-height: 1.45; }
+    .outcome-summary strong { flex: none; font-size: 16px; }
+    .outcome-state .flow-actions { justify-content: center; }
+    .find-mentor-cta { min-width: 180px; }
+
+    .recommendation-more { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .recommendation-more > summary {
+      min-height: 48px;
+      padding: 10px 2px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .optional-label {
+      padding: 3px 7px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      color: var(--text-faint);
+      font-size: 9.5px;
+      font-weight: 650;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .recommendation-more .disclosure-icon { margin-left: auto; }
+    .recommendation-more-content { padding: 5px 0 16px; }
+    .recommendation-more-content label { display: block; color: var(--text-soft); font-size: 12px; font-weight: 650; }
+    .recommendation-more-helper { margin: 5px 0 9px; color: var(--text-faint); font-size: 11.5px; line-height: 1.5; }
+    .recommendation-textarea { min-height: 112px; resize: vertical; border-radius: 12px; }
+    .character-count { margin: 6px 2px 0; color: var(--text-faint); font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
+
+    .recommendation-contact { display: grid; gap: 8px; }
+    .recommendation-topic-error { margin: -8px 2px 0; }
+    .recommendation-contact label { color: var(--text-soft); font-size: 12.5px; font-weight: 650; }
+    .recommendation-email-helper { margin: -2px 0 0; color: var(--text-faint); font-size: 11.5px; line-height: 1.45; }
+    .recommendation-email-error { margin: -1px 0 0; }
+    .recommendation-submit:disabled { cursor: wait; opacity: .65; }
+
+    .recommendation-confirmation {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      width: min(430px, calc(100% - 32px));
+      padding: 24px 54px 22px 24px;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      background: #1a1a1a;
+      box-shadow: 0 28px 70px rgba(0,0,0,.58);
+      color: var(--text);
+      animation: recommendation-in 260ms var(--ease-out);
+    }
+    .recommendation-confirmation::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 3px;
+      background: var(--accent);
+    }
+    .recommendation-confirmation-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .recommendation-confirmation-close:hover { background: rgba(255,255,255,.05); color: var(--text); }
+    .recommendation-confirmation-mark {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(57,182,216,.3);
+      border-radius: 50%;
+      background: rgba(57,182,216,.08);
+      color: var(--cyan);
+      font-size: 17px;
+    }
+    .recommendation-confirmation .flow-kicker { margin: 14px 0 5px; }
+    .recommendation-confirmation h3 { margin: 0; font-size: 18px; line-height: 1.35; }
+    .recommendation-confirmation p { margin: 8px 0 0; color: var(--text-muted); font-size: 12.5px; line-height: 1.6; }
+    .recommendation-confirmation p strong { color: var(--text-soft); overflow-wrap: anywhere; }
+    .confirmation-topics { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .confirmation-topics span {
+      padding: 5px 8px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      color: var(--text-soft);
+      font-size: 10.5px;
+    }
+    .prototype-note { padding-top: 10px; border-top: 1px solid var(--border); color: var(--text-faint) !important; font-size: 11px !important; }
+    @keyframes recommendation-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 374px) {
+      html[data-audience="logged-in"] .explainer-copy--session .explainer-line:first-child {
+        font-size: 13.75px;
+        letter-spacing: -.01em;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .flow-dialog,
+      .flow-dialog[data-current-step="payment"],
+      .flow-dialog[data-current-step="failure"],
+      .flow-dialog[data-current-step="success"] {
+        width: calc(100% - 16px);
+        max-height: calc(100dvh - 16px);
+      }
+      .flow-dialog .modal-panel { max-height: calc(100dvh - 16px); padding: 26px 20px max(22px, env(safe-area-inset-bottom)); border-radius: 16px; }
+      .flow-dialog .modal-close { top: 8px; right: 8px; }
+      .flow-kicker, .flow-title, .flow-copy, .demo-checkout-banner { margin-right: 42px; }
+      .flow-title { font-size: 23px; }
+      .purchase-contact-layout { grid-template-columns: minmax(0, 1fr); }
+      .razorpay-shell { grid-template-columns: minmax(0, 1fr); }
+      .razorpay-order { padding: 20px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 18px; }
+      .razorpay-merchant, .razorpay-order h3, .razorpay-order-credits { grid-column: 1; }
+      .razorpay-amount { grid-column: 2; grid-row: 1 / span 3; margin-top: 0; text-align: right; }
+      .razorpay-amount strong { font-size: 20px; }
+      .razorpay-contact { grid-column: 1 / -1; margin-top: 14px; padding-top: 12px; }
+      .razorpay-secured { display: none; }
+      .razorpay-payment { padding: 22px 18px; }
+      .razorpay-payment h2 { margin-top: 16px; }
+      .recommendation-confirmation { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); width: calc(100% - 24px); }
+      .flow-dialog[data-current-step="fulfilment"] { width: calc(100% - 16px); max-height: calc(100dvh - 16px); }
+      .flow-dialog[data-current-step="fulfilment-failure"] { width: calc(100% - 16px); max-height: calc(100dvh - 16px); }
+      .flow-dialog[data-current-step="contact"] .modal-panel { scroll-padding-bottom: 38dvh; }
+      .purchase-summary-card, .flow-form { padding: 19px; }
+      .included-value:not([open]) { margin-top: 4px; }
+    }
+
+    @media (max-width: 460px) {
+      .flow-actions { align-items: stretch; flex-direction: column-reverse; }
+      .flow-actions .flow-button { width: 100%; }
+      .purchase-contact-layout { gap: 14px; }
+      .purchase-summary-top { flex-direction: column; }
+      .purchase-facts > div { align-items: baseline; flex-direction: row; gap: 14px; }
+      .purchase-facts dd { text-align: right; }
+      .phone-input-row { grid-template-columns: minmax(0, 1fr); }
+      .flow-inline-button { width: 100%; min-width: 0; padding-inline: 9px; }
+      .otp-entry-row { grid-template-columns: minmax(0, 1fr); }
+      .otp-verify { width: 100%; }
+      .otp-footer { align-items: flex-start; }
+      .payment-method-grid { grid-template-columns: minmax(0, 1fr); }
+      .mock-card-line { grid-template-columns: minmax(0, 1fr) 64px; }
+      .mock-card-line span:last-child { grid-column: 1 / -1; }
+      .razorpay-wordmark { display: none; }
+      .razorpay-order { grid-template-columns: minmax(0, 1fr); }
+      .razorpay-amount { grid-column: 1; grid-row: auto; margin-top: 12px; text-align: left; }
+      .outcome-summary { align-items: flex-start; flex-direction: column; gap: 5px; }
+      .recommendation-confirmation { padding: 22px 48px 20px 20px; }
+    }
+
+    @media (min-width: 761px) and (max-height: 820px) {
+      .flow-dialog[data-current-step="contact"] .modal-panel { padding: 26px 30px; }
+      .flow-dialog[data-current-step="contact"] .flow-kicker { margin-bottom: 4px; }
+      .flow-dialog[data-current-step="contact"] .flow-copy { margin-top: 6px; line-height: 1.5; }
+      .flow-dialog[data-current-step="contact"] .purchase-contact-layout { margin-top: 16px; }
+      .flow-dialog[data-current-step="contact"] .purchase-summary-card,
+      .flow-dialog[data-current-step="contact"] .flow-form { padding: 19px; }
+      .flow-dialog[data-current-step="contact"] .checkout-section-title { margin-bottom: 10px; }
+      .flow-dialog[data-current-step="contact"] .contact-purpose { margin-bottom: 10px; }
+      .flow-dialog[data-current-step="contact"] .flow-field + .flow-field { margin-top: 9px; }
+      .flow-dialog[data-current-step="contact"] .verification-panel { margin-top: 8px; padding: 12px; }
+      .flow-dialog[data-current-step="contact"] .otp-sent-to { margin-bottom: 8px; }
+      .flow-dialog[data-current-step="contact"] .flow-actions { margin-top: 14px; }
+    }
+
+    @media (max-height: 560px) and (orientation: landscape) {
+      .flow-dialog, .flow-dialog .modal-panel { max-height: calc(100dvh - 12px); }
+      .flow-dialog .modal-panel { padding-top: 22px; padding-bottom: 18px; }
+    }
   </style>
 </head>
 <body>
@@ -1872,10 +2671,10 @@
           <div class="custom-copy">
             <div class="custom-label" data-custom-label>PREFER TO PICK AN EXACT NUMBER?</div>
             <h2 class="custom-title" id="custom-title" data-custom-title>Custom credits</h2>
-            <div class="custom-price"><span data-custom-unit-price>₹1,500 / credit</span> · + taxes · valid 60 days</div>
+            <div class="custom-price"><span data-custom-unit-price data-price-inr="₹1,500 / credit" data-price-usd="$16 / credit">₹1,500 / credit</span> · + taxes · valid 60 days</div>
           </div>
           <div class="custom-purchase">
-            <div class="custom-counter" role="group" aria-label="Custom credit quantity">
+            <div class="custom-counter" role="group" aria-label="Custom credit quantity" data-min="1" data-max="5" data-step="1">
               <button class="custom-counter-button" type="button" data-custom-decrease aria-label="Decrease custom credits">−</button>
               <output class="custom-quantity" data-custom-quantity aria-live="polite" aria-atomic="true">1</output>
               <button class="custom-counter-button" type="button" data-custom-increase aria-label="Increase custom credits">+</button>
@@ -1898,17 +2697,35 @@
           <p class="recommendation-copy" data-recommendation-copy>Tell us what you're working towards and we'll recommend the right pack.</p>
         </div>
         <form class="recommendation-form" novalidate>
-          <div class="topic-list" aria-label="Mentorship goals">
+          <div class="topic-list" role="group" aria-label="Mentorship goals" aria-describedby="recommendation-topic-error">
             <button class="topic" type="button" aria-pressed="false">Resume prep</button>
             <button class="topic" type="button" aria-pressed="false">Mock interviews</button>
             <button class="topic" type="button" aria-pressed="false">Career roadmap</button>
             <button class="topic" type="button" aria-pressed="false">Building a startup</button>
             <button class="topic" type="button" aria-pressed="false">Skill &amp; domain guidance</button>
           </div>
-          <div class="email-row">
-            <label class="sr-only" for="recommendation-email">Your email</label>
-            <input class="email-input" id="recommendation-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="Your email">
-            <button class="recommendation-submit" type="submit" data-recommendation-submit>Get a recommendation</button>
+          <p class="field-error recommendation-topic-error" id="recommendation-topic-error" role="alert" hidden></p>
+          <details class="recommendation-more">
+            <summary>
+              Tell us more
+              <span class="optional-label">Optional</span>
+              <span class="disclosure-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="recommendation-more-content">
+              <label for="recommendation-context">A little context</label>
+              <p class="recommendation-more-helper" id="recommendation-context-helper">This only helps us make the recommendation more relevant. Your selected goals remain the main input.</p>
+              <textarea class="recommendation-textarea" id="recommendation-context" name="context" maxlength="400" aria-describedby="recommendation-context-helper recommendation-character-count" placeholder="For example: I’m changing roles and want to practise two product interviews next month."></textarea>
+              <p class="character-count" id="recommendation-character-count"><span data-recommendation-character-count>0</span>/400</p>
+            </div>
+          </details>
+          <div class="recommendation-contact">
+            <label for="recommendation-email">Email address</label>
+            <p class="recommendation-email-helper" id="recommendation-email-helper">We’ll send your recommendation to this address.</p>
+            <div class="email-row">
+              <input class="email-input" id="recommendation-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@company.com" required aria-describedby="recommendation-email-helper recommendation-email-error">
+              <button class="recommendation-submit" type="submit" data-recommendation-submit>Get a recommendation</button>
+            </div>
+            <p class="field-error recommendation-email-error" id="recommendation-email-error" role="alert" hidden></p>
           </div>
         </form>
       </section>
@@ -2009,6 +2826,232 @@
       </div>
     </div>
   </dialog>
+
+  <dialog class="flow-dialog" data-current-step="contact" aria-labelledby="purchase-contact-title" aria-describedby="purchase-contact-copy">
+    <div class="modal-panel">
+      <button class="modal-close" type="button" aria-label="Close dialog">×</button>
+
+      <section class="flow-step" data-flow-step="contact">
+        <p class="flow-kicker">Checkout · Step 1 of 2</p>
+        <h2 class="flow-title" id="purchase-contact-title" tabindex="-1">Complete your purchase</h2>
+        <p class="flow-copy" id="purchase-contact-copy">Review your order and verify your details before payment.</p>
+
+        <div class="purchase-contact-layout">
+          <section class="purchase-summary-card" aria-labelledby="purchase-summary-title" data-gst-rate="0.18">
+            <h3 class="checkout-section-title" id="purchase-summary-title">Order summary</h3>
+            <div class="purchase-summary-top">
+              <div>
+                <p class="purchase-order-owner" data-purchase-order-owner>Your order</p>
+                <h3 class="purchase-plan-name" data-purchase-name>Selected credits</h3>
+                <div class="purchase-credit-line" data-purchase-credits>—</div>
+              </div>
+            </div>
+            <dl class="purchase-facts">
+              <div>
+                <dt>Original price <span class="purchase-original-context">At the custom-credit rate</span></dt>
+                <dd data-purchase-original>—</dd>
+              </div>
+              <div class="purchase-discount"><dt>Your plan savings</dt><dd data-purchase-discount>—</dd></div>
+              <div><dt>Price after discount</dt><dd data-purchase-after-discount>—</dd></div>
+              <div><dt>GST (18%)</dt><dd data-purchase-gst>—</dd></div>
+              <div class="purchase-total-row"><dt>Final amount payable</dt><dd data-purchase-total>—</dd></div>
+            </dl>
+            <p class="purchase-savings-note" data-purchase-savings-note></p>
+            <details class="included-value">
+              <summary>Plan details <span class="disclosure-icon" aria-hidden="true">+</span></summary>
+              <ul data-purchase-benefits></ul>
+            </details>
+          </section>
+
+          <form class="flow-form" data-purchase-contact-form novalidate aria-busy="false">
+            <h3 class="checkout-section-title">Your details</h3>
+            <p class="contact-purpose">We’ll use these details to create your account and send your invoice.</p>
+            <div class="flow-field">
+              <label class="flow-label" for="purchase-name">Full name <span class="required" aria-hidden="true">*</span></label>
+              <input class="flow-input" id="purchase-name" name="name" type="text" autocomplete="name" maxlength="80" required aria-describedby="purchase-name-error">
+              <p class="field-error" id="purchase-name-error" role="alert" hidden></p>
+            </div>
+            <div class="flow-field">
+              <label class="flow-label" for="purchase-email">Email address <span class="required" aria-hidden="true">*</span></label>
+              <input class="flow-input" id="purchase-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" required aria-describedby="purchase-email-error">
+              <p class="field-error" id="purchase-email-error" role="alert" hidden></p>
+            </div>
+            <div class="flow-field">
+              <label class="flow-label" for="purchase-phone">Phone number <span class="required" aria-hidden="true">*</span></label>
+              <div class="phone-input-row">
+                <div class="phone-number-control">
+                  <select class="country-code-select" id="purchase-country-code" name="country-code" autocomplete="tel-country-code" required aria-label="Country calling code" aria-describedby="purchase-phone-helper">
+                    <option value="in" data-dial-code="91" selected>India (+91)</option>
+                  </select>
+                  <input class="flow-input phone-national-input" id="purchase-phone" name="phone-national" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98765 43210" required aria-describedby="purchase-phone-helper purchase-phone-error">
+                </div>
+                <button class="flow-inline-button" type="button" data-send-otp disabled>Send OTP</button>
+              </div>
+              <p class="flow-helper" id="purchase-phone-helper">Choose a country code, then enter your phone number.</p>
+              <p class="field-error" id="purchase-phone-error" role="alert" hidden></p>
+            </div>
+
+            <fieldset class="verification-panel" data-otp-panel hidden>
+              <legend class="sr-only">Phone verification</legend>
+              <div class="otp-heading-row">
+                <strong>Four-digit OTP</strong>
+                <button class="otp-edit" type="button" data-edit-phone>Edit phone number</button>
+              </div>
+              <p class="otp-sent-to" data-otp-sent-to></p>
+              <div class="otp-entry-row">
+                <div class="otp-inputs" role="group" aria-label="Four-digit OTP">
+                  <input class="otp-input" data-otp-digit type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code" aria-label="Digit 1 of 4" aria-describedby="purchase-otp-status purchase-otp-error">
+                  <input class="otp-input" data-otp-digit type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" aria-label="Digit 2 of 4" aria-describedby="purchase-otp-status purchase-otp-error">
+                  <input class="otp-input" data-otp-digit type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" aria-label="Digit 3 of 4" aria-describedby="purchase-otp-status purchase-otp-error">
+                  <input class="otp-input" data-otp-digit type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" aria-label="Digit 4 of 4" aria-describedby="purchase-otp-status purchase-otp-error">
+                </div>
+                <button class="flow-button secondary otp-verify" type="button" data-verify-otp disabled>Verify OTP</button>
+              </div>
+              <div class="otp-footer">
+                <p class="otp-status" id="purchase-otp-status" role="status" aria-live="polite"></p>
+                <button class="otp-resend" type="button" data-resend-otp disabled>Resend OTP</button>
+              </div>
+              <p class="field-error otp-error" id="purchase-otp-error" role="alert" hidden></p>
+            </fieldset>
+
+            <div class="flow-actions">
+              <button class="flow-button tertiary" type="button" data-flow-cancel>Back to pricing</button>
+              <button class="flow-button primary" type="submit" data-contact-continue disabled>Continue to payment</button>
+            </div>
+          </form>
+
+          <section class="flow-form logged-in-review" data-logged-in-review aria-labelledby="logged-in-review-title" hidden>
+            <h3 class="checkout-section-title" id="logged-in-review-title">Ready to add credits</h3>
+            <p class="contact-purpose">You’re signed in. Review the order summary, then continue to payment.</p>
+            <div class="logged-in-account-note">
+              <strong>Using your MentorUnion account</strong>
+              <span>No account setup or phone verification is required.</span>
+            </div>
+            <div class="flow-actions">
+              <button class="flow-button tertiary" type="button" data-flow-cancel>Back to pricing</button>
+              <button class="flow-button primary" type="button" data-logged-in-continue>Continue to payment</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="flow-step" data-flow-step="payment" hidden>
+        <div class="demo-checkout-banner">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#39B6D8"/><path d="M8 7v4M8 4.7v.2" stroke="#39B6D8" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>Demo checkout — no real payment will be processed, no money will be charged and no financial details are collected.</span>
+        </div>
+        <div class="razorpay-shell" aria-busy="false" data-payment-shell>
+          <aside class="razorpay-order" aria-label="Order summary">
+            <span class="razorpay-merchant">MentorUnion</span>
+            <h3 data-checkout-name>Selected credits</h3>
+            <p class="razorpay-order-credits" data-checkout-credits>—</p>
+            <div class="razorpay-amount">
+              <span>Amount</span>
+              <strong data-checkout-price>—</strong>
+              <p class="razorpay-tax-note">+ applicable taxes</p>
+            </div>
+            <div class="razorpay-contact">
+              <span>Invoice details</span>
+              <strong data-checkout-contact>Contact details added in the previous step</strong>
+            </div>
+            <p class="razorpay-secured">Checkout structure modelled on Razorpay<br><strong>razorpay</strong> · demonstration only</p>
+          </aside>
+
+          <section class="razorpay-payment" aria-labelledby="payment-title" aria-describedby="payment-copy">
+            <div class="razorpay-payment-top">
+              <button class="razorpay-back" type="button" data-payment-back aria-label="Back to contact details">
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M9.5 2.5L4.5 7l5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Back
+              </button>
+              <span class="razorpay-wordmark">Modelled on <strong>razorpay</strong></span>
+            </div>
+            <h2 id="payment-title" tabindex="-1">Choose how to pay</h2>
+            <p class="razorpay-payment-copy" id="payment-copy">This mirrors the structure of a hosted checkout. Method availability depends on currency and merchant configuration.</p>
+
+            <fieldset class="payment-methods">
+              <legend>Payment method</legend>
+              <div class="payment-method-grid">
+                <label class="payment-method-option is-selected" data-payment-method-option>
+                  <input type="radio" name="demo-payment-method" value="upi" checked>
+                  <span><strong>UPI apps &amp; QR</strong><span>Open an app or scan on desktop</span></span>
+                </label>
+                <label class="payment-method-option" data-payment-method-option>
+                  <input type="radio" name="demo-payment-method" value="card">
+                  <span><strong>Card</strong><span>Credit or debit card</span></span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="payment-method-detail" data-payment-method-detail="upi">
+              <h3>Pay using a UPI app</h3>
+              <p>A live mobile checkout opens an installed app; desktop checkout can show a scannable QR. This demo does neither.</p>
+              <div class="upi-apps" aria-hidden="true"><span>G Pay</span><span>PhonePe</span><span>Paytm</span><span>QR code</span></div>
+            </div>
+            <div class="payment-method-detail" data-payment-method-detail="card" hidden>
+              <h3>Card details</h3>
+              <p>Razorpay would collect and secure card details in the live checkout. These shapes are non-interactive placeholders.</p>
+              <div class="mock-card-line" aria-hidden="true"><span>Card number</span><span>MM / YY</span><span>CVV</span></div>
+            </div>
+
+            <div class="payment-demo-actions">
+              <button class="razorpay-pay" type="button" data-simulate-success>Simulate successful payment</button>
+              <button class="razorpay-fail-demo" type="button" data-simulate-failure>Simulate a failed payment to test retry</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="flow-step outcome-state" data-flow-step="fulfilment" role="status" aria-live="polite" hidden>
+        <div class="fulfilment-spinner" aria-hidden="true"></div>
+        <p class="flow-kicker">Payment received</p>
+        <h2 class="flow-title" id="purchase-fulfilment-title" tabindex="-1">Finishing your purchase</h2>
+        <p class="flow-copy" id="purchase-fulfilment-copy">We’re confirming your account and adding your credits. Keep this window open.</p>
+      </section>
+
+      <section class="flow-step outcome-state" data-flow-step="fulfilment-failure" hidden>
+        <div class="outcome-icon failure" aria-hidden="true">!</div>
+        <p class="flow-kicker">Account setup</p>
+        <h2 class="flow-title" id="fulfilment-failure-title" tabindex="-1">Your payment needs another check</h2>
+        <p class="flow-copy" id="fulfilment-failure-copy">Don’t pay again. We’ll recheck the payment and add your credits once it’s confirmed.</p>
+        <div class="flow-actions">
+          <button class="flow-button primary" type="button" data-fulfilment-retry>Check again</button>
+        </div>
+      </section>
+
+      <section class="flow-step outcome-state" data-flow-step="failure" hidden>
+        <div class="outcome-icon failure" aria-hidden="true">×</div>
+        <p class="flow-kicker">Payment</p>
+        <h2 class="flow-title" id="payment-failure-title" tabindex="-1">Payment unsuccessful</h2>
+        <p class="flow-copy" id="payment-failure-copy">We couldn’t complete the payment. Your order and verified details are saved, so you can review them or try again.</p>
+        <div class="outcome-summary"><span data-failure-selection>Selected credits</span><strong data-failure-price>—</strong></div>
+        <div class="flow-actions">
+          <button class="flow-button tertiary" type="button" data-failure-details>Review details</button>
+          <button class="flow-button primary" type="button" data-payment-retry>Try payment again</button>
+        </div>
+      </section>
+
+      <section class="flow-step outcome-state" data-flow-step="success" role="status" hidden>
+        <div class="outcome-icon success" aria-hidden="true">✓</div>
+        <p class="flow-kicker" data-success-kicker>Account ready</p>
+        <h2 class="flow-title" id="purchase-success-title" tabindex="-1">Purchase successful</h2>
+        <p class="flow-copy" id="purchase-success-copy"><span data-success-greeting></span><strong data-success-credits>Selected credits</strong> have been added to your MentorUnion account.</p>
+        <p class="flow-copy" data-account-created-copy>Your MentorUnion account has been created. Log in using <strong data-success-email>your email address</strong> or <strong data-success-phone>phone number</strong>.</p>
+        <div class="outcome-summary"><span data-success-selection>Selected credits</span><strong data-success-price>—</strong></div>
+        <div class="flow-actions">
+          <a class="flow-button primary find-mentor-cta" href="#">Find Mentors</a>
+        </div>
+      </section>
+    </div>
+  </dialog>
+
+  <aside class="recommendation-confirmation" data-recommendation-confirmation role="status" aria-live="polite" aria-atomic="false" aria-labelledby="recommendation-confirmation-title" aria-describedby="recommendation-confirmation-message" tabindex="-1" hidden>
+    <button class="recommendation-confirmation-close" type="button" aria-label="Close recommendation confirmation">×</button>
+    <div class="recommendation-confirmation-mark" aria-hidden="true">✓</div>
+    <p class="flow-kicker">Request received</p>
+    <h3 id="recommendation-confirmation-title">We’ll send your recommendation</h3>
+    <p id="recommendation-confirmation-message">Based on your goals, we’ll email a recommended pack to <strong data-recommendation-confirmation-email>you@company.com</strong> within about 24 hours.</p>
+    <div class="confirmation-topics" data-recommendation-confirmation-topics hidden></div>
+  </aside>
 
   <script>
     (() => {
@@ -2307,11 +3350,6 @@
         button.addEventListener("click", () => setCurrency(button.dataset.currency));
       });
 
-      cards.forEach((card) => {
-        const packKey = card.dataset.pack;
-        card.querySelector(".plan-selector").addEventListener("click", () => selectPack(packKey));
-      });
-
       infoTriggers.forEach((button) => {
         const help = button.closest(".feature-help");
 
@@ -2359,36 +3397,12 @@
       window.addEventListener("resize", () => positionInfoTooltip());
       window.addEventListener("scroll", () => positionInfoTooltip(), { capture: true, passive: true });
 
-      document.querySelectorAll("[data-pack-cta]").forEach((button) => {
-        button.addEventListener("click", () => {
-          const packKey = button.dataset.packCta;
-          selectPack(packKey);
-          openDialog(button, packKey);
-        });
-      });
-
       document.querySelectorAll("[data-open-modal]").forEach((button) => {
         button.addEventListener("click", () => openDialog(button));
       });
 
       customDecrease.addEventListener("click", () => changeCustomQuantity(-1));
       customIncrease.addEventListener("click", () => changeCustomQuantity(1));
-
-      document.querySelector("[data-custom-cta]").addEventListener("click", (event) => {
-        openDialog(event.currentTarget, "custom");
-      });
-
-      document.querySelectorAll(".topic").forEach((button) => {
-        button.addEventListener("click", () => {
-          const pressed = button.getAttribute("aria-pressed") === "true";
-          button.setAttribute("aria-pressed", String(!pressed));
-        });
-      });
-
-      document.querySelector(".recommendation-form").addEventListener("submit", (event) => {
-        event.preventDefault();
-        openDialog(event.submitter || event.currentTarget);
-      });
 
       dialog.querySelector(".modal-close").addEventListener("click", closeDialog);
       dialog.querySelectorAll(".cancel-modal").forEach((button) => {
@@ -2424,6 +3438,1390 @@
       syncCardDetails(mobileDetails);
       setCurrency("INR");
       setAudience("landing", false);
+    })();
+  </script>
+  <script>
+    (() => {
+      "use strict";
+
+      const disposableEmailDomains = new Set([
+        "10minutemail.com",
+        "dispostable.com",
+        "guerrillamail.com",
+        "maildrop.cc",
+        "mailinator.com",
+        "sharklasers.com",
+        "temp-mail.org",
+        "tempmail.com",
+        "throwawaymail.com",
+        "yopmail.com"
+      ]);
+      const placeholderEmailDomains = new Set([
+        "domain.com",
+        "example.com",
+        "example.net",
+        "example.org",
+        "fake.com",
+        "invalid.com",
+        "something.com",
+        "test.com",
+        "testing.com"
+      ]);
+      const COUNTRY_CALLING_CODES = Object.freeze([
+        ["af","93"], ["ax","358"], ["al","355"], ["dz","213"], ["as","1"], ["ad","376"],
+        ["ao","244"], ["ai","1"], ["ag","1"], ["ar","54"], ["am","374"], ["aw","297"],
+        ["ac","247"], ["au","61"], ["at","43"], ["az","994"], ["bs","1"], ["bh","973"],
+        ["bd","880"], ["bb","1"], ["by","375"], ["be","32"], ["bz","501"], ["bj","229"],
+        ["bm","1"], ["bt","975"], ["bo","591"], ["ba","387"], ["bw","267"], ["br","55"],
+        ["io","246"], ["vg","1"], ["bn","673"], ["bg","359"], ["bf","226"], ["bi","257"],
+        ["kh","855"], ["cm","237"], ["ca","1"], ["cv","238"], ["bq","599"], ["ky","1"],
+        ["cf","236"], ["td","235"], ["cl","56"], ["cn","86"], ["cx","61"], ["cc","61"],
+        ["co","57"], ["km","269"], ["cg","242"], ["cd","243"], ["ck","682"], ["cr","506"],
+        ["ci","225"], ["hr","385"], ["cu","53"], ["cw","599"], ["cy","357"], ["cz","420"],
+        ["dk","45"], ["dj","253"], ["dm","1"], ["do","1"], ["ec","593"], ["eg","20"],
+        ["sv","503"], ["gq","240"], ["er","291"], ["ee","372"], ["sz","268"], ["et","251"],
+        ["fk","500"], ["fo","298"], ["fj","679"], ["fi","358"], ["fr","33"], ["gf","594"],
+        ["pf","689"], ["ga","241"], ["gm","220"], ["ge","995"], ["de","49"], ["gh","233"],
+        ["gi","350"], ["gr","30"], ["gl","299"], ["gd","1"], ["gp","590"], ["gu","1"],
+        ["gt","502"], ["gg","44"], ["gn","224"], ["gw","245"], ["gy","592"], ["ht","509"],
+        ["hn","504"], ["hk","852"], ["hu","36"], ["is","354"], ["in","91"], ["id","62"],
+        ["ir","98"], ["iq","964"], ["ie","353"], ["im","44"], ["il","972"], ["it","39"],
+        ["jm","1"], ["jp","81"], ["je","44"], ["jo","962"], ["kz","7"], ["ke","254"],
+        ["ki","686"], ["xk","383"], ["kw","965"], ["kg","996"], ["la","856"], ["lv","371"],
+        ["lb","961"], ["ls","266"], ["lr","231"], ["ly","218"], ["li","423"], ["lt","370"],
+        ["lu","352"], ["mo","853"], ["mg","261"], ["mw","265"], ["my","60"], ["mv","960"],
+        ["ml","223"], ["mt","356"], ["mh","692"], ["mq","596"], ["mr","222"], ["mu","230"],
+        ["yt","262"], ["mx","52"], ["fm","691"], ["md","373"], ["mc","377"], ["mn","976"],
+        ["me","382"], ["ms","1"], ["ma","212"], ["mz","258"], ["mm","95"], ["na","264"],
+        ["nr","674"], ["np","977"], ["nl","31"], ["nc","687"], ["nz","64"], ["ni","505"],
+        ["ne","227"], ["ng","234"], ["nu","683"], ["nf","672"], ["kp","850"], ["mk","389"],
+        ["mp","1"], ["no","47"], ["om","968"], ["pk","92"], ["pw","680"], ["ps","970"],
+        ["pa","507"], ["pg","675"], ["py","595"], ["pe","51"], ["ph","63"], ["pl","48"],
+        ["pt","351"], ["pr","1"], ["qa","974"], ["re","262"], ["ro","40"], ["ru","7"],
+        ["rw","250"], ["ws","685"], ["sm","378"], ["st","239"], ["sa","966"], ["sn","221"],
+        ["rs","381"], ["sc","248"], ["sl","232"], ["sg","65"], ["sx","1"], ["sk","421"],
+        ["si","386"], ["sb","677"], ["so","252"], ["za","27"], ["kr","82"], ["ss","211"],
+        ["es","34"], ["lk","94"], ["bl","590"], ["sh","290"], ["ta","290"], ["kn","1"],
+        ["lc","1"], ["mf","590"], ["pm","508"], ["vc","1"], ["sd","249"], ["sr","597"],
+        ["sj","47"], ["se","46"], ["ch","41"], ["sy","963"], ["tw","886"], ["tj","992"],
+        ["tz","255"], ["th","66"], ["tl","670"], ["tg","228"], ["tk","690"], ["to","676"],
+        ["tt","1"], ["tn","216"], ["tr","90"], ["tm","993"], ["tc","1"], ["tv","688"],
+        ["vi","1"], ["ug","256"], ["ua","380"], ["ae","971"], ["gb","44"], ["us","1"],
+        ["uy","598"], ["uz","998"], ["vu","678"], ["va","39"], ["ve","58"], ["vn","84"],
+        ["wf","681"], ["eh","212"], ["ye","967"], ["zm","260"], ["zw","263"]
+      ]);
+      const COUNTRY_NAME_FALLBACKS = Object.freeze({
+        ac: "Ascension Island",
+        ta: "Tristan da Cunha",
+        xk: "Kosovo"
+      });
+      const PRIMARY_CALLING_CODE_REGIONS = Object.freeze({
+        "1": "us",
+        "7": "ru",
+        "39": "it",
+        "44": "gb",
+        "47": "no",
+        "61": "au",
+        "212": "ma",
+        "262": "re",
+        "290": "sh",
+        "358": "fi",
+        "590": "gp",
+        "599": "cw"
+      });
+      const CALLING_CODES_LONGEST_FIRST = Object.freeze(
+        [...new Set(COUNTRY_CALLING_CODES.map(([, dialCode]) => dialCode))]
+          .sort((left, right) => right.length - left.length)
+      );
+
+      const currencyButtons = [...document.querySelectorAll("[data-currency]")];
+      const cards = [...document.querySelectorAll(".plan-card")];
+      const customCreditSection = document.querySelector(".custom-credits");
+      const customCounter = customCreditSection.querySelector(".custom-counter");
+      const customUnitPrice = document.querySelector("[data-custom-unit-price]");
+      const customTotal = document.querySelector("[data-custom-total]");
+      const customQuantityOutput = document.querySelector("[data-custom-quantity]");
+      const customDecrease = document.querySelector("[data-custom-decrease]");
+      const customIncrease = document.querySelector("[data-custom-increase]");
+      const customCreditStatus = document.querySelector("#custom-credit-status");
+      const root = document.documentElement;
+      const dialog = document.querySelector(".flow-dialog");
+      const modalPanel = dialog.querySelector(".modal-panel");
+      const flowSteps = [...dialog.querySelectorAll("[data-flow-step]")];
+      const contactForm = dialog.querySelector("[data-purchase-contact-form]");
+      const loggedInReview = dialog.querySelector("[data-logged-in-review]");
+      const loggedInContinue = dialog.querySelector("[data-logged-in-continue]");
+      const purchaseSummary = dialog.querySelector(".purchase-summary-card");
+      const purchaseName = dialog.querySelector("#purchase-name");
+      const purchaseEmail = dialog.querySelector("#purchase-email");
+      const purchaseCountryCode = dialog.querySelector("#purchase-country-code");
+      const purchasePhone = dialog.querySelector("#purchase-phone");
+      const contactContinue = dialog.querySelector("[data-contact-continue]");
+      const sendOtpButton = dialog.querySelector("[data-send-otp]");
+      const editPhoneButton = dialog.querySelector("[data-edit-phone]");
+      const otpPanel = dialog.querySelector("[data-otp-panel]");
+      const otpInputs = [...dialog.querySelectorAll("[data-otp-digit]")];
+      const otpSentTo = dialog.querySelector("[data-otp-sent-to]");
+      const otpStatus = dialog.querySelector("#purchase-otp-status");
+      const otpError = dialog.querySelector("#purchase-otp-error");
+      const verifyOtpButton = dialog.querySelector("[data-verify-otp]");
+      const resendOtpButton = dialog.querySelector("[data-resend-otp]");
+      const fulfilmentRetry = dialog.querySelector("[data-fulfilment-retry]");
+      const paymentShell = dialog.querySelector("[data-payment-shell]");
+      const paymentBack = dialog.querySelector("[data-payment-back]");
+      const simulateSuccess = dialog.querySelector("[data-simulate-success]");
+      const simulateFailure = dialog.querySelector("[data-simulate-failure]");
+      const paymentMethodRadios = [...dialog.querySelectorAll('input[name="demo-payment-method"]')];
+      const paymentMethodGrid = dialog.querySelector(".payment-method-grid");
+      const infoTriggers = [...document.querySelectorAll(".info-trigger")];
+      const infoTooltip = document.querySelector("#feature-tooltip");
+      const mobileDetails = window.matchMedia("(max-width: 700px)");
+      const recommendationForm = document.querySelector(".recommendation-form");
+      const recommendationTopicList = recommendationForm.querySelector(".topic-list");
+      const recommendationTopics = [...recommendationTopicList.querySelectorAll(".topic")];
+      const recommendationTopicError = document.querySelector("#recommendation-topic-error");
+      const recommendationEmail = document.querySelector("#recommendation-email");
+      const recommendationEmailError = document.querySelector("#recommendation-email-error");
+      const recommendationContext = document.querySelector("#recommendation-context");
+      const recommendationCharacterCount = document.querySelector("[data-recommendation-character-count]");
+      const recommendationSubmit = document.querySelector("[data-recommendation-submit]");
+      const recommendationConfirmation = document.querySelector("[data-recommendation-confirmation]");
+      const recommendationConfirmationEmail = recommendationConfirmation.querySelector("[data-recommendation-confirmation-email]");
+      const recommendationConfirmationTopics = recommendationConfirmation.querySelector("[data-recommendation-confirmation-topics]");
+      const customCreditRules = Object.freeze({
+        min: Number(customCounter.dataset.min),
+        max: Number(customCounter.dataset.max),
+        step: Number(customCounter.dataset.step)
+      });
+      const GST_RATE = Number(purchaseSummary.dataset.gstRate);
+      const OTP_LENGTH = otpInputs.length;
+      const OTP_EXPIRY_SECONDS = 30;
+
+      let currency = "INR";
+      let selectedPack = null;
+      // No product default is documented; initialise at the verified minimum.
+      let customQuantity = customCreditRules.min;
+      let activePurchase = null;
+      let contactDetails = { fullName: "", email: "", phone: "" };
+      let otpState = {
+        status: "idle",
+        phoneFingerprint: "",
+        secondsRemaining: 0,
+        requestVersion: 0
+      };
+      let purchaseConfirmation = {
+        paymentConfirmed: false,
+        accountCreated: false,
+        creditsAdded: 0
+      };
+      let modalTrigger = null;
+      let activeInfoTrigger = null;
+      let pinnedInfoTrigger = null;
+      let previousBodyPadding = "";
+      let contactTimer = null;
+      let paymentTimer = null;
+      let otpActionTimer = null;
+      let otpCountdownTimer = null;
+      let fulfilmentTimer = null;
+      let contactControlsLocked = false;
+      let recommendationTimer = null;
+      let paymentProcessing = false;
+      let lastRecommendationRequest = null;
+
+      function normaliseText(value) {
+        return String(value || "").replace(/\s+/g, " ").trim();
+      }
+
+      function isLoggedInAudience() {
+        return root.dataset.audience === "logged-in";
+      }
+
+      function recommendationIdleLabel() {
+        return isLoggedInAudience() ? "Help me choose" : "Get a recommendation";
+      }
+
+      function setText(selector, value) {
+        const element = dialog.querySelector(selector);
+        if (element) element.textContent = value;
+      }
+
+      function formatCurrency(amount, selectedCurrency = currency) {
+        const locale = selectedCurrency === "INR" ? "en-IN" : "en-US";
+        const symbol = selectedCurrency === "INR" ? "₹" : "$";
+        const hasMinorUnits = Math.abs(amount - Math.round(amount)) > 0.0001;
+        return symbol + new Intl.NumberFormat(locale, {
+          minimumFractionDigits: hasMinorUnits ? 2 : 0,
+          maximumFractionDigits: 2
+        }).format(amount);
+      }
+
+      function parseCurrencyAmount(value) {
+        return Number(normaliseText(value).replace(/[^\d.]/g, ""));
+      }
+
+      function calculatePurchaseAmounts(priceAfterDiscount, originalPrice) {
+        const discount = Math.max(0, originalPrice - priceAfterDiscount);
+        const rawGst = priceAfterDiscount * GST_RATE;
+        const gst = currency === "INR"
+          ? Math.round(rawGst)
+          : Math.round(rawGst * 100) / 100;
+
+        return {
+          originalPrice,
+          discount,
+          priceAfterDiscount,
+          gst,
+          finalPayable: priceAfterDiscount + gst
+        };
+      }
+
+      function firstName(value) {
+        return normaliseText(value).split(" ")[0] || "";
+      }
+
+      function countryDisplayName(regionCode, displayNames) {
+        if (COUNTRY_NAME_FALLBACKS[regionCode]) return COUNTRY_NAME_FALLBACKS[regionCode];
+        const uppercaseCode = regionCode.toUpperCase();
+        const resolvedName = displayNames?.of(uppercaseCode);
+        return resolvedName && resolvedName !== uppercaseCode ? resolvedName : uppercaseCode;
+      }
+
+      function populateCountryCodeOptions() {
+        let displayNames = null;
+        try {
+          if (typeof Intl.DisplayNames === "function") {
+            displayNames = new Intl.DisplayNames([document.documentElement.lang || "en"], { type: "region" });
+          }
+        } catch (_error) {
+          displayNames = null;
+        }
+
+        const countries = COUNTRY_CALLING_CODES
+          .map(([regionCode, dialCode]) => ({
+            regionCode,
+            dialCode,
+            name: countryDisplayName(regionCode, displayNames)
+          }))
+          .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
+        const options = document.createDocumentFragment();
+
+        countries.forEach(({ regionCode, dialCode, name }) => {
+          const option = document.createElement("option");
+          option.value = regionCode;
+          option.dataset.dialCode = dialCode;
+          option.textContent = name + " (+" + dialCode + ")";
+          option.defaultSelected = regionCode === "in";
+          option.selected = regionCode === "in";
+          options.append(option);
+        });
+        purchaseCountryCode.replaceChildren(options);
+      }
+
+      function selectedCallingCode() {
+        return purchaseCountryCode.selectedOptions[0]?.dataset.dialCode || "91";
+      }
+
+      function fullPurchasePhone(value = purchasePhone.value) {
+        const nationalNumber = normaliseText(value);
+        const prefix = "+" + selectedCallingCode();
+        return nationalNumber ? prefix + " " + nationalNumber : prefix;
+      }
+
+      function phoneFingerprint(value = purchasePhone.value) {
+        return selectedCallingCode() + ":" + String(value || "").replace(/\D/g, "");
+      }
+
+      function adoptInternationalPhone(rawValue) {
+        const value = String(rawValue || "").trim();
+        if (!value.startsWith("+")) return false;
+
+        const digits = value.replace(/\D/g, "");
+        const dialCode = CALLING_CODES_LONGEST_FIRST.find((candidate) => digits.startsWith(candidate));
+        if (!dialCode) return false;
+
+        const currentOption = purchaseCountryCode.selectedOptions[0];
+        const currentRegionMatches = currentOption?.dataset.dialCode === dialCode;
+        const matchingRegion = currentRegionMatches
+          ? currentOption.value
+          : (PRIMARY_CALLING_CODE_REGIONS[dialCode]
+            || COUNTRY_CALLING_CODES.find(([, candidate]) => candidate === dialCode)?.[0]);
+        if (!matchingRegion) return false;
+
+        purchaseCountryCode.value = matchingRegion;
+        purchasePhone.value = digits.slice(dialCode.length);
+        return true;
+      }
+
+      function customUnitAmount(selectedCurrency = currency) {
+        const label = selectedCurrency === "INR"
+          ? customUnitPrice.dataset.priceInr
+          : customUnitPrice.dataset.priceUsd;
+        return Number(label.replace(/[^\d.]/g, ""));
+      }
+
+      function customTotalPrice(selectedCurrency = currency) {
+        return customUnitAmount(selectedCurrency) * customQuantity;
+      }
+
+      function creditLabel(quantity) {
+        return quantity + " " + (quantity === 1 ? "credit" : "credits");
+      }
+
+      function cardBenefits(card) {
+        return [...card.querySelectorAll(".feature")]
+          .map((feature) => normaliseText(feature.querySelector("span")?.textContent))
+          .filter(Boolean);
+      }
+
+      function getPackViewModel(packKey) {
+        const card = document.querySelector('[data-pack="' + packKey + '"]');
+        if (!card) return null;
+
+        const credits = Number.parseInt(card.querySelector(".credit-count strong")?.textContent, 10);
+        const benefits = cardBenefits(card);
+        const referenceElement = card.querySelector('.reference-total [aria-hidden="true"]') || card.querySelector(".reference-total");
+        const rateElement = card.querySelector(".effective-rate [data-price-inr]") || card.querySelector(".effective-rate");
+        const savingText = normaliseText(card.querySelector(".savings-label")?.textContent).replace(/^Save\s+/i, "");
+        const price = normaliseText(card.querySelector(".price")?.textContent);
+        const referencePrice = normaliseText(referenceElement?.textContent);
+        const amounts = calculatePurchaseAmounts(
+          parseCurrencyAmount(price),
+          parseCurrencyAmount(referencePrice)
+        );
+
+        return {
+          type: "pack",
+          key: packKey,
+          name: normaliseText(card.querySelector(".plan-name")?.textContent),
+          credits,
+          creditLabel: creditLabel(credits),
+          price,
+          perCredit: normaliseText(rateElement?.textContent).replace(/^Current effective rate:\s*/i, ""),
+          referencePrice,
+          savings: savingText,
+          savingsPercent: Number.parseInt(savingText, 10) || 0,
+          validity: benefits.find((benefit) => /^Valid for/i.test(benefit)) || "",
+          benefits,
+          amounts
+        };
+      }
+
+      function getCustomViewModel() {
+        const totalValue = customTotalPrice();
+        const referenceValue = customUnitAmount() * customQuantity;
+        const customPriceText = normaliseText(customCreditSection.querySelector(".custom-price")?.textContent);
+        const validityMatch = customPriceText.match(/valid\s+(.+)$/i);
+        const validity = validityMatch ? "Valid " + validityMatch[1] : "";
+        const sharedBenefit = cardBenefits(cards[0]).find((benefit) => /^Book any mentor/i.test(benefit));
+        const benefits = [sharedBenefit, validity].filter(Boolean);
+        const amounts = calculatePurchaseAmounts(totalValue, referenceValue);
+
+        return {
+          type: "custom",
+          key: "custom",
+          name: normaliseText(document.querySelector("[data-custom-title]")?.textContent),
+          credits: customQuantity,
+          creditLabel: creditLabel(customQuantity),
+          price: formatCurrency(totalValue),
+          perCredit: formatCurrency(customUnitAmount()) + " / credit",
+          referencePrice: formatCurrency(referenceValue),
+          savings: formatCurrency(Math.max(0, referenceValue - totalValue)) + " at the custom rate",
+          savingsPercent: 0,
+          validity,
+          benefits,
+          amounts
+        };
+      }
+
+      function getActivePurchaseViewModel() {
+        if (!activePurchase) return null;
+        return activePurchase.type === "custom"
+          ? getCustomViewModel()
+          : getPackViewModel(activePurchase.key);
+      }
+
+      function renderPurchaseFlow() {
+        const purchase = getActivePurchaseViewModel();
+        if (!purchase) return;
+        const loggedIn = isLoggedInAudience();
+        const owner = loggedIn ? "" : firstName(purchaseName.value || contactDetails.fullName);
+        const discountLabel = formatCurrency(purchase.amounts.discount)
+          + (purchase.savingsPercent ? " (" + purchase.savingsPercent + "%)" : "");
+
+        setText("[data-purchase-name]", purchase.name);
+        setText("[data-purchase-credits]", purchase.creditLabel);
+        setText("[data-purchase-order-owner]", owner ? "Order for " + owner : "Your order");
+        setText("[data-purchase-original]", formatCurrency(purchase.amounts.originalPrice));
+        setText("[data-purchase-discount]", discountLabel);
+        setText("[data-purchase-after-discount]", formatCurrency(purchase.amounts.priceAfterDiscount));
+        setText("[data-purchase-gst]", formatCurrency(purchase.amounts.gst));
+        setText("[data-purchase-total]", formatCurrency(purchase.amounts.finalPayable));
+        setText("[data-purchase-savings-note]", purchase.amounts.discount > 0
+          ? (owner ? owner + ", you save " : "You save ") + formatCurrency(purchase.amounts.discount) + " with the " + purchase.name + " plan."
+          : "Custom credits are billed at " + purchase.perCredit + ".");
+        setText("[data-checkout-name]", purchase.name);
+        setText("[data-checkout-credits]", purchase.creditLabel + " for mentorship");
+        setText("[data-checkout-price]", purchase.price);
+        setText("[data-checkout-contact]", loggedIn
+          ? "Your existing MentorUnion account"
+          : (contactDetails.email && contactDetails.phone
+            ? contactDetails.email + " · " + contactDetails.phone
+            : "Contact details added in the previous step"));
+        setText("[data-failure-selection]", purchase.name + " · " + purchase.creditLabel);
+        setText("[data-failure-price]", formatCurrency(purchase.amounts.finalPayable));
+        setText("[data-success-greeting]", owner ? owner + ", " : "");
+        setText("[data-success-credits]", purchase.creditLabel);
+        setText("[data-success-email]", contactDetails.email || "your email address");
+        setText("[data-success-phone]", contactDetails.phone || "phone number");
+        setText("[data-success-selection]", purchase.name + " · " + purchase.creditLabel);
+        setText("[data-success-price]", formatCurrency(purchase.amounts.finalPayable));
+        setText("[data-success-kicker]", loggedIn ? "Credits added" : "Account ready");
+        setText("#purchase-fulfilment-copy", loggedIn
+          ? "We’re confirming the payment and adding your credits. Keep this window open."
+          : "We’re confirming your account and adding your credits. Keep this window open.");
+        dialog.querySelector("[data-account-created-copy]").hidden = loggedIn;
+
+        const benefitsList = dialog.querySelector("[data-purchase-benefits]");
+        const detailItems = [purchase.perCredit, ...purchase.benefits].filter(Boolean);
+        const benefitItems = [...new Set(detailItems)].map((benefit) => {
+          const item = document.createElement("li");
+          item.textContent = benefit;
+          return item;
+        });
+        benefitsList.replaceChildren(...benefitItems);
+
+        const paymentLabel = "Simulate paying " + purchase.price + " + taxes";
+        simulateSuccess.dataset.idleLabel = paymentLabel;
+        if (!paymentProcessing) simulateSuccess.textContent = paymentLabel;
+      }
+
+      function updateCustomCreditUi(announce = false) {
+        const unitPrice = formatCurrency(customUnitAmount());
+        const totalPrice = formatCurrency(customTotalPrice());
+
+        customQuantityOutput.value = String(customQuantity);
+        customQuantityOutput.textContent = String(customQuantity);
+        customUnitPrice.textContent = unitPrice + " / credit";
+        customTotal.textContent = totalPrice;
+        customDecrease.disabled = customQuantity <= customCreditRules.min;
+        customIncrease.disabled = customQuantity >= customCreditRules.max;
+        customDecrease.setAttribute("aria-disabled", String(customDecrease.disabled));
+        customIncrease.setAttribute("aria-disabled", String(customIncrease.disabled));
+        if (announce) {
+          customCreditStatus.textContent = creditLabel(customQuantity) + ", " + totalPrice + " plus taxes";
+        }
+        if (activePurchase?.type === "custom") renderPurchaseFlow();
+      }
+
+      function changeCustomQuantity(direction) {
+        const candidate = customQuantity + (direction * customCreditRules.step);
+        customQuantity = Math.min(customCreditRules.max, Math.max(customCreditRules.min, candidate));
+        updateCustomCreditUi(true);
+      }
+
+      function setCurrency(nextCurrency) {
+        currency = nextCurrency;
+        currencyButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.currency === currency));
+        });
+        document.querySelectorAll("[data-price-inr]").forEach((element) => {
+          element.textContent = currency === "INR" ? element.dataset.priceInr : element.dataset.priceUsd;
+        });
+        updateCustomCreditUi();
+        renderPurchaseFlow();
+        if (!paymentProcessing) resetPaymentMethod();
+      }
+
+      function selectPack(packKey) {
+        selectedPack = packKey;
+        document.querySelector(".plan-grid").classList.toggle("has-selection", Boolean(selectedPack));
+        cards.forEach((card) => {
+          const selected = card.dataset.pack === packKey;
+          card.classList.toggle("is-selected", selected);
+          card.querySelector(".plan-selector").setAttribute("aria-pressed", String(selected));
+        });
+      }
+
+      function syncCardDetails(mediaQuery) {
+        cards.forEach((card) => {
+          card.querySelector(".card-details").open = !mediaQuery.matches || card.dataset.pack === "p10";
+        });
+      }
+
+      function lockPageScroll() {
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        previousBodyPadding = document.body.style.paddingRight;
+        if (scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + "px";
+        document.body.classList.add("modal-open");
+      }
+
+      function unlockPageScroll() {
+        document.body.classList.remove("modal-open");
+        document.body.style.paddingRight = previousBodyPadding;
+      }
+
+      function clearFlowTimers() {
+        if (contactTimer) window.clearTimeout(contactTimer);
+        if (paymentTimer) window.clearTimeout(paymentTimer);
+        if (otpActionTimer) window.clearTimeout(otpActionTimer);
+        if (otpCountdownTimer) window.clearInterval(otpCountdownTimer);
+        if (fulfilmentTimer) window.clearTimeout(fulfilmentTimer);
+        contactTimer = null;
+        paymentTimer = null;
+        otpActionTimer = null;
+        otpCountdownTimer = null;
+        fulfilmentTimer = null;
+        otpState.requestVersion += 1;
+      }
+
+      function setButtonLoading(button, loading, label) {
+        if (!button) return;
+        if (loading) {
+          if (!button.dataset.idleLabel) button.dataset.idleLabel = normaliseText(button.textContent);
+          const spinner = document.createElement("span");
+          spinner.className = "button-spinner";
+          spinner.setAttribute("aria-hidden", "true");
+          button.replaceChildren(spinner, document.createTextNode(label));
+          button.disabled = true;
+          button.setAttribute("aria-busy", "true");
+          return;
+        }
+        button.textContent = button.dataset.idleLabel || label || "";
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+      }
+
+      function clearFieldError(input, errorElement) {
+        input.removeAttribute("aria-invalid");
+        errorElement.textContent = "";
+        errorElement.hidden = true;
+      }
+
+      function showFieldError(input, errorElement, message) {
+        input.setAttribute("aria-invalid", "true");
+        errorElement.textContent = message;
+        errorElement.hidden = false;
+      }
+
+      function setContactControlsDisabled(disabled) {
+        contactControlsLocked = disabled;
+        purchaseName.disabled = disabled;
+        purchaseEmail.disabled = disabled;
+        renderOtpState();
+      }
+
+      function basicEmailError(rawValue, emptyMessage) {
+        const value = rawValue.trim();
+        if (!value) return emptyMessage;
+        if (value.length > 254 || /\s/.test(value)) {
+          return "Use a complete email address, such as name@company.com.";
+        }
+
+        const parts = value.split("@");
+        if (parts.length !== 2) return "Use a complete email address, such as name@company.com.";
+        const local = parts[0];
+        const domain = parts[1].toLowerCase();
+        if (!local || local.length > 64 || local.startsWith(".") || local.endsWith(".") || local.includes("..")) {
+          return "Check the part before @ and enter a complete email address.";
+        }
+        if (!/^[a-z0-9.!#$%&'*+/=?^_{|}~-]+$/i.test(local)) {
+          return "Remove unsupported characters and enter a complete email address.";
+        }
+
+        const labels = domain.split(".");
+        if (labels.length < 2 || !/^[a-z]{2,63}$/i.test(labels[labels.length - 1])) {
+          return "Add the full email domain, including its ending, such as .com or .org.";
+        }
+        if (labels.some((label) => !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(label))) {
+          return "Check the domain after @ and enter a complete email address.";
+        }
+        return "";
+      }
+
+      function purchaseNameError(rawValue) {
+        const value = normaliseText(rawValue);
+        if (!value) return "Enter your full name.";
+        if (value.length < 2) return "Enter at least two characters for your name.";
+        if (!/^[\p{L}\p{M}][\p{L}\p{M} .'’-]*$/u.test(value)) {
+          return "Use letters and common name punctuation only.";
+        }
+        return "";
+      }
+
+      function purchasePhoneError(rawValue) {
+        const value = rawValue.trim();
+        if (!value) return "Enter the phone number for your account and invoice.";
+        if (value.includes("+")) {
+          return "Choose the country code from the list and enter the rest of the number.";
+        }
+        if (!/^[\d\s().-]+$/.test(value)) {
+          return "Use digits, spaces, brackets or hyphens only.";
+        }
+        const nationalDigits = value.replace(/\D/g, "");
+        const internationalLength = selectedCallingCode().length + nationalDigits.length;
+        if (internationalLength < 7 || internationalLength > 15) {
+          return "Enter a complete phone number; the full number must contain 7 to 15 digits.";
+        }
+        return "";
+      }
+
+      function currentOtpCode() {
+        return otpInputs.map((input) => input.value).join("");
+      }
+
+      function formatOtpCountdown(seconds) {
+        return "00:" + String(Math.max(0, seconds)).padStart(2, "0");
+      }
+
+      function clearOtpError() {
+        otpInputs.forEach((input) => input.removeAttribute("aria-invalid"));
+        otpError.textContent = "";
+        otpError.hidden = true;
+      }
+
+      function showOtpError(message) {
+        otpInputs.forEach((input) => input.setAttribute("aria-invalid", "true"));
+        otpError.textContent = message;
+        otpError.hidden = false;
+      }
+
+      function clearOtpInputs() {
+        otpInputs.forEach((input) => {
+          input.value = "";
+          input.removeAttribute("aria-invalid");
+        });
+      }
+
+      function resetOtpState() {
+        if (otpActionTimer) window.clearTimeout(otpActionTimer);
+        if (otpCountdownTimer) window.clearInterval(otpCountdownTimer);
+        otpActionTimer = null;
+        otpCountdownTimer = null;
+        otpState = {
+          status: "idle",
+          phoneFingerprint: "",
+          secondsRemaining: 0,
+          requestVersion: otpState.requestVersion + 1
+        };
+        clearOtpInputs();
+        clearOtpError();
+        renderOtpState();
+      }
+
+      function renderOtpState() {
+        const status = otpState.status;
+        const hasOtpRequest = status !== "idle";
+        const mayEnterCode = status === "sent" || status === "invalid";
+        const codeComplete = currentOtpCode().length === OTP_LENGTH;
+        const phoneError = purchasePhoneError(purchasePhone.value);
+
+        purchaseCountryCode.disabled = contactControlsLocked || hasOtpRequest;
+        purchasePhone.disabled = contactControlsLocked || hasOtpRequest;
+        sendOtpButton.hidden = !(["idle", "sending", "send-error"].includes(status));
+        sendOtpButton.textContent = status === "sending" ? "Sending…" : (status === "send-error" ? "Try again" : "Send OTP");
+        sendOtpButton.disabled = contactControlsLocked || status === "sending" || Boolean(phoneError);
+        sendOtpButton.toggleAttribute("aria-busy", status === "sending");
+
+        otpPanel.hidden = status === "idle";
+        otpPanel.setAttribute("aria-busy", String(status === "sending" || status === "verifying"));
+        otpSentTo.textContent = otpState.phoneFingerprint
+          ? "For " + fullPurchasePhone()
+          : "";
+        editPhoneButton.disabled = contactControlsLocked || status === "sending" || status === "verifying";
+
+        otpInputs.forEach((input) => {
+          input.disabled = contactControlsLocked || !mayEnterCode;
+        });
+        verifyOtpButton.textContent = status === "verifying" ? "Verifying…" : "Verify OTP";
+        verifyOtpButton.disabled = contactControlsLocked || !mayEnterCode || !codeComplete || otpState.secondsRemaining <= 0;
+        verifyOtpButton.toggleAttribute("aria-busy", status === "verifying");
+
+        const countdownActive = otpState.secondsRemaining > 0 && !(["expired", "verified", "send-error"].includes(status));
+        resendOtpButton.hidden = status === "sending" || status === "verified" || status === "idle";
+        resendOtpButton.textContent = countdownActive
+          ? "Resend OTP in " + formatOtpCountdown(otpState.secondsRemaining)
+          : "Resend OTP";
+        resendOtpButton.disabled = contactControlsLocked || countdownActive || status === "verifying";
+
+        otpStatus.classList.toggle("is-verified", status === "verified");
+        if (status === "sending") otpStatus.textContent = "Sending a verification code…";
+        else if (status === "sent") otpStatus.textContent = "Enter the code sent to your phone.";
+        else if (status === "verifying") otpStatus.textContent = "Checking your code…";
+        else if (status === "verified") otpStatus.textContent = "Phone number verified.";
+        else if (status === "send-error") otpStatus.textContent = "We couldn’t send the code.";
+        else otpStatus.textContent = "";
+
+        updateContinueAvailability();
+      }
+
+      function updateContinueAvailability() {
+        const verifiedPhone = otpState.status === "verified"
+          && otpState.phoneFingerprint === phoneFingerprint(purchasePhone.value);
+        const valid = !purchaseNameError(purchaseName.value)
+          && !basicEmailError(purchaseEmail.value, "Enter your email address.")
+          && !purchasePhoneError(purchasePhone.value)
+          && verifiedPhone;
+        contactContinue.disabled = contactControlsLocked || !valid;
+      }
+
+      function startOtpCountdown() {
+        if (otpCountdownTimer) window.clearInterval(otpCountdownTimer);
+        otpCountdownTimer = window.setInterval(() => {
+          if (!["sent", "invalid", "verifying"].includes(otpState.status)) return;
+          otpState.secondsRemaining = Math.max(0, otpState.secondsRemaining - 1);
+          if (otpState.secondsRemaining === 0) {
+            window.clearInterval(otpCountdownTimer);
+            otpCountdownTimer = null;
+            otpState.status = "expired";
+            showOtpError("This code has expired. Request a new one.");
+          }
+          renderOtpState();
+        }, 1000);
+      }
+
+      function sendOtp() {
+        const phoneError = purchasePhoneError(purchasePhone.value);
+        clearFieldError(purchasePhone, dialog.querySelector("#purchase-phone-error"));
+        if (phoneError) {
+          showFieldError(purchasePhone, dialog.querySelector("#purchase-phone-error"), phoneError);
+          purchasePhone.focus();
+          return;
+        }
+
+        if (otpActionTimer) window.clearTimeout(otpActionTimer);
+        if (otpCountdownTimer) window.clearInterval(otpCountdownTimer);
+        otpCountdownTimer = null;
+        const requestVersion = otpState.requestVersion + 1;
+        otpState = {
+          status: "sending",
+          phoneFingerprint: phoneFingerprint(purchasePhone.value),
+          secondsRemaining: OTP_EXPIRY_SECONDS,
+          requestVersion
+        };
+        clearOtpInputs();
+        clearOtpError();
+        renderOtpState();
+
+        otpActionTimer = window.setTimeout(() => {
+          otpActionTimer = null;
+          if (requestVersion !== otpState.requestVersion || !dialog.open) return;
+          otpState.status = "sent";
+          renderOtpState();
+          startOtpCountdown();
+          otpInputs[0].focus();
+        }, 550);
+      }
+
+      function verifyOtp() {
+        if (otpState.secondsRemaining <= 0 || otpState.status === "expired") {
+          otpState.status = "expired";
+          showOtpError("This code has expired. Request a new one.");
+          renderOtpState();
+          return;
+        }
+        const code = currentOtpCode();
+        if (!/^\d{4}$/.test(code)) {
+          showOtpError("Enter all four digits before verifying.");
+          return;
+        }
+
+        const requestVersion = otpState.requestVersion;
+        otpState.status = "verifying";
+        clearOtpError();
+        renderOtpState();
+        otpActionTimer = window.setTimeout(() => {
+          otpActionTimer = null;
+          if (requestVersion !== otpState.requestVersion || !dialog.open) return;
+          if (otpState.secondsRemaining <= 0) {
+            otpState.status = "expired";
+            showOtpError("This code has expired. Request a new one.");
+          } else {
+            if (otpCountdownTimer) window.clearInterval(otpCountdownTimer);
+            otpCountdownTimer = null;
+            otpState.status = "verified";
+            clearOtpError();
+          }
+          renderOtpState();
+        }, 450);
+      }
+
+      function editPhoneNumber() {
+        resetOtpState();
+        purchasePhone.focus();
+        purchasePhone.select();
+      }
+
+      function distributeOtpDigits(rawValue, startIndex = 0) {
+        const digits = String(rawValue || "").replace(/\D/g, "").slice(0, OTP_LENGTH);
+        if (!digits) return;
+        const targetStart = digits.length === OTP_LENGTH ? 0 : startIndex;
+        digits.split("").forEach((digit, offset) => {
+          const input = otpInputs[targetStart + offset];
+          if (input) input.value = digit;
+        });
+        if (otpState.status === "invalid") otpState.status = "sent";
+        clearOtpError();
+        renderOtpState();
+        const nextIndex = Math.min(targetStart + digits.length, OTP_LENGTH - 1);
+        otpInputs[nextIndex].focus();
+      }
+
+      function recommendationAddressError(rawValue) {
+        const syntaxError = basicEmailError(
+          rawValue,
+          "Enter the email address where you want to receive the recommendation."
+        );
+        if (syntaxError) return syntaxError;
+
+        const value = rawValue.trim().toLowerCase();
+        const parts = value.split("@");
+        const local = parts[0];
+        const domain = parts[1];
+        const localWithoutTag = local.split("+")[0];
+        const disposable = [...disposableEmailDomains].some((blocked) => (
+          domain === blocked || domain.endsWith("." + blocked)
+        ));
+
+        if (disposable || /(^|[.-])(temp|disposable|throwaway)(mail)?([.-]|$)/i.test(domain)) {
+          return "Disposable email addresses can’t receive a recommendation. Use an address you check.";
+        }
+
+        const placeholderLocal = /^(test|testing|tester|demo|fake|spam|sample|example|placeholder|asdf|qwerty|noreply|no-reply)([._-]?\d*)$/i;
+        const placeholderPrefix = /^(test|demo|fake|spam|sample|example)[._-]/i;
+        const repeatedCharacters = /^(.)\1{4,}$/i;
+        if (
+          placeholderEmailDomains.has(domain)
+          || placeholderLocal.test(localWithoutTag)
+          || placeholderPrefix.test(localWithoutTag)
+          || repeatedCharacters.test(localWithoutTag)
+        ) {
+          return "Use your real email address rather than a test or placeholder address.";
+        }
+        return "";
+      }
+
+      function resetPaymentMethod() {
+        const cardOnly = currency !== "INR";
+        paymentMethodRadios.forEach((radio) => {
+          const unavailable = cardOnly && radio.value === "upi";
+          radio.closest("[data-payment-method-option]").hidden = unavailable;
+          radio.disabled = unavailable;
+          radio.checked = radio.value === (cardOnly ? "card" : "upi");
+        });
+        paymentMethodGrid.classList.toggle("is-single", cardOnly);
+        syncPaymentMethodUi();
+      }
+
+      function setPaymentControlsDisabled(disabled) {
+        paymentBack.disabled = disabled;
+        paymentMethodRadios.forEach((radio) => {
+          radio.disabled = disabled || (currency !== "INR" && radio.value === "upi");
+        });
+      }
+
+      function syncPaymentMethodUi() {
+        const selectedMethod = paymentMethodRadios.find((radio) => radio.checked)?.value || "upi";
+        dialog.querySelectorAll("[data-payment-method-option]").forEach((option) => {
+          const radio = option.querySelector("input");
+          option.classList.toggle("is-selected", radio.checked);
+        });
+        dialog.querySelectorAll("[data-payment-method-detail]").forEach((detail) => {
+          detail.hidden = detail.dataset.paymentMethodDetail !== selectedMethod;
+        });
+      }
+
+      function purchaseIsConfirmed() {
+        const purchase = getActivePurchaseViewModel();
+        return Boolean(
+          purchase
+          && purchaseConfirmation.paymentConfirmed
+          && purchaseConfirmation.accountCreated
+          && purchaseConfirmation.creditsAdded === purchase.credits
+        );
+      }
+
+      function confirmPurchaseFulfilment(result) {
+        purchaseConfirmation.accountCreated = result.accountCreated === true;
+        purchaseConfirmation.creditsAdded = Number(result.creditsAdded) || 0;
+        if (!dialog.open) return;
+        showFlowStep(purchaseIsConfirmed() ? "success" : "fulfilment-failure");
+      }
+
+      function beginPurchaseFulfilment() {
+        const purchase = getActivePurchaseViewModel();
+        if (!purchase || fulfilmentTimer) return;
+        purchaseConfirmation.paymentConfirmed = true;
+        purchaseConfirmation.accountCreated = false;
+        purchaseConfirmation.creditsAdded = 0;
+        showFlowStep("fulfilment");
+
+        fulfilmentTimer = window.setTimeout(() => {
+          fulfilmentTimer = null;
+          if (!dialog.open) return;
+          if (dialog.dataset.fulfilmentOutcome === "failure") {
+            showFlowStep("fulfilment-failure");
+            return;
+          }
+          confirmPurchaseFulfilment({
+            accountCreated: true,
+            creditsAdded: purchase.credits
+          });
+        }, 650);
+      }
+
+      function resetFlowState() {
+        clearFlowTimers();
+        paymentProcessing = false;
+        activePurchase = null;
+        contactDetails = { fullName: "", email: "", phone: "" };
+        purchaseConfirmation = { paymentConfirmed: false, accountCreated: false, creditsAdded: 0 };
+        contactForm.reset();
+        contactForm.setAttribute("aria-busy", "false");
+        contactForm.hidden = false;
+        loggedInReview.hidden = true;
+        contactControlsLocked = false;
+        resetOtpState();
+        clearFieldError(purchaseName, dialog.querySelector("#purchase-name-error"));
+        clearFieldError(purchaseEmail, dialog.querySelector("#purchase-email-error"));
+        clearFieldError(purchasePhone, dialog.querySelector("#purchase-phone-error"));
+        setButtonLoading(contactContinue, false, "Continue to payment");
+        setButtonLoading(simulateSuccess, false, "Simulate successful payment");
+        setButtonLoading(simulateFailure, false, "Simulate a failed payment to test retry");
+        paymentShell.setAttribute("aria-busy", "false");
+        setPaymentControlsDisabled(false);
+        resetPaymentMethod();
+        updateContinueAvailability();
+      }
+
+      function showFlowStep(stepName, moveFocus = true) {
+        if (stepName === "success" && !purchaseIsConfirmed()) {
+          beginPurchaseFulfilment();
+          return;
+        }
+        flowSteps.forEach((step) => {
+          step.hidden = step.dataset.flowStep !== stepName;
+        });
+        dialog.dataset.currentStep = stepName;
+        modalPanel.scrollTop = 0;
+
+        const accessibleNames = {
+          contact: ["purchase-contact-title", "purchase-contact-copy"],
+          payment: ["payment-title", "payment-copy"],
+          fulfilment: ["purchase-fulfilment-title", "purchase-fulfilment-copy"],
+          "fulfilment-failure": ["fulfilment-failure-title", "fulfilment-failure-copy"],
+          failure: ["payment-failure-title", "payment-failure-copy"],
+          success: ["purchase-success-title", "purchase-success-copy"]
+        };
+        const ids = accessibleNames[stepName];
+        dialog.setAttribute("aria-labelledby", ids[0]);
+        dialog.setAttribute("aria-describedby", ids[1]);
+        renderPurchaseFlow();
+
+        if (moveFocus) {
+          window.requestAnimationFrame(() => {
+            dialog.querySelector("#" + ids[0])?.focus({ preventScroll: true });
+          });
+        }
+      }
+
+      function openPurchaseFlow(trigger, purchaseSelection) {
+        const loggedIn = isLoggedInAudience();
+        modalTrigger = trigger;
+        activePurchase = purchaseSelection;
+        contactDetails = { fullName: "", email: "", phone: "" };
+        purchaseConfirmation = { paymentConfirmed: false, accountCreated: false, creditsAdded: 0 };
+        contactForm.reset();
+        contactForm.hidden = loggedIn;
+        loggedInReview.hidden = !loggedIn;
+        contactControlsLocked = false;
+        resetOtpState();
+        clearFieldError(purchaseName, dialog.querySelector("#purchase-name-error"));
+        clearFieldError(purchaseEmail, dialog.querySelector("#purchase-email-error"));
+        clearFieldError(purchasePhone, dialog.querySelector("#purchase-phone-error"));
+        setButtonLoading(contactContinue, false, "Continue to payment");
+        updateContinueAvailability();
+        resetPaymentMethod();
+        dialog.querySelector(".included-value").open = false;
+        setText("#purchase-contact-title", loggedIn ? "Review your purchase" : "Complete your purchase");
+        setText("#purchase-contact-copy", loggedIn
+          ? "Confirm your order before continuing to payment."
+          : "Review your order and verify your details before payment.");
+        renderPurchaseFlow();
+        showFlowStep("contact", false);
+        lockPageScroll();
+        dialog.showModal();
+        window.requestAnimationFrame(() => {
+          dialog.querySelector("#purchase-contact-title")?.focus({ preventScroll: true });
+        });
+      }
+
+      function closeDialog() {
+        if (!dialog.open) return;
+        clearFlowTimers();
+        dialog.close();
+      }
+
+      function finishDialogClose() {
+        if (dialog.open) return;
+        unlockPageScroll();
+        const trigger = modalTrigger;
+        modalTrigger = null;
+        resetFlowState();
+        if (trigger && document.contains(trigger)) trigger.focus({ preventScroll: true });
+      }
+
+      function handleContactSubmit(event) {
+        event.preventDefault();
+        if (contactTimer) return;
+
+        const nameError = purchaseNameError(purchaseName.value);
+        const emailError = basicEmailError(
+          purchaseEmail.value,
+          "Enter the email address for your account and invoice."
+        );
+        const phoneError = purchasePhoneError(purchasePhone.value);
+        const phoneVerified = otpState.status === "verified"
+          && otpState.phoneFingerprint === phoneFingerprint(purchasePhone.value);
+        clearFieldError(purchaseName, dialog.querySelector("#purchase-name-error"));
+        clearFieldError(purchaseEmail, dialog.querySelector("#purchase-email-error"));
+        clearFieldError(purchasePhone, dialog.querySelector("#purchase-phone-error"));
+
+        if (nameError) showFieldError(purchaseName, dialog.querySelector("#purchase-name-error"), nameError);
+        if (emailError) showFieldError(purchaseEmail, dialog.querySelector("#purchase-email-error"), emailError);
+        if (phoneError) showFieldError(purchasePhone, dialog.querySelector("#purchase-phone-error"), phoneError);
+        if (!phoneVerified) showOtpError("Verify your phone number before continuing.");
+        if (nameError || emailError || phoneError || !phoneVerified) {
+          (nameError ? purchaseName : (emailError ? purchaseEmail : (phoneError ? purchasePhone : verifyOtpButton))).focus();
+          return;
+        }
+
+        contactDetails = {
+          fullName: normaliseText(purchaseName.value),
+          email: purchaseEmail.value.trim(),
+          phone: fullPurchasePhone()
+        };
+        contactForm.setAttribute("aria-busy", "true");
+        setContactControlsDisabled(true);
+        setButtonLoading(contactContinue, true, "Preparing checkout…");
+        contactTimer = window.setTimeout(() => {
+          contactTimer = null;
+          contactForm.setAttribute("aria-busy", "false");
+          setContactControlsDisabled(false);
+          setButtonLoading(contactContinue, false, "Continue to payment");
+          updateContinueAvailability();
+          renderPurchaseFlow();
+          if (dialog.open) showFlowStep("payment");
+        }, 450);
+      }
+
+      function startPaymentSimulation(outcome) {
+        if (paymentProcessing) return;
+        const activeButton = outcome === "failure" ? simulateFailure : simulateSuccess;
+        const inactiveButton = outcome === "failure" ? simulateSuccess : simulateFailure;
+        paymentProcessing = true;
+        paymentShell.setAttribute("aria-busy", "true");
+        setPaymentControlsDisabled(true);
+        setButtonLoading(activeButton, true, "Running demo payment…");
+        inactiveButton.disabled = true;
+
+        paymentTimer = window.setTimeout(() => {
+          paymentTimer = null;
+          paymentProcessing = false;
+          paymentShell.setAttribute("aria-busy", "false");
+          setPaymentControlsDisabled(false);
+          setButtonLoading(activeButton, false);
+          inactiveButton.disabled = false;
+          renderPurchaseFlow();
+          if (dialog.open) showFlowStep(outcome === "success" ? "success" : "failure");
+        }, 700);
+      }
+
+      function positionInfoTooltip(button = activeInfoTrigger) {
+        if (!button) return;
+
+        const viewportMargin = 12;
+        const triggerGap = 10;
+        const triggerRect = button.getBoundingClientRect();
+        const tooltipWidth = infoTooltip.offsetWidth;
+        const tooltipHeight = infoTooltip.offsetHeight;
+        const maximumLeft = Math.max(viewportMargin, window.innerWidth - tooltipWidth - viewportMargin);
+        const maximumTop = Math.max(viewportMargin, window.innerHeight - tooltipHeight - viewportMargin);
+        let left = triggerRect.left + (triggerRect.width / 2) - (tooltipWidth / 2);
+        let top = triggerRect.top - tooltipHeight - triggerGap;
+
+        left = Math.min(Math.max(left, viewportMargin), maximumLeft);
+        if (top < viewportMargin) top = triggerRect.bottom + triggerGap;
+        top = Math.min(Math.max(top, viewportMargin), maximumTop);
+
+        infoTooltip.style.left = Math.round(left) + "px";
+        infoTooltip.style.top = Math.round(top) + "px";
+      }
+
+      function showInfoTooltip(button, options = {}) {
+        infoTriggers.forEach((trigger) => {
+          trigger.setAttribute("aria-expanded", String(trigger === button));
+          trigger.removeAttribute("aria-describedby");
+        });
+        activeInfoTrigger = button;
+        if (options.pinned) pinnedInfoTrigger = button;
+        infoTooltip.textContent = button.dataset.tooltip;
+        infoTooltip.setAttribute("aria-hidden", "false");
+        button.setAttribute("aria-describedby", "feature-tooltip");
+        positionInfoTooltip(button);
+        infoTooltip.classList.add("is-visible");
+      }
+
+      function hideInfoTooltip() {
+        infoTriggers.forEach((button) => {
+          button.setAttribute("aria-expanded", "false");
+          button.removeAttribute("aria-describedby");
+        });
+        infoTooltip.classList.remove("is-visible");
+        infoTooltip.setAttribute("aria-hidden", "true");
+        activeInfoTrigger = null;
+        pinnedInfoTrigger = null;
+      }
+
+      function updateRecommendationCounter() {
+        recommendationCharacterCount.textContent = String(recommendationContext.value.length);
+      }
+
+      function clearRecommendationError() {
+        recommendationEmail.removeAttribute("aria-invalid");
+        recommendationEmailError.textContent = "";
+        recommendationEmailError.hidden = true;
+      }
+
+      function showRecommendationError(message, moveFocus = true) {
+        recommendationEmail.setAttribute("aria-invalid", "true");
+        recommendationEmailError.textContent = message;
+        recommendationEmailError.hidden = false;
+        if (moveFocus) recommendationEmail.focus();
+      }
+
+      function clearRecommendationTopicError() {
+        recommendationTopicList.removeAttribute("aria-invalid");
+        recommendationTopicError.textContent = "";
+        recommendationTopicError.hidden = true;
+      }
+
+      function showRecommendationTopicError() {
+        recommendationTopicList.setAttribute("aria-invalid", "true");
+        recommendationTopicError.textContent = "Choose at least one goal so we know what to recommend.";
+        recommendationTopicError.hidden = false;
+      }
+
+      function setRecommendationControlsDisabled(disabled) {
+        recommendationEmail.disabled = disabled;
+        recommendationContext.disabled = disabled;
+        recommendationTopics.forEach((button) => {
+          button.disabled = disabled;
+        });
+      }
+
+      function closeRecommendationConfirmation(restoreFocus = true) {
+        if (recommendationConfirmation.hidden) return;
+        recommendationConfirmation.hidden = true;
+        if (restoreFocus) recommendationSubmit.focus({ preventScroll: true });
+      }
+
+      function renderRecommendationConfirmation(request) {
+        recommendationConfirmationEmail.textContent = request.email;
+        const topicElements = request.topics.map((topic) => {
+          const chip = document.createElement("span");
+          chip.textContent = topic;
+          return chip;
+        });
+        recommendationConfirmationTopics.replaceChildren(...topicElements);
+        recommendationConfirmationTopics.hidden = topicElements.length === 0;
+      }
+
+      function handleRecommendationSubmit(event) {
+        event.preventDefault();
+        if (recommendationTimer) return;
+
+        const selectedTopics = recommendationTopics.filter((button) => (
+          button.getAttribute("aria-pressed") === "true"
+        ));
+        const error = recommendationAddressError(recommendationEmail.value);
+        clearRecommendationError();
+        clearRecommendationTopicError();
+        if (selectedTopics.length === 0) showRecommendationTopicError();
+        if (error) showRecommendationError(error, selectedTopics.length > 0);
+        if (selectedTopics.length === 0 || error) {
+          if (selectedTopics.length === 0) recommendationTopics[0].focus();
+          return;
+        }
+
+        closeRecommendationConfirmation(false);
+        lastRecommendationRequest = {
+          email: recommendationEmail.value.trim(),
+          topics: selectedTopics.map((button) => normaliseText(button.textContent)),
+          context: recommendationContext.value.trim()
+        };
+
+        recommendationForm.setAttribute("aria-busy", "true");
+        setRecommendationControlsDisabled(true);
+        setButtonLoading(recommendationSubmit, true, "Preparing request…");
+        recommendationTimer = window.setTimeout(() => {
+          recommendationTimer = null;
+          recommendationForm.setAttribute("aria-busy", "false");
+          setRecommendationControlsDisabled(false);
+          setButtonLoading(recommendationSubmit, false, recommendationIdleLabel());
+          renderRecommendationConfirmation(lastRecommendationRequest);
+          recommendationConfirmation.hidden = false;
+          window.requestAnimationFrame(() => {
+            recommendationConfirmation.focus({ preventScroll: true });
+          });
+        }, 550);
+      }
+
+      currencyButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          currency = button.dataset.currency;
+          if (!paymentProcessing) resetPaymentMethod();
+        });
+      });
+
+      document.querySelectorAll("[data-pack-cta]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const packKey = button.dataset.packCta;
+          selectPack(packKey);
+          openPurchaseFlow(button, { type: "pack", key: packKey });
+        });
+      });
+
+      document.querySelector("[data-custom-cta]").addEventListener("click", (event) => {
+        customQuantity = Number(customQuantityOutput.value || customQuantityOutput.textContent) || customCreditRules.min;
+        selectPack(null);
+        openPurchaseFlow(event.currentTarget, { type: "custom", key: "custom" });
+      });
+
+      purchaseName.addEventListener("input", () => {
+        clearFieldError(purchaseName, dialog.querySelector("#purchase-name-error"));
+        renderPurchaseFlow();
+        updateContinueAvailability();
+      });
+      purchaseName.addEventListener("blur", () => {
+        const error = purchaseNameError(purchaseName.value);
+        clearFieldError(purchaseName, dialog.querySelector("#purchase-name-error"));
+        if (error) showFieldError(purchaseName, dialog.querySelector("#purchase-name-error"), error);
+      });
+      purchaseEmail.addEventListener("input", () => {
+        clearFieldError(purchaseEmail, dialog.querySelector("#purchase-email-error"));
+        updateContinueAvailability();
+      });
+      purchaseEmail.addEventListener("blur", () => {
+        const error = basicEmailError(purchaseEmail.value, "Enter the email address for your account and invoice.");
+        clearFieldError(purchaseEmail, dialog.querySelector("#purchase-email-error"));
+        if (error) showFieldError(purchaseEmail, dialog.querySelector("#purchase-email-error"), error);
+      });
+      purchaseCountryCode.addEventListener("change", () => {
+        clearFieldError(purchasePhone, dialog.querySelector("#purchase-phone-error"));
+        if (otpState.phoneFingerprint && otpState.phoneFingerprint !== phoneFingerprint()) {
+          resetOtpState();
+        }
+        renderOtpState();
+      });
+      purchasePhone.addEventListener("input", () => {
+        adoptInternationalPhone(purchasePhone.value);
+        clearFieldError(purchasePhone, dialog.querySelector("#purchase-phone-error"));
+        if (otpState.phoneFingerprint && otpState.phoneFingerprint !== phoneFingerprint(purchasePhone.value)) {
+          resetOtpState();
+        }
+        renderOtpState();
+      });
+      purchasePhone.addEventListener("blur", () => {
+        const error = purchasePhoneError(purchasePhone.value);
+        clearFieldError(purchasePhone, dialog.querySelector("#purchase-phone-error"));
+        if (error) showFieldError(purchasePhone, dialog.querySelector("#purchase-phone-error"), error);
+      });
+      sendOtpButton.addEventListener("click", sendOtp);
+      editPhoneButton.addEventListener("click", editPhoneNumber);
+      verifyOtpButton.addEventListener("click", verifyOtp);
+      resendOtpButton.addEventListener("click", sendOtp);
+      otpInputs.forEach((input, index) => {
+        input.addEventListener("input", () => {
+          const rawValue = input.value;
+          const digits = rawValue.replace(/\D/g, "");
+          if (digits.length > 1) {
+            distributeOtpDigits(digits, index);
+            return;
+          }
+          input.value = digits.slice(-1);
+          if (otpState.status === "invalid") otpState.status = "sent";
+          clearOtpError();
+          renderOtpState();
+          if (input.value && index < OTP_LENGTH - 1) otpInputs[index + 1].focus();
+        });
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Backspace" && !input.value && index > 0) {
+            otpInputs[index - 1].focus();
+          } else if (event.key === "ArrowLeft" && index > 0) {
+            event.preventDefault();
+            otpInputs[index - 1].focus();
+          } else if (event.key === "ArrowRight" && index < OTP_LENGTH - 1) {
+            event.preventDefault();
+            otpInputs[index + 1].focus();
+          }
+        });
+        input.addEventListener("paste", (event) => {
+          const pastedValue = event.clipboardData?.getData("text") || "";
+          if (!/\d/.test(pastedValue)) return;
+          event.preventDefault();
+          distributeOtpDigits(pastedValue, index);
+        });
+      });
+      contactForm.addEventListener("submit", handleContactSubmit);
+      loggedInContinue.addEventListener("click", () => showFlowStep("payment"));
+      paymentBack.addEventListener("click", () => showFlowStep("contact"));
+      dialog.querySelector("[data-failure-details]").addEventListener("click", () => showFlowStep("contact"));
+      dialog.querySelector("[data-payment-retry]").addEventListener("click", () => showFlowStep("payment"));
+      fulfilmentRetry.addEventListener("click", beginPurchaseFulfilment);
+      simulateSuccess.addEventListener("click", () => startPaymentSimulation("success"));
+      simulateFailure.addEventListener("click", () => startPaymentSimulation("failure"));
+      paymentMethodRadios.forEach((radio) => radio.addEventListener("change", syncPaymentMethodUi));
+
+      dialog.querySelector(".modal-close").addEventListener("click", closeDialog);
+      dialog.querySelectorAll("[data-flow-cancel], [data-success-close]").forEach((button) => {
+        button.addEventListener("click", closeDialog);
+      });
+      dialog.querySelector(".find-mentor-cta").addEventListener("click", () => {
+        if (dialog.open) dialog.close();
+      });
+      dialog.addEventListener("pointerdown", (event) => {
+        if (event.target === dialog) closeDialog();
+      });
+      dialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        closeDialog();
+      });
+      dialog.addEventListener("close", finishDialogClose);
+
+      recommendationTopics.forEach((button) => {
+        button.addEventListener("click", () => {
+          const pressed = button.getAttribute("aria-pressed") === "true";
+          button.setAttribute("aria-pressed", String(!pressed));
+          if (recommendationTopics.some((topic) => topic.getAttribute("aria-pressed") === "true")) {
+            clearRecommendationTopicError();
+          }
+        });
+      });
+      recommendationEmail.addEventListener("input", clearRecommendationError);
+      recommendationContext.addEventListener("input", updateRecommendationCounter);
+      recommendationForm.addEventListener("submit", handleRecommendationSubmit);
+      recommendationConfirmation.querySelector(".recommendation-confirmation-close")
+        .addEventListener("click", () => closeRecommendationConfirmation(true));
+
+      document.querySelectorAll('a[href="#"]').forEach((link) => {
+        link.addEventListener("click", (event) => event.preventDefault());
+      });
+
+      populateCountryCodeOptions();
+      resetOtpState();
+      syncPaymentMethodUi();
+      updateRecommendationCounter();
+      setCurrency("INR");
     })();
   </script>
 </body>
