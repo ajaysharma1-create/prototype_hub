@@ -788,6 +788,7 @@
     .faq summary,
     .card-details summary,
     .included-value summary,
+    .purchase-breakdown > summary,
     .recommendation-more > summary {
       list-style: none;
       cursor: pointer;
@@ -1743,7 +1744,7 @@
     .flow-dialog[data-current-step="fulfilment"],
     .flow-dialog[data-current-step="fulfilment-failure"],
     .flow-dialog[data-current-step="failure"],
-    .flow-dialog[data-current-step="success"] { width: min(520px, calc(100% - 32px)); }
+    .flow-dialog[data-current-step="success"] { width: min(560px, calc(100% - 32px)); }
     .flow-dialog::backdrop { background: rgba(6, 6, 6, .82); backdrop-filter: blur(5px); }
 
     .flow-dialog .modal-panel {
@@ -1845,6 +1846,11 @@
     }
     .purchase-facts .purchase-total-row dt { color: var(--text-soft); font-weight: 650; }
     .purchase-facts .purchase-total-row dd { color: var(--text); font-size: 19px; font-weight: 750; font-variant-numeric: tabular-nums; }
+    .purchase-breakdown { margin-top: 10px; }
+    .purchase-breakdown > summary { display: none; }
+    .purchase-breakdown .purchase-facts { margin-top: 0; }
+    .purchase-total { margin-top: 0; }
+    .purchase-total .purchase-total-row { border-top: 1px solid var(--border-soft); }
     .purchase-original-context { display: block; margin-top: 2px; color: var(--text-faint); font-size: 10px; font-weight: 500; }
     .purchase-savings-note { margin: 12px 0 0; color: var(--text-muted); font-size: 11.5px; line-height: 1.5; }
     .purchase-savings-note strong { color: var(--text-soft); }
@@ -2320,21 +2326,41 @@
       border-radius: 50%;
       animation: flow-spin .8s linear infinite;
     }
-    .outcome-state .flow-title, .outcome-state .flow-copy { max-width: 420px; margin-right: auto; margin-left: auto; }
+    .outcome-state .flow-kicker { margin-right: auto; margin-left: auto; }
+    .outcome-state .flow-title {
+      margin-right: auto;
+      margin-left: auto;
+      font-size: clamp(21px, 4vw, 24px);
+      text-wrap: balance;
+    }
+    .outcome-state .flow-copy { max-width: 420px; margin-right: auto; margin-left: auto; }
     .outcome-summary {
+      max-width: 420px;
       margin: 22px auto 0;
-      padding: 15px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
+      padding: 14px 18px;
       border: 1px solid var(--border-card);
       border-radius: 12px;
       background: var(--surface-soft);
       text-align: left;
     }
-    .outcome-summary span { color: var(--text-muted); font-size: 12px; line-height: 1.45; }
-    .outcome-summary strong { flex: none; font-size: 16px; }
+    .outcome-summary-item {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+    .outcome-summary-total {
+      margin-top: 10px;
+      padding-top: 11px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 18px;
+      border-top: 1px solid var(--border-soft);
+    }
+    .outcome-summary-total span { color: var(--text-muted); font-size: 12px; line-height: 1.45; }
+    .outcome-summary-total strong { flex: none; font-size: 16px; font-variant-numeric: tabular-nums; }
     .outcome-state .flow-actions { justify-content: center; }
     .find-mentor-cta { min-width: 180px; }
 
@@ -2373,70 +2399,27 @@
     .recommendation-email-error { margin: -1px 0 0; }
     .recommendation-submit:disabled { cursor: wait; opacity: .65; }
 
-    .recommendation-confirmation {
-      position: fixed;
-      right: 24px;
-      bottom: 24px;
-      z-index: 90;
-      width: min(430px, calc(100% - 32px));
-      padding: 24px 54px 22px 24px;
-      overflow: hidden;
-      border: 1px solid var(--border-strong);
-      border-radius: 16px;
-      background: #1a1a1a;
-      box-shadow: 0 28px 70px rgba(0,0,0,.58);
-      color: var(--text);
-      animation: recommendation-in 260ms var(--ease-out);
+    .outcome-dialog { width: min(560px, calc(100% - 32px)); }
+    .outcome-state .flow-copy strong { color: var(--text-soft); overflow-wrap: anywhere; }
+    .outcome-state .flow-copy + .flow-copy { margin-top: 12px; }
+
+    .confirmation-topics {
+      max-width: 420px;
+      margin: 22px auto 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 7px;
     }
-    .recommendation-confirmation::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      right: 0;
-      left: 0;
-      height: 3px;
-      background: var(--accent);
-    }
-    .recommendation-confirmation-close {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      border: 0;
-      border-radius: 50%;
-      background: transparent;
-      color: var(--text-muted);
-      font-size: 22px;
-      cursor: pointer;
-    }
-    .recommendation-confirmation-close:hover { background: rgba(255,255,255,.05); color: var(--text); }
-    .recommendation-confirmation-mark {
-      width: 36px;
-      height: 36px;
-      display: grid;
-      place-items: center;
-      border: 1px solid rgba(57,182,216,.3);
-      border-radius: 50%;
-      background: rgba(57,182,216,.08);
-      color: var(--cyan);
-      font-size: 17px;
-    }
-    .recommendation-confirmation .flow-kicker { margin: 14px 0 5px; }
-    .recommendation-confirmation h3 { margin: 0; font-size: 18px; line-height: 1.35; }
-    .recommendation-confirmation p { margin: 8px 0 0; color: var(--text-muted); font-size: 12.5px; line-height: 1.6; }
-    .recommendation-confirmation p strong { color: var(--text-soft); overflow-wrap: anywhere; }
-    .confirmation-topics { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
     .confirmation-topics span {
-      padding: 5px 8px;
+      padding: 6px 11px;
       border: 1px solid var(--border-strong);
       border-radius: 999px;
       color: var(--text-soft);
-      font-size: 10.5px;
+      font-size: 11.5px;
+      line-height: 1.35;
     }
     .prototype-note { padding-top: 10px; border-top: 1px solid var(--border); color: var(--text-faint) !important; font-size: 11px !important; }
-    @keyframes recommendation-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
     @media (max-width: 374px) {
       html[data-audience="logged-in"] .explainer-copy--session .explainer-line:first-child {
@@ -2467,11 +2450,22 @@
       .razorpay-secured { display: none; }
       .razorpay-payment { padding: 22px 18px; }
       .razorpay-payment h2 { margin-top: 16px; }
-      .recommendation-confirmation { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); width: calc(100% - 24px); }
+      .outcome-dialog { width: calc(100% - 16px); max-height: calc(100dvh - 16px); }
       .flow-dialog[data-current-step="fulfilment"] { width: calc(100% - 16px); max-height: calc(100dvh - 16px); }
       .flow-dialog[data-current-step="fulfilment-failure"] { width: calc(100% - 16px); max-height: calc(100dvh - 16px); }
       .flow-dialog[data-current-step="contact"] .modal-panel { scroll-padding-bottom: 38dvh; }
       .purchase-summary-card, .flow-form { padding: 19px; }
+      .purchase-breakdown > summary {
+        min-height: 44px;
+        padding: 5px 0 9px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--text-soft);
+        font-size: 12.5px;
+        font-weight: 650;
+      }
       .included-value:not([open]) { margin-top: 4px; }
     }
 
@@ -2493,8 +2487,7 @@
       .razorpay-wordmark { display: none; }
       .razorpay-order { grid-template-columns: minmax(0, 1fr); }
       .razorpay-amount { grid-column: 1; grid-row: auto; margin-top: 12px; text-align: left; }
-      .outcome-summary { align-items: flex-start; flex-direction: column; gap: 5px; }
-      .recommendation-confirmation { padding: 22px 48px 20px 20px; }
+      .outcome-summary-total { align-items: flex-start; flex-direction: column; gap: 4px; }
     }
 
     @media (min-width: 761px) and (max-height: 820px) {
@@ -2879,14 +2872,19 @@
                 <div class="purchase-credit-line" data-purchase-credits>—</div>
               </div>
             </div>
-            <dl class="purchase-facts">
-              <div>
-                <dt>Original price <span class="purchase-original-context">At the custom-credit rate</span></dt>
-                <dd data-purchase-original>—</dd>
-              </div>
-              <div class="purchase-discount"><dt>Your plan savings</dt><dd data-purchase-discount>—</dd></div>
-              <div><dt>Price after discount</dt><dd data-purchase-after-discount>—</dd></div>
-              <div><dt>GST (18%)</dt><dd data-purchase-gst>—</dd></div>
+            <details class="purchase-breakdown" data-purchase-breakdown open>
+              <summary>Price breakdown <span class="disclosure-icon" aria-hidden="true">+</span></summary>
+              <dl class="purchase-facts">
+                <div>
+                  <dt>Original price <span class="purchase-original-context">At the custom-credit rate</span></dt>
+                  <dd data-purchase-original>—</dd>
+                </div>
+                <div class="purchase-discount"><dt>Your plan savings</dt><dd data-purchase-discount>—</dd></div>
+                <div><dt>Price after discount</dt><dd data-purchase-after-discount>—</dd></div>
+                <div><dt>GST (18%)</dt><dd data-purchase-gst>—</dd></div>
+              </dl>
+            </details>
+            <dl class="purchase-facts purchase-total">
               <div class="purchase-total-row"><dt>Final amount payable</dt><dd data-purchase-total>—</dd></div>
             </dl>
             <p class="purchase-savings-note" data-purchase-savings-note></p>
@@ -3053,38 +3051,56 @@
 
       <section class="flow-step outcome-state" data-flow-step="failure" hidden>
         <div class="outcome-icon failure" aria-hidden="true">×</div>
-        <p class="flow-kicker">Payment</p>
         <h2 class="flow-title" id="payment-failure-title" tabindex="-1">Payment unsuccessful</h2>
         <p class="flow-copy" id="payment-failure-copy">We couldn’t complete the payment. Your order and verified details are saved, so you can review them or try again.</p>
-        <div class="outcome-summary"><span data-failure-selection>Selected credits</span><strong data-failure-price>—</strong></div>
+        <div class="outcome-summary">
+          <p class="outcome-summary-item" data-failure-selection>Selected credits</p>
+          <div class="outcome-summary-total">
+            <span>Amount</span>
+            <strong data-failure-price>—</strong>
+          </div>
+        </div>
         <div class="flow-actions">
-          <button class="flow-button tertiary" type="button" data-failure-details>Review details</button>
+          <button class="flow-button tertiary" type="button" data-failure-details>Review order</button>
           <button class="flow-button primary" type="button" data-payment-retry>Try payment again</button>
         </div>
       </section>
 
-      <section class="flow-step outcome-state" data-flow-step="success" role="status" hidden>
+      <section class="flow-step outcome-state" data-flow-step="success" hidden>
         <div class="outcome-icon success" aria-hidden="true">✓</div>
-        <p class="flow-kicker" data-success-kicker>Account ready</p>
         <h2 class="flow-title" id="purchase-success-title" tabindex="-1">Purchase successful</h2>
-        <p class="flow-copy" id="purchase-success-copy"><span data-success-greeting></span><strong data-success-credits>Selected credits</strong> have been added to your MentorUnion account.</p>
-        <p class="flow-copy" data-account-created-copy>Your MentorUnion account has been created. Log in using <strong data-success-email>your email address</strong> or <strong data-success-phone>phone number</strong>.</p>
-        <div class="outcome-summary"><span data-success-selection>Selected credits</span><strong data-success-price>—</strong></div>
+        <p class="flow-copy" id="purchase-success-copy"><span data-success-lead>We’ve added</span> <strong data-success-credits>your credits</strong> to your MentorUnion account.</p>
+        <p class="flow-copy" data-success-invoice-copy>Your invoice has been sent to <strong data-success-email>your email address</strong>.</p>
+        <div class="outcome-summary">
+          <p class="outcome-summary-item" data-success-selection>Selected credits</p>
+          <div class="outcome-summary-total">
+            <span>Final amount</span>
+            <strong data-success-price>—</strong>
+          </div>
+        </div>
         <div class="flow-actions">
-          <a class="flow-button primary find-mentor-cta" href="#">Find Mentors</a>
+          <a class="flow-button primary find-mentor-cta" href="#">Find a mentor</a>
         </div>
       </section>
     </div>
   </dialog>
 
-  <aside class="recommendation-confirmation" data-recommendation-confirmation role="status" aria-live="polite" aria-atomic="false" aria-labelledby="recommendation-confirmation-title" aria-describedby="recommendation-confirmation-message" tabindex="-1" hidden>
-    <button class="recommendation-confirmation-close" type="button" aria-label="Close recommendation confirmation">×</button>
-    <div class="recommendation-confirmation-mark" aria-hidden="true">✓</div>
-    <p class="flow-kicker">Request received</p>
-    <h3 id="recommendation-confirmation-title">We’ll send your recommendation</h3>
-    <p id="recommendation-confirmation-message">Based on your goals, we’ll email a recommended pack to <strong data-recommendation-confirmation-email>you@company.com</strong> within about 24 hours.</p>
-    <div class="confirmation-topics" data-recommendation-confirmation-topics hidden></div>
-  </aside>
+  <dialog class="flow-dialog outcome-dialog" data-recommendation-confirmation aria-labelledby="recommendation-confirmation-title" aria-describedby="recommendation-confirmation-message">
+    <div class="modal-panel">
+      <button class="modal-close" type="button" aria-label="Close recommendation confirmation">×</button>
+
+      <section class="flow-step outcome-state">
+        <div class="outcome-icon success" aria-hidden="true">✓</div>
+        <h2 class="flow-title" id="recommendation-confirmation-title" tabindex="-1">Your recommendation request is in</h2>
+        <p class="flow-copy" id="recommendation-confirmation-message">We’ll email a recommended credit pack to <strong data-recommendation-confirmation-email>you@company.com</strong> within about 24 hours.</p>
+        <p class="flow-copy" data-recommendation-next-step>In the meantime, create your account to find mentors for these goals.</p>
+        <div class="confirmation-topics" data-recommendation-confirmation-topics hidden></div>
+        <div class="flow-actions">
+          <a class="flow-button primary find-mentor-cta" data-recommendation-find-mentor href="#">Find a mentor</a>
+        </div>
+      </section>
+    </div>
+  </dialog>
 
   <script>
     (() => {
@@ -3571,6 +3587,7 @@
       const loggedInReview = dialog.querySelector("[data-logged-in-review]");
       const loggedInContinue = dialog.querySelector("[data-logged-in-continue]");
       const purchaseSummary = dialog.querySelector(".purchase-summary-card");
+      const purchaseBreakdown = dialog.querySelector("[data-purchase-breakdown]");
       const purchaseName = dialog.querySelector("#purchase-name");
       const purchaseEmail = dialog.querySelector("#purchase-email");
       const purchaseCountryCode = dialog.querySelector("#purchase-country-code");
@@ -3595,6 +3612,7 @@
       const infoTriggers = [...document.querySelectorAll(".info-trigger")];
       const infoTooltip = document.querySelector("#feature-tooltip");
       const mobilePricingCards = window.matchMedia("(max-width: 700px), (max-width: 1000px) and (max-height: 500px) and (orientation: landscape)");
+      const stackedCheckout = window.matchMedia("(max-width: 760px)");
       const recommendationForm = document.querySelector(".recommendation-form");
       const recommendationTopicList = recommendationForm.querySelector(".topic-list");
       const recommendationTopics = [...recommendationTopicList.querySelectorAll(".topic")];
@@ -3607,6 +3625,8 @@
       const recommendationConfirmation = document.querySelector("[data-recommendation-confirmation]");
       const recommendationConfirmationEmail = recommendationConfirmation.querySelector("[data-recommendation-confirmation-email]");
       const recommendationConfirmationTopics = recommendationConfirmation.querySelector("[data-recommendation-confirmation-topics]");
+      const recommendationNextStep = recommendationConfirmation.querySelector("[data-recommendation-next-step]");
+      const recommendationFindMentor = recommendationConfirmation.querySelector("[data-recommendation-find-mentor]");
       const customCreditRules = Object.freeze({
         min: Number(customCounter.dataset.min),
         max: Number(customCounter.dataset.max),
@@ -3622,6 +3642,7 @@
       // No product default is documented; initialise at the verified minimum.
       let customQuantity = customCreditRules.min;
       let activePurchase = null;
+      let recommendationConfirmationRestoresFocus = true;
       let contactDetails = { fullName: "", email: "", phone: "" };
       let otpState = {
         status: "idle",
@@ -3889,17 +3910,15 @@
             : "Contact details added in the previous step"));
         setText("[data-failure-selection]", purchase.name + " · " + purchase.creditLabel);
         setText("[data-failure-price]", formatCurrency(purchase.amounts.finalPayable));
-        setText("[data-success-greeting]", owner ? owner + ", " : "");
+        setText("[data-success-lead]", owner ? owner + ", we’ve added" : "We’ve added");
         setText("[data-success-credits]", purchase.creditLabel);
         setText("[data-success-email]", contactDetails.email || "your email address");
-        setText("[data-success-phone]", contactDetails.phone || "phone number");
         setText("[data-success-selection]", purchase.name + " · " + purchase.creditLabel);
         setText("[data-success-price]", formatCurrency(purchase.amounts.finalPayable));
-        setText("[data-success-kicker]", loggedIn ? "Credits added" : "Account ready");
         setText("#purchase-fulfilment-copy", loggedIn
           ? "We’re confirming the payment and adding your credits. Keep this window open."
           : "We’re confirming your account and adding your credits. Keep this window open.");
-        dialog.querySelector("[data-account-created-copy]").hidden = loggedIn;
+        dialog.querySelector("[data-success-invoice-copy]").hidden = loggedIn;
 
         const benefitsList = dialog.querySelector("[data-purchase-benefits]");
         const detailItems = [purchase.perCredit, ...purchase.benefits].filter(Boolean);
@@ -3913,6 +3932,10 @@
         const paymentLabel = "Simulate paying " + purchase.price + " + taxes";
         simulateSuccess.dataset.idleLabel = paymentLabel;
         if (!paymentProcessing) simulateSuccess.textContent = paymentLabel;
+      }
+
+      function syncBreakdownDisclosure() {
+        purchaseBreakdown.open = !stackedCheckout.matches;
       }
 
       function updateCustomCreditUi(announce = false) {
@@ -4505,6 +4528,7 @@
         updateContinueAvailability();
         resetPaymentMethod();
         dialog.querySelector(".included-value").open = false;
+        syncBreakdownDisclosure();
         setText("#purchase-contact-title", loggedIn ? "Review your purchase" : "Complete your purchase");
         setText("#purchase-contact-copy", loggedIn
           ? "Confirm your order before continuing to payment."
@@ -4683,13 +4707,25 @@
       }
 
       function closeRecommendationConfirmation(restoreFocus = true) {
-        if (recommendationConfirmation.hidden) return;
-        recommendationConfirmation.hidden = true;
-        if (restoreFocus) recommendationSubmit.focus({ preventScroll: true });
+        if (!recommendationConfirmation.open) return;
+        recommendationConfirmationRestoresFocus = restoreFocus;
+        recommendationConfirmation.close();
+      }
+
+      function finishRecommendationConfirmationClose() {
+        if (recommendationConfirmation.open) return;
+        unlockPageScroll();
+        if (recommendationConfirmationRestoresFocus) {
+          recommendationSubmit.focus({ preventScroll: true });
+        }
+        recommendationConfirmationRestoresFocus = true;
       }
 
       function renderRecommendationConfirmation(request) {
         recommendationConfirmationEmail.textContent = request.email;
+        recommendationNextStep.textContent = isLoggedInAudience()
+          ? "You can continue to browse mentors while we prepare your recommendation."
+          : "In the meantime, create your account to find mentors for these goals.";
         const topicElements = request.topics.map((topic) => {
           const chip = document.createElement("span");
           chip.textContent = topic;
@@ -4697,6 +4733,17 @@
         });
         recommendationConfirmationTopics.replaceChildren(...topicElements);
         recommendationConfirmationTopics.hidden = topicElements.length === 0;
+      }
+
+      function openRecommendationConfirmation(request) {
+        renderRecommendationConfirmation(request);
+        lockPageScroll();
+        recommendationConfirmation.showModal();
+        window.requestAnimationFrame(() => {
+          recommendationConfirmation
+            .querySelector("#recommendation-confirmation-title")
+            ?.focus({ preventScroll: true });
+        });
       }
 
       function handleRecommendationSubmit(event) {
@@ -4731,11 +4778,7 @@
           recommendationForm.setAttribute("aria-busy", "false");
           setRecommendationControlsDisabled(false);
           setButtonLoading(recommendationSubmit, false, recommendationIdleLabel());
-          renderRecommendationConfirmation(lastRecommendationRequest);
-          recommendationConfirmation.hidden = false;
-          window.requestAnimationFrame(() => {
-            recommendationConfirmation.focus({ preventScroll: true });
-          });
+          openRecommendationConfirmation(lastRecommendationRequest);
         }, 550);
       }
 
@@ -4881,8 +4924,19 @@
       recommendationEmail.addEventListener("input", clearRecommendationError);
       recommendationContext.addEventListener("input", updateRecommendationCounter);
       recommendationForm.addEventListener("submit", handleRecommendationSubmit);
-      recommendationConfirmation.querySelector(".recommendation-confirmation-close")
+      recommendationConfirmation.querySelector(".modal-close")
         .addEventListener("click", () => closeRecommendationConfirmation(true));
+      recommendationFindMentor.addEventListener("click", () => {
+        if (recommendationConfirmation.open) closeRecommendationConfirmation(false);
+      });
+      recommendationConfirmation.addEventListener("pointerdown", (event) => {
+        if (event.target === recommendationConfirmation) closeRecommendationConfirmation(true);
+      });
+      recommendationConfirmation.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        closeRecommendationConfirmation(true);
+      });
+      recommendationConfirmation.addEventListener("close", finishRecommendationConfirmationClose);
 
       document.querySelectorAll('a[href="#"]').forEach((link) => {
         link.addEventListener("click", (event) => event.preventDefault());
@@ -4901,12 +4955,14 @@
         centrePlanCard(nextCard);
       });
       mobilePricingCards.addEventListener("change", (event) => syncMobilePricingCards(event));
+      stackedCheckout.addEventListener("change", syncBreakdownDisclosure);
       window.addEventListener("resize", () => syncMobilePricingCards());
       window.addEventListener("load", () => syncMobilePricingCards(), { once: true });
       populateCountryCodeOptions();
       resetOtpState();
       syncMobilePricingCards();
       syncPaymentMethodUi();
+      syncBreakdownDisclosure();
       updateRecommendationCounter();
       setCurrency("INR");
     })();

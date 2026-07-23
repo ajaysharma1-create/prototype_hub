@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-16",
+  "updatedAt": "2026-07-23",
   "prototypes": [
     {
       "id": "mentorship-credits-pricing",
@@ -9,7 +9,7 @@
       "type": "Pricing experience",
       "status": "approved",
       "version": "",
-      "updatedAt": "2026-07-16",
+      "updatedAt": "2026-07-23",
       "preview": "assets/previews/mentorship-credits-pricing.webp",
       "previewAlt": "MentorUnion mentorship credits pricing prototype showing three credit-pack options in the public landing-page view.",
       "prototypePath": "prototypes/proposed_pricing_unified.html",
