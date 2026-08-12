@@ -77,7 +77,7 @@
 
   const CUSTOM_CREDITS = {
     min: 1,
-    max: 5,
+    max: 100,
     step: 1,
     rate: { INR: 1500, USD: 20 },
     validityDays: 60
@@ -222,7 +222,7 @@
       selectedPack: null,
       customPack: null,
       customQuantity: CUSTOM_CREDITS.min,
-      emailTemplate: "signature",
+      emailTemplate: null,
       recommendation: { topics: [], context: "", email: "", sent: null, errors: {} },
       mode: "gift",
       form: {
@@ -264,51 +264,23 @@
     };
   }
 
+  /* A reload starts a clean session. State lives in memory for the life of the page,
+     which is all the flow needs — it survives route changes but not a refresh, so
+     nobody lands back inside a half-finished gift with stale details. */
   function loadState() {
     try {
-      const stored = sessionStorage.getItem(STORAGE_KEY);
-      if (!stored) return initialState();
-      const parsed = JSON.parse(stored);
-      const base = initialState();
-      const restored = {
-        ...base,
-        ...parsed,
-        form: { ...base.form, ...(parsed.form || {}) },
-        payment: { ...base.payment, ...(parsed.payment || {}) },
-        recommendation: { ...base.recommendation, ...(parsed.recommendation || {}) },
-        errors: { ...(parsed.errors || {}) },
-        accounts: { ...base.accounts, ...(parsed.accounts || {}) }
-      };
-
-      // An order record without its pack snapshot predates the current shape and
-      // cannot be rendered. Drop it rather than fail on the first read.
-      if (restored.gift && !restored.gift.pack) {
-        restored.gift = null;
-        restored.link = null;
-        restored.delivery = null;
-      }
-      if (restored.order && restored.order.mode === "self" && !restored.order.pack) restored.order = null;
-      if (restored.order && restored.order.mode === "gift" && !restored.gift) restored.order = null;
-      if (restored.selectedPack === "custom" && !restored.customPack) restored.selectedPack = null;
-      if (restored.selectedPack && restored.selectedPack !== "custom" && !PACKS[restored.selectedPack]) {
-        restored.selectedPack = null;
-      }
-      if (restored.currency !== "INR" && restored.currency !== "USD") restored.currency = "INR";
-
-      return restored;
+      sessionStorage.removeItem(STORAGE_KEY);
     } catch (_error) {
-      return initialState();
+      /* Nothing to clear when storage is unavailable. */
     }
+    return initialState();
   }
 
   let state = loadState();
 
   function persist() {
-    try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (_error) {
-      /* Continue in memory when storage is unavailable. */
-    }
+    /* State is deliberately not written to storage; see loadState. Kept as the single
+       commit point so call sites read the same either way. */
   }
 
   /* ------------------------------------------------------------ helpers -- */
@@ -594,15 +566,17 @@
           </div>
         </div>
         <div class="custom-purchase">
-          <div class="custom-counter" role="group" aria-label="Custom credit quantity">
+          <div class="custom-counter">
             <button class="custom-counter-button" type="button" data-action="custom-decrease"
                     aria-label="Decrease custom credits" ${q <= CUSTOM_CREDITS.min ? "disabled" : ""}>−</button>
-            <output class="custom-quantity" aria-live="polite" aria-atomic="true">${q}</output>
+            <input class="custom-quantity" type="text" inputmode="numeric" maxlength="3"
+                   data-custom-quantity value="${q}"
+                   aria-label="Number of credits, ${CUSTOM_CREDITS.min} to ${CUSTOM_CREDITS.max}">
             <button class="custom-counter-button" type="button" data-action="custom-increase"
                     aria-label="Increase custom credits" ${q >= CUSTOM_CREDITS.max ? "disabled" : ""}>+</button>
           </div>
-          <div class="custom-total" aria-live="polite" aria-atomic="true">
-            <strong>${money(unit * q)}</strong>
+          <div class="custom-total">
+            <strong data-custom-total>${money(unit * q)}</strong>
             <span>+ taxes</span>
           </div>
           ${forGift
@@ -938,8 +912,9 @@
               <div>
                 <span class="meta-label">HOW IT ARRIVES</span>
                 <h2 class="card-title" id="email-design-title">Choose the email design</h2>
-                <p class="caption" style="margin-top:6px">Same credits and the same message in each — only the framing changes. Use the eye to preview.</p>
+                <p class="caption" style="margin-top:6px">Same credits and the same message in each — only the framing changes. Open one to preview it.</p>
               </div>
+              <p class="sending-in">Sending in <strong>${e(EMAIL_TEMPLATES[emailTemplateId()].name)}</strong>${state.emailTemplate ? "" : " · the default"}</p>
             </div>
             ${templatePicker()}
           </section>
@@ -1194,6 +1169,7 @@
     };
   }
 
+  // No design is pre-selected; Signature is what goes out until one is chosen.
   function emailTemplateId() {
     return EMAIL_TEMPLATES[state.emailTemplate] ? state.emailTemplate : "signature";
   }
@@ -1307,29 +1283,25 @@
       </div>`;
   }
 
-  function templatePicker(current = emailTemplateId(), { withPreview = true, action = "set-template" } = {}) {
+  /* A gallery, not a control: cards carry no selected state and nothing is chosen by
+     clicking one. The design is committed inside the preview dialog. */
+  function templatePicker() {
     return `
-      <div class="template-grid" role="radiogroup" aria-label="Gift email design">
+      <ul class="template-grid">
         ${TEMPLATE_IDS.map((id) => {
           const t = EMAIL_TEMPLATES[id];
-          const selected = id === current;
           return `
-            <div class="template-option${selected ? " is-selected" : ""}">
-              <button class="template-select" type="button" role="radio" aria-checked="${selected}"
-                      data-action="${action}" data-template="${id}">
-                <span class="sr-only">${e(t.name)} — ${e(t.blurb)}</span>
-              </button>
+            <li class="template-option">
               <span class="template-swatch template-swatch--${id}" aria-hidden="true"></span>
-              <span class="template-copy" aria-hidden="true">
-                <strong>${e(t.name)}${selected ? `<span class="template-check">${icons.check}</span>` : ""}</strong>
+              <span class="template-copy">
+                <strong>${e(t.name)}</strong>
                 <span>${e(t.blurb)}</span>
               </span>
-              ${withPreview ? `
-                <button class="template-preview" type="button" data-action="preview-email" data-template="${id}"
-                        aria-label="Preview the ${e(t.name)} design">${icons.eye}</button>` : ""}
-            </div>`;
+              <button class="template-preview" type="button" data-action="preview-email" data-template="${id}"
+                      aria-label="Preview the ${e(t.name)} design">${icons.eye}</button>
+            </li>`;
         }).join("")}
-      </div>`;
+      </ul>`;
   }
 
   function renderGiftEmail() {
@@ -2077,6 +2049,31 @@
     }, 1200);
   }
 
+  /* Patch the counter in place. Re-rendering the whole route for a quantity tick
+     rebuilt every card and made the page flicker. */
+  function setCustomQuantity(next, { fromInput = false } = {}) {
+    const clamped = Math.min(CUSTOM_CREDITS.max, Math.max(CUSTOM_CREDITS.min, Number(next) || CUSTOM_CREDITS.min));
+    state.customQuantity = clamped;
+    if (state.selectedPack === "custom") state.customPack = customPackFor(clamped);
+    persist();
+
+    const unit = amount(CUSTOM_CREDITS.rate);
+    const field = document.querySelector("[data-custom-quantity]");
+    const total = document.querySelector("[data-custom-total]");
+    const minus = document.querySelector('[data-action="custom-decrease"]');
+    const plus = document.querySelector('[data-action="custom-increase"]');
+    const choose = document.querySelector('[data-action="select-custom"]');
+
+    if (field && !fromInput) field.value = String(clamped);
+    if (total) total.textContent = money(unit * clamped);
+    if (minus) minus.disabled = clamped <= CUSTOM_CREDITS.min;
+    if (plus) plus.disabled = clamped >= CUSTOM_CREDITS.max;
+    if (choose && state.selectedPack !== "custom") {
+      choose.textContent = `Choose ${clamped} credit${clamped === 1 ? "" : "s"}`;
+    }
+    announce(`${clamped} ${clamped === 1 ? "credit" : "credits"}, ${money(unit * clamped)} plus taxes.`);
+  }
+
   /* Let the selection land visibly before moving on — unless motion is reduced,
      where the pause would just read as lag. */
   function advanceAfterSelection(route = "gift/details") {
@@ -2087,12 +2084,17 @@
   function renderPreview() {
     const id = EMAIL_TEMPLATES[previewTemplate] ? previewTemplate : emailTemplateId();
     const d = emailData();
-    const isCurrent = id === emailTemplateId();
-    previewDialog.querySelector("#preview-picker").innerHTML =
-      templatePicker(id, { withPreview: false, action: "set-preview" });
+    previewDialog.querySelector("#preview-picker").innerHTML = `
+      <div class="preview-tabs" role="tablist" aria-label="Gift email design">
+        ${TEMPLATE_IDS.map((tid) => `
+          <button class="preview-tab${tid === id ? " is-active" : ""}" type="button" role="tab"
+                  aria-selected="${tid === id}" data-action="set-preview" data-template="${tid}">
+            ${e(EMAIL_TEMPLATES[tid].name)}
+          </button>`).join("")}
+      </div>`;
     previewDialog.querySelector("#preview-stage").innerHTML = `${emailMeta(id, d)}${emailCard(id, d)}`;
-    const use = previewDialog.querySelector('[data-action="use-template"]');
-    use.textContent = isCurrent ? "Keep this design" : "Use this design";
+    previewDialog.querySelector('[data-action="use-template"]').textContent =
+      id === emailTemplateId() ? "Keep this design" : "Use this design";
   }
 
   function announce(message) {
@@ -2142,15 +2144,7 @@
 
     if (action === "custom-decrease" || action === "custom-increase") {
       const direction = action === "custom-increase" ? 1 : -1;
-      const next = state.customQuantity + (direction * CUSTOM_CREDITS.step);
-      state.customQuantity = Math.min(CUSTOM_CREDITS.max, Math.max(CUSTOM_CREDITS.min, next));
-      // Keep an already-chosen custom gift in step with the counter.
-      if (state.selectedPack === "custom") state.customPack = customPackFor(state.customQuantity);
-      persist();
-      render();
-      const unit = amount(CUSTOM_CREDITS.rate);
-      announce(`${state.customQuantity} ${state.customQuantity === 1 ? "credit" : "credits"}, ${money(unit * state.customQuantity)} plus taxes.`);
-      window.setTimeout(() => app.querySelector(`[data-action="${action}"]:not(:disabled)`)?.focus(), 0);
+      setCustomQuantity(state.customQuantity + (direction * CUSTOM_CREDITS.step));
       return;
     }
 
@@ -2167,20 +2161,6 @@
       render();
       announce(`${state.customQuantity} custom credits selected.`);
       advanceAfterSelection();
-      return;
-    }
-
-    if (action === "set-template") {
-      state.emailTemplate = trigger.dataset.template;
-      persist();
-      if (previewDialog.open) {
-        renderPreview();
-        window.setTimeout(() => previewDialog.querySelector(`[data-template="${state.emailTemplate}"]`)?.focus(), 0);
-      } else {
-        render();
-        window.setTimeout(() => app.querySelector(`[data-template="${state.emailTemplate}"]`)?.focus(), 0);
-      }
-      announce(`${EMAIL_TEMPLATES[state.emailTemplate].name} email design selected.`);
       return;
     }
 
@@ -2340,6 +2320,15 @@
   });
 
   document.addEventListener("input", (event) => {
+    const quantity = event.target.closest("[data-custom-quantity]");
+    if (quantity) {
+      const digits = quantity.value.replace(/\D/g, "").slice(0, 3);
+      quantity.value = digits;
+      // Let the field sit empty mid-edit; commit on blur.
+      if (digits) setCustomQuantity(digits, { fromInput: true });
+      return;
+    }
+
     const recommendationField = event.target.closest("[data-recommendation-field]");
     if (recommendationField) {
       const name = recommendationField.dataset.recommendationField;
@@ -2401,6 +2390,13 @@
   });
 
   document.addEventListener("focusout", (event) => {
+    const quantity = event.target.closest("[data-custom-quantity]");
+    if (quantity) {
+      setCustomQuantity(quantity.value);
+      quantity.value = String(state.customQuantity);
+      return;
+    }
+
     const fieldEl = event.target.closest("[data-field]");
     if (fieldEl && fieldEl.dataset.field !== "signInEmail") refreshFieldError(fieldEl.dataset.field);
   });

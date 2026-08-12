@@ -1863,11 +1863,16 @@ p + .note {
 }
 
 .template-grid {
+  margin: 0;
+  padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 10px;
+  list-style: none;
 }
 
+/* A gallery of what can be sent. Cards carry no selected state — the design is
+   committed in the preview dialog, and the section header says which one is going. */
 .template-option {
   position: relative;
   min-width: 0;
@@ -1879,40 +1884,32 @@ p + .note {
   border-radius: var(--r-control);
   background: var(--surface-subtle);
   text-align: left;
-  transition: border-color var(--fast) var(--ease-out), background-color var(--fast) var(--ease-out);
+  transition: border-color var(--fast) var(--ease-out);
 }
 
 .template-option:hover {
   border-color: var(--border-strong);
 }
 
-/* No card-wide highlight — it competed with the swatch it was meant to point at.
-   Selection is carried by the check beside the name instead. */
-.template-check {
-  display: inline-flex;
-  margin-left: 6px;
-  color: var(--success);
-  vertical-align: -2px;
+/* Drops below the heading rather than overflowing once the row runs out of room. */
+.email-design .surface__head {
+  flex-wrap: wrap;
+  gap: var(--s3);
 }
 
-.template-check svg {
-  width: 13px;
-  height: 13px;
+.sending-in {
+  padding: 6px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--pill);
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+  font-size: var(--fs-micro);
+  line-height: 1.5;
 }
 
-.template-select {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  padding: 0;
-  border: 0;
-  border-radius: inherit;
-  background: transparent;
-  cursor: pointer;
-}
-
-.template-select:focus-visible {
-  outline-offset: 2px;
+.sending-in strong {
+  color: var(--text);
+  font-weight: 600;
 }
 
 /* Sits above the card's own selector so the eye stays clickable. Revealed on hover or
@@ -1944,8 +1941,7 @@ p + .note {
 }
 
 .template-option:hover .template-preview,
-.template-option:focus-within .template-preview,
-.template-option.is-selected .template-preview {
+.template-option:focus-within .template-preview {
   opacity: 1;
   transform: translateY(-50%) scale(1);
 }
@@ -2506,6 +2502,36 @@ p + .note {
   margin-top: var(--s5);
 }
 
+.preview-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.preview-tab {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--pill);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  transition: border-color var(--fast) var(--ease-out), color var(--fast) var(--ease-out), background-color var(--fast) var(--ease-out);
+}
+
+.preview-tab:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.preview-tab.is-active {
+  border-color: var(--text-soft);
+  background: var(--surface-selected);
+  color: var(--text);
+}
+
 .dialog--preview .email-stage {
   margin-top: var(--s5);
   padding: var(--s6) var(--s5);
@@ -2820,12 +2846,16 @@ p + .note {
 
 .custom-counter {
   display: inline-grid;
-  grid-template-columns: 44px 48px 44px;
+  grid-template-columns: 44px 56px 44px;
   align-items: center;
   overflow: hidden;
   border: 1px solid var(--border-strong);
   border-radius: var(--pill);
   background: var(--surface);
+}
+
+.custom-counter:focus-within {
+  border-color: var(--cyan);
 }
 
 .custom-counter-button {
@@ -2851,13 +2881,27 @@ p + .note {
   opacity: 0.55;
 }
 
+/* Typing beats 99 taps now the ceiling is 100. */
 .custom-quantity {
-  min-width: 48px;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
   color: var(--text);
+  font-family: inherit;
   font-size: 1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: center;
+}
+
+.custom-quantity::-webkit-outer-spin-button,
+.custom-quantity::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
 }
 
 .custom-total {
