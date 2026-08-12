@@ -1,6 +1,23 @@
 {
-  "updatedAt": "2026-07-23",
+  "updatedAt": "2026-08-12",
   "prototypes": [
+    {
+      "id": "gift-mentorship",
+      "name": "Gift Mentorship",
+      "project": "Gift Mentorship",
+      "description": "Gifting a credit pack end to end: pricing, checkout, six gift-email designs, delivery and the recipient's claim.",
+      "type": "Product flow",
+      "status": "approved",
+      "version": "",
+      "updatedAt": "2026-08-12",
+      "preview": "assets/previews/gift-mentorship.png",
+      "previewAlt": "MentorUnion Gift Mentorship prototype showing the mentorship credits pricing page with Focus, Growth and Accelerator packs above the gift entry point.",
+      "prototypePath": "prototypes/gift-mentorship/index.html",
+      "sourcePath": "",
+      "approvedBy": "Product Manager",
+      "approvalReference": "Direct PM instruction to publish the Gift Mentorship flow build - 2026-08-12",
+      "device": "Responsive web"
+    },
     {
       "id": "mentorship-credits-pricing",
       "name": "Mentorship Credits Pricing",

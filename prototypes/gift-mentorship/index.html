@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Gift mentorship credits on MentorUnion. Send a credit pack by email; your recipient redeems it into their own account and books 1:1 sessions.">
+  <title>Gift mentorship · MentorUnion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="nav-inner">
+      <a class="brand logo-crop" href="#/pricing" aria-label="MentorUnion home">
+        <img src="assets/logos/black-bg-logo.png" width="512" height="512" alt="">
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu" data-action="toggle-menu"></button>
+      <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
+        <a href="#/pricing" data-nav="pricing">Pricing</a>
+        <a href="#/gift/choose" data-nav="gift">Gift mentorship</a>
+        <a href="#/wallet" data-nav="wallet">My credits</a>
+        <span class="nav-group">
+          <button class="signin-link" type="button" data-action="sign-in">Sign up</button>
+        </span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main" id="main-content" tabindex="-1">
+    <div id="app" class="page-shell"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>© 2026 MentorUnion</div>
+      <div class="footer-links">
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+        <a href="#">Refund policy</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <dialog class="dialog" id="correction-dialog" aria-labelledby="correction-title">
+    <div class="modal-panel">
+      <button class="modal-close" type="button" aria-label="Close" data-action="close-correction">×</button>
+      <p class="eyebrow">DELIVERY ADDRESS</p>
+      <h2 class="modal-title" id="correction-title" tabindex="-1">Change the recipient's email</h2>
+      <p class="modal-copy">We'll send the gift to the new address and cancel the previous link. Your purchase is not affected and you are not charged again.</p>
+      <form class="modal-form" id="correction-form" novalidate>
+        <div class="current-value">
+          <span class="meta-label">CURRENTLY SENDING TO</span>
+          <strong id="correction-old-email"></strong>
+        </div>
+        <label class="field" for="corrected-email">
+          <span class="field__label">New recipient email</span>
+          <input id="corrected-email" name="corrected-email" type="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="name@example.com" required aria-describedby="corrected-email-help corrected-email-error">
+          <span class="field__help" id="corrected-email-help">The previous link stops working as soon as you save.</span>
+          <span class="field__error" id="corrected-email-error" role="alert"></span>
+        </label>
+        <div class="modal-actions">
+          <button class="button button--secondary" type="button" data-action="close-correction">Cancel</button>
+          <button class="button button--primary" type="submit">Save and resend</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <dialog class="dialog dialog--preview" id="preview-dialog" aria-labelledby="preview-title">
+    <div class="modal-panel">
+      <button class="modal-close" type="button" aria-label="Close preview" data-action="close-preview">×</button>
+      <p class="eyebrow">EMAIL PREVIEW</p>
+      <h2 class="modal-title" id="preview-title" tabindex="-1">What your recipient sees</h2>
+      <p class="modal-copy">Switch designs to compare. Nothing is sent until you pay.</p>
+      <div id="preview-picker"></div>
+      <!-- inert: the previewed email is a picture of the real thing, not a working copy -->
+      <div class="email-stage" id="preview-stage" inert></div>
+      <div class="modal-actions">
+        <button class="button button--secondary" type="button" data-action="close-preview">Close</button>
+        <button class="button button--primary" type="button" data-action="use-template">Use this design</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="info-tooltip" id="feature-tooltip" role="tooltip" aria-hidden="true"></div>
+
+  <div id="live-region" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
