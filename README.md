@@ -27,6 +27,7 @@ prototype-hub/
 ├── prototypes.json
 ├── assets/
 │   ├── previews/
+│   │   ├── gift-mentorship.png
 │   │   ├── mentorship-credits-pricing.webp
 │   │   └── placeholder.svg
 │   ├── icons/
@@ -35,6 +36,13 @@ prototype-hub/
 │       ├── app.js
 │       └── styles.css
 └── prototypes/
+    ├── gift-mentorship/
+    │   ├── index.html
+    │   ├── app.js
+    │   ├── styles.css
+    │   └── assets/
+    │       ├── fonts/
+    │       └── logos/
     ├── mentee-direct-onboarding/
     │   ├── onboarding-app.html
     │   ├── mentorunion-schema.css
@@ -103,7 +111,7 @@ Import the repository into Vercel as a static project:
 
 The project needs no `vercel.json`, rewrite, build output, server function, or environment variable. All internal deployment routes use relative paths and resolve to physical files, so direct prototype routes and refreshes work without a fallback rule.
 
-The current prototypes request Google-hosted fonts: the pricing prototype uses typography families, and the onboarding prototype uses Material Symbols. Their core flows remain local, but onboarding icon glyphs may not render correctly when the Material Symbols request is unavailable. The hub itself has no external runtime dependency.
+The Gift Direction and pricing prototypes request optional Google-hosted typography, while the onboarding prototype requests Google-hosted Material Symbols. Their core flows remain local; system fallbacks preserve Gift Direction and pricing typography, but onboarding icon glyphs may not render correctly when its request is unavailable. The hub itself has no external runtime dependency.
 
 Do not connect or deploy a Vercel project until the repository owner authorises it.
 
@@ -126,6 +134,10 @@ Before publishing a change, confirm:
 Prototype interactions may intentionally simulate product actions. Any inert policy, contact, authentication, or purchase control must be documented as a prototype limitation rather than represented as a live service.
 
 ### Current prototype limitations
+
+#### Gift Direction
+
+`gift-mentorship/index.html` is a front-end review prototype. Payment, email delivery, scheduling, code issuance, recipient sign-in, balance allocation, and PDF generation are simulated in the browser; no money moves and no message is sent. Gift state persists in browser storage, so it is not production-grade or secure. Policy and navigation links outside the gifting journey are intentionally inactive. Montserrat is an optional Google Fonts request; Instrument Serif and both logo masters are local.
 
 #### Mentorship Credits Pricing
 
