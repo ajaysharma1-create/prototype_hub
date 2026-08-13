@@ -825,54 +825,52 @@
             <section class="section" data-section="delivery" aria-labelledby="sec-delivery">
               <div class="section__head"><h2 class="section__title" id="sec-delivery">Delivery</h2></div>
               <div class="deliver-stack">
-                <div class="deliver-option">
+                <div class="delivery-methods" role="group" aria-label="Delivery formats">
                   <label class="check-card">
                     <input type="checkbox" data-action="toggle-email" ${d.email ? "checked" : ""}>
-                    <span>Email it to them</span>
+                    <span>Email</span>
                   </label>
-                  ${d.email ? `
-                    <div class="deliver-reveal">
-                      <div class="radio-row" role="radiogroup" aria-label="When the email arrives">
-                        <label class="radio-card">
-                          <input type="radio" name="delivery-when" value="now" data-action="set-delivery" ${scheduled ? "" : "checked"}>
-                          <span>Send after payment</span>
-                        </label>
-                        <label class="radio-card">
-                          <input type="radio" name="delivery-when" value="later" data-action="set-delivery" ${scheduled ? "checked" : ""}>
-                          <span>Schedule for later</span>
-                        </label>
-                      </div>
-                      ${scheduled ? `
-                        <div class="schedule-reveal">
-                          <div class="schedule-row">
-                            <div class="field">
-                              <label class="field__label" for="scheduleDate">Date</label>
-                              <input id="scheduleDate" name="scheduleDate" data-field="scheduleDate" type="date"
-                                     value="${e(d.date)}" min="${todayISO()}" max="${maxScheduleISO()}"
-                                     aria-invalid="${state.errors.scheduleDate ? "true" : "false"}"
-                                     aria-describedby="schedule-error">
-                            </div>
-                            <div class="field">
-                              <label class="field__label" for="scheduleTime">Time</label>
-                              <input id="scheduleTime" name="scheduleTime" data-field="scheduleTime" type="time"
-                                     value="${e(d.time)}" step="900"
-                                     aria-invalid="${state.errors.scheduleTime ? "true" : "false"}"
-                                     aria-describedby="schedule-error">
-                            </div>
-                          </div>
-                          <span class="field__error" id="schedule-error" role="alert">${e(state.errors.scheduleDate || state.errors.scheduleTime || "")}</span>
-                          ${d.date && d.time && !state.errors.scheduleDate && !state.errors.scheduleTime
-                            ? `<p class="schedule-confirm">Arrives ${e(scheduleSummary())}</p>` : ""}
-                        </div>` : ""}
-                    </div>` : ""}
-                </div>
-
-                <div class="deliver-option">
                   <label class="check-card">
                     <input type="checkbox" data-action="toggle-printable" ${d.printable ? "checked" : ""}>
-                    <span>Printable card<em>Ready to download once payment succeeds</em></span>
+                    <span>Printable card / PDF</span>
                   </label>
                 </div>
+
+                ${d.email ? `
+                  <div class="deliver-reveal">
+                    <div class="radio-row" role="radiogroup" aria-label="When the email arrives">
+                      <label class="radio-card">
+                        <input type="radio" name="delivery-when" value="now" data-action="set-delivery" ${scheduled ? "" : "checked"}>
+                        <span>Send after payment</span>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="delivery-when" value="later" data-action="set-delivery" ${scheduled ? "checked" : ""}>
+                        <span>Schedule for later</span>
+                      </label>
+                    </div>
+                    ${scheduled ? `
+                      <div class="schedule-reveal">
+                        <div class="schedule-row">
+                          <div class="field">
+                            <label class="field__label" for="scheduleDate">Date</label>
+                            <input id="scheduleDate" name="scheduleDate" data-field="scheduleDate" data-native-picker type="date"
+                                   value="${e(d.date)}" min="${todayISO()}" max="${maxScheduleISO()}" required
+                                   aria-invalid="${state.errors.scheduleDate ? "true" : "false"}"
+                                   aria-describedby="schedule-error">
+                          </div>
+                          <div class="field">
+                            <label class="field__label" for="scheduleTime">Time</label>
+                            <input id="scheduleTime" name="scheduleTime" data-field="scheduleTime" data-native-picker type="time"
+                                   value="${e(d.time)}" step="900" required
+                                   aria-invalid="${state.errors.scheduleTime ? "true" : "false"}"
+                                   aria-describedby="schedule-error">
+                          </div>
+                        </div>
+                        <span class="field__error" id="schedule-error" role="alert">${e(state.errors.scheduleDate || state.errors.scheduleTime || "")}</span>
+                        ${d.date && d.time && !state.errors.scheduleDate && !state.errors.scheduleTime
+                          ? `<p class="schedule-confirm">Arrives ${e(scheduleSummary())}</p>` : ""}
+                      </div>` : ""}
+                  </div>` : ""}
               </div>
               <span class="field__error" id="delivery-error" role="alert">${e(state.errors.delivery || "")}</span>
             </section>
@@ -1873,6 +1871,11 @@
   /* ------------------------------------------------------------- events -- */
 
   document.addEventListener("click", (event) => {
+    const nativePicker = event.target.closest("[data-native-picker]");
+    if (nativePicker && typeof nativePicker.showPicker === "function") {
+      try { nativePicker.showPicker(); } catch (_error) { /* Native fallback remains available. */ }
+    }
+
     if (event.target.closest("[data-inert-nav]")) {
       /* Unrelated navbar and footer destinations stay visible but do not
          navigate anywhere in this prototype. */

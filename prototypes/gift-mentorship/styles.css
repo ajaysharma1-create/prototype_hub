@@ -736,33 +736,34 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 
 /* Email and printable are independent choices, not a fork: both can be on, and
    the schedule only exists underneath the option it belongs to. */
-.deliver-stack { display: grid; gap: var(--mu-space-2); }
-.deliver-option { min-width: 0; }
+.deliver-stack { display: grid; gap: var(--mu-space-2); align-items: start; }
+.delivery-methods { display: flex; flex-wrap: wrap; align-items: center; gap: var(--mu-space-2); }
 
+/* Delivery formats are compact choices, not content panels. Their labels keep
+   the 44px touch target while the visible checkbox and copy stay minimal. */
 .check-card {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--mu-space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mu-space-2);
+  width: fit-content;
   min-height: var(--mu-control-height-sm);
-  padding: var(--mu-space-2) var(--mu-space-3);
+  padding: var(--mu-space-1) var(--mu-space-3);
   border: 1px solid var(--mu-color-border-subtle);
-  border-radius: var(--mu-radius-control);
-  background: var(--mu-color-surface);
+  border-radius: var(--mu-radius-pill);
+  background: transparent;
   cursor: pointer;
   font-size: 0.8125rem;
   line-height: 1.35;
-  transition: border-color var(--mu-duration-fast) var(--mu-ease-out);
+  transition: border-color var(--mu-duration-fast) var(--mu-ease-out),
+              background-color var(--mu-duration-fast) var(--mu-ease-out);
 }
-.check-card > span { display: block; padding-block: 5px; }
-/* text-muted, not text-subtle: on the selected surface the fainter role lands at
-   4.4:1, just under the floor for text this small. */
-.check-card em { display: block; margin-block-start: 1px; color: var(--mu-color-text-muted); font-size: 0.6875rem; font-style: normal; }
+.check-card > span { display: block; white-space: nowrap; }
 .check-card:hover { border-color: var(--mu-color-border-strong); }
 .check-card:has(input:checked) { border-color: var(--mu-color-focus); background: var(--mu-color-surface-selected); color: var(--mu-color-text-strong); }
 .check-card:has(input:focus-visible) { outline: var(--mu-focus-width) solid var(--mu-color-focus); outline-offset: var(--mu-focus-offset); }
-.check-card input { flex: none; width: 1rem; height: 1rem; margin-block-start: 0.5rem; accent-color: var(--mu-color-focus); }
+.check-card input { flex: none; width: 1rem; height: 1rem; margin: 0; accent-color: var(--mu-color-focus); }
 
-.deliver-reveal { margin-block-start: var(--mu-space-2); padding-inline-start: var(--mu-space-4); }
+.deliver-reveal { min-width: 0; }
 
 .radio-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mu-space-2); }
 .radio-card {
@@ -783,21 +784,18 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .radio-card:has(input:focus-visible) { outline: var(--mu-focus-width) solid var(--mu-color-focus); outline-offset: var(--mu-focus-offset); }
 .radio-card input { flex: none; width: 0.9375rem; height: 0.9375rem; accent-color: var(--mu-color-focus); }
 
-/* The revealed controls sit inside the delivery group and are tied to it by a
-   rule on the inline-start edge, so they read as belonging to the chosen
-   option rather than floating below the pair. */
+/* The revealed controls use the same columns as the timing choices above, so
+   labels, fields and radio cards share exact inline edges. */
 .schedule-reveal {
   margin-block-start: var(--mu-space-3);
-  padding-inline-start: var(--mu-space-4);
-  border-inline-start: 2px solid var(--mu-color-focus);
 }
-.schedule-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--mu-space-3); max-width: 22rem; }
-.schedule-row .field input { min-height: var(--mu-control-height-sm); }
+.schedule-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--mu-space-2); max-width: none; }
+.schedule-row .field input { min-height: var(--mu-control-height-sm); color-scheme: dark; }
 .schedule-reveal .field__error { margin-block-start: var(--mu-space-2); }
 .schedule-confirm { margin-block-start: var(--mu-space-2); color: var(--mu-color-success); font-size: 0.75rem; font-weight: 600; }
 
-/* Native pickers render their indicator dark-on-dark by default. */
-.schedule-row input::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.55; cursor: pointer; }
+/* `color-scheme: dark` supplies the correct light native picker icon. */
+.schedule-row input::-webkit-calendar-picker-indicator { padding: var(--mu-space-1); opacity: 0.72; cursor: pointer; }
 .schedule-row input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 
 /* ----------------------------------------------------------- summary -- */
