@@ -766,6 +766,19 @@
               <p class="nudge" data-nudge>${e(design().nudge)}</p>
             </section>
 
+            <div class="preview-pane">
+              <div class="preview-pane__head">
+                <span class="eyebrow">Their inbox</span>
+                <button class="preview-toggle" type="button" data-action="toggle-preview"
+                        aria-expanded="${state.previewOpen}" aria-controls="preview-body">
+                  ${state.previewOpen ? "Hide preview" : "Show preview"}
+                </button>
+              </div>
+              <div class="preview-body" id="preview-body" ${state.previewOpen ? "" : "hidden"}>
+                <div id="preview-mount">${emailCard()}</div>
+              </div>
+            </div>
+
             <section class="section" data-section="size" aria-labelledby="sec-size">
               <div class="section__head">
                 <h2 class="section__title" id="sec-size">Choose a gift</h2>
@@ -881,19 +894,6 @@
               </div>
             </div>
           </form>
-
-          <div class="preview-pane">
-            <div class="preview-pane__head">
-              <span class="eyebrow">Their inbox</span>
-              <button class="preview-toggle" type="button" data-action="toggle-preview"
-                      aria-expanded="${state.previewOpen}" aria-controls="preview-body">
-                ${state.previewOpen ? "Hide preview" : "Show preview"}
-              </button>
-            </div>
-            <div class="preview-body" id="preview-body" ${state.previewOpen ? "" : "hidden"}>
-              <div id="preview-mount">${emailCard()}</div>
-            </div>
-          </div>
         </div>
       </div>`;
   }

@@ -493,20 +493,26 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .config-head h1 { margin-block-start: var(--mu-space-1); }
 .config-head p { margin-block-start: var(--mu-space-2); }
 
-/* Configuration left, live preview right. Widths favour the form: the preview
-   only needs to read as the email, not to be worked in. */
-.config-grid {
+/* The preview sits after the design chooser in the document so mobile reading
+   and focus order match the visual order. On desktop the form itself becomes
+   the two-column grid and places that same preview in the sticky right rail. */
+.config-grid { min-width: 0; }
+
+.config-form {
   display: grid;
   /* The preview is narrower than the form: an email column, not a second
      workspace. Narrowing it is also what makes the card read taller. */
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: clamp(var(--mu-space-5), 3vw, var(--mu-space-8));
+  column-gap: clamp(var(--mu-space-5), 3vw, var(--mu-space-8));
   align-items: start;
+  min-width: 0;
 }
+
+.config-form > .section,
+.config-form > .summary-bar { grid-column: 1; }
 
 /* Sections are separated by a rule and rhythm rather than by nesting each one
    in its own card — that stacked-card treatment was most of the old bulk. */
-.config-form { min-width: 0; }
 
 /* Groups are separated by rhythm alone — no rules. Spacing carries the
    grouping, so nothing draws a line the reader has to look past, and the rhythm
@@ -810,7 +816,14 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 
 /* ------------------------------------------------------ preview pane -- */
 
-.preview-pane { position: sticky; inset-block-start: 4.75rem; min-width: 0; }
+.preview-pane {
+  grid-column: 2;
+  grid-row: 1 / span 7;
+  position: sticky;
+  inset-block-start: 4.75rem;
+  align-self: start;
+  min-width: 0;
+}
 .preview-pane__head {
   margin-block-end: var(--mu-space-2);
   display: flex;
@@ -1774,8 +1787,12 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .nav-link, .nav-cta { justify-content: flex-start; margin-inline: 0; }
   .nav-cta { order: 0; justify-content: center; margin-block: var(--mu-space-1); }
 
-  /* Configuration first, then the preview it drives. */
-  .config-grid { grid-template-columns: minmax(0, 1fr); }
+  /* Mobile follows document order: design, its preview, then every remaining
+     configuration group. The same order also governs keyboard navigation. */
+  .config-form { grid-template-columns: minmax(0, 1fr); column-gap: 0; }
+  .config-form > .section,
+  .config-form > .summary-bar,
+  .config-form > .preview-pane { grid-column: 1; grid-row: auto; }
   .preview-pane { position: static; }
 
   /* The editor keeps the preview as the visual centre: it pins to the top of
@@ -1809,7 +1826,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   /* The preview moves into a disclosure so the form stays reachable without a
      long scroll past a full email. It is open by default so it is never
      hidden behind an interaction the user has to discover. */
-  .preview-pane { margin-block-start: var(--mu-space-7); }
+  .preview-pane { margin-block: var(--mu-space-3); }
   .preview-toggle {
     display: inline-flex;
     align-items: center;
