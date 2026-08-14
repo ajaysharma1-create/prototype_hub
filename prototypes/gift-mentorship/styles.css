@@ -783,6 +783,58 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .channel-card[aria-pressed="true"] .channel-mark { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ch-disc) 30%, transparent); }
 .channel-name { font-weight: 500; white-space: nowrap; }
 
+/* One control, two parts. The select is laid transparently over the dial
+   readout so the closed state stays as narrow as "+91" while the picker itself
+   is still a real native select — which is what makes it usable on a phone. */
+.phone-input {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--mu-color-border);
+  border-radius: var(--mu-radius-control);
+  background: var(--mu-color-surface);
+  overflow: hidden;
+}
+.phone-input:hover { border-color: var(--mu-color-border-strong); }
+.phone-input:has(:focus-visible) { outline: var(--mu-focus-width) solid var(--mu-color-focus); outline-offset: var(--mu-focus-offset); }
+.phone-input[data-invalid="true"] { border-color: var(--mu-color-error-strong); }
+
+.phone-input__country {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--mu-space-1);
+  padding-inline: var(--mu-space-3) var(--mu-space-2);
+  border-inline-end: 1px solid var(--mu-color-border);
+  background: var(--mu-color-surface-selected);
+}
+.phone-input__country select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.phone-input__dial { color: var(--mu-color-text-strong); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.phone-input__caret {
+  width: 0.5rem; height: 0.5rem;
+  border-inline-end: 1.5px solid var(--mu-color-text-muted);
+  border-block-end: 1.5px solid var(--mu-color-text-muted);
+  transform: translateY(-2px) rotate(45deg);
+}
+/* The wrapper already draws the border, so the field inside must not draw one. */
+.phone-input input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.phone-input input:hover { border-color: transparent; }
+
 .deliver-reveal { min-width: 0; }
 
 .radio-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--mu-space-2); }
@@ -1607,8 +1659,17 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   white-space: pre-wrap;
 }
 
-.print-card__body { padding: 30px 44px 34px; display: grid; align-content: start; gap: 16px; }
+/* Tightened when the call to action joined the code block: the sheet is a fixed
+   5 x 7 inches, so a new row has to be paid for out of the spacing around it. */
+.print-card__body { padding: 22px 44px 22px; display: grid; align-content: start; gap: 11px; }
+/* The sheet is a fixed 5 x 7 inches, so the one variable-length thing on it is
+   bounded. A note longer than this would otherwise push the claim code and its
+   call to action off the bottom of the card. */
 .print-card__note {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   color: var(--emc-message-color, var(--em-body-fg));
   font-family: var(--emc-message-font, var(--mu-font-note));
   font-size: calc(19px * var(--emc-message-scale, 1));
@@ -1624,7 +1685,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
    on the lower half rather than a line of small print. */
 .print-card__code {
   margin-block-start: auto;
-  padding: 16px;
+  padding: 13px 16px;
   display: grid;
   gap: 4px;
   justify-items: center;
@@ -1637,7 +1698,20 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
    strongest ink rather than its body grey. */
 .print-card__code-value { color: var(--em-button-bg); font-size: 25px; font-weight: 700; letter-spacing: 0.14em; }
 .print-card__code-where { color: var(--em-body-faint); font-size: 10px; }
-.print-card__fine { color: var(--em-body-faint); font-size: 9px; line-height: 1.5; }
+/* The email's call to action at card scale, so every format ends on the same
+   instruction. `auto` on the top margin moves here when there is no code block. */
+.print-card__cta {
+  margin-block-start: auto;
+  justify-self: center;
+  padding: 8px 24px;
+  border-radius: var(--mu-radius-pill);
+  background: var(--em-button-bg);
+  color: var(--em-button-fg);
+  font-size: 11px;
+  font-weight: 700;
+}
+.print-card__code + .print-card__cta { margin-block-start: 0; }
+.print-card__fine { color: var(--em-body-faint); font-size: 9px; line-height: 1.5; text-align: center; }
 .print-card .email-scribble { width: 200px; height: 20px; margin: 0; }
 .print-card .email-rakhi { width: 200px; margin: 0 0 4px; }
 .print-card .email-rule { width: 200px; }

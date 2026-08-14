@@ -11,7 +11,6 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "mentorunion-gift-direction-v3";
   /* SIMULATED issuance store. localStorage rather than sessionStorage so a code
      bought in one tab can be claimed in another — the closest a front-end build
      gets to a shared ledger. It is neither secret nor authoritative. */
@@ -173,6 +172,54 @@
     edge: "brand", frame: "none", density: "standard", ornament: "", lead: "on"
   };
 
+  /* ---------------------------------------------------- calling codes ---- */
+
+  /* Every sovereign state plus the territories that carry their own calling
+     code, so nobody has to type a prefix or find their country missing. Held as
+     one string to keep the table readable; the shared codes (+1, +44, +7, +590,
+     +599) are why the country name, not the dial code, is the option's value. */
+  const COUNTRY_CODES = `Afghanistan 93|Åland Islands 358|Albania 355|Algeria 213|American Samoa 1684|Andorra 376|
+Angola 244|Anguilla 1264|Antigua and Barbuda 1268|Argentina 54|Armenia 374|Aruba 297|Australia 61|Austria 43|
+Azerbaijan 994|Bahamas 1242|Bahrain 973|Bangladesh 880|Barbados 1246|Belarus 375|Belgium 32|Belize 501|Benin 229|
+Bermuda 1441|Bhutan 975|Bolivia 591|Bonaire 599|Bosnia and Herzegovina 387|Botswana 267|Brazil 55|
+British Virgin Islands 1284|Brunei 673|Bulgaria 359|Burkina Faso 226|Burundi 257|Cambodia 855|Cameroon 237|Canada 1|
+Cape Verde 238|Cayman Islands 1345|Central African Republic 236|Chad 235|Chile 56|China 86|Christmas Island 61|
+Cocos (Keeling) Islands 61|Colombia 57|Comoros 269|Congo 242|Congo (DRC) 243|Cook Islands 682|Costa Rica 506|
+Côte d'Ivoire 225|Croatia 385|Cuba 53|Curaçao 599|Cyprus 357|Czechia 420|Denmark 45|Djibouti 253|Dominica 1767|
+Dominican Republic 1809|Ecuador 593|Egypt 20|El Salvador 503|Equatorial Guinea 240|Eritrea 291|Estonia 372|
+Eswatini 268|Ethiopia 251|Falkland Islands 500|Faroe Islands 298|Fiji 679|Finland 358|France 33|French Guiana 594|
+French Polynesia 689|Gabon 241|Gambia 220|Georgia 995|Germany 49|Ghana 233|Gibraltar 350|Greece 30|Greenland 299|
+Grenada 1473|Guadeloupe 590|Guam 1671|Guatemala 502|Guernsey 44|Guinea 224|Guinea-Bissau 245|Guyana 592|Haiti 509|
+Honduras 504|Hong Kong 852|Hungary 36|Iceland 354|India 91|Indonesia 62|Iran 98|Iraq 964|Ireland 353|Isle of Man 44|
+Israel 972|Italy 39|Jamaica 1876|Japan 81|Jersey 44|Jordan 962|Kazakhstan 7|Kenya 254|Kiribati 686|Kosovo 383|
+Kuwait 965|Kyrgyzstan 996|Laos 856|Latvia 371|Lebanon 961|Lesotho 266|Liberia 231|Libya 218|Liechtenstein 423|
+Lithuania 370|Luxembourg 352|Macao 853|Madagascar 261|Malawi 265|Malaysia 60|Maldives 960|Mali 223|Malta 356|
+Marshall Islands 692|Martinique 596|Mauritania 222|Mauritius 230|Mayotte 262|Mexico 52|Micronesia 691|Moldova 373|
+Monaco 377|Mongolia 976|Montenegro 382|Montserrat 1664|Morocco 212|Mozambique 258|Myanmar 95|Namibia 264|Nauru 674|
+Nepal 977|Netherlands 31|New Caledonia 687|New Zealand 64|Nicaragua 505|Niger 227|Nigeria 234|Niue 683|
+Norfolk Island 672|North Korea 850|North Macedonia 389|Northern Mariana Islands 1670|Norway 47|Oman 968|Pakistan 92|
+Palau 680|Palestine 970|Panama 507|Papua New Guinea 675|Paraguay 595|Peru 51|Philippines 63|Pitcairn Islands 64|
+Poland 48|Portugal 351|Puerto Rico 1787|Qatar 974|Réunion 262|Romania 40|Russia 7|Rwanda 250|Saint Barthélemy 590|
+Saint Helena 290|Saint Kitts and Nevis 1869|Saint Lucia 1758|Saint Martin 590|Saint Pierre and Miquelon 508|
+Saint Vincent and the Grenadines 1784|Samoa 685|San Marino 378|São Tomé and Príncipe 239|Saudi Arabia 966|
+Senegal 221|Serbia 381|Seychelles 248|Sierra Leone 232|Singapore 65|Sint Maarten 1721|Slovakia 421|Slovenia 386|
+Solomon Islands 677|Somalia 252|South Africa 27|South Korea 82|South Sudan 211|Spain 34|Sri Lanka 94|Sudan 249|
+Suriname 597|Svalbard and Jan Mayen 47|Sweden 46|Switzerland 41|Syria 963|Taiwan 886|Tajikistan 992|Tanzania 255|
+Thailand 66|Timor-Leste 670|Togo 228|Tokelau 690|Tonga 676|Trinidad and Tobago 1868|Tunisia 216|Türkiye 90|
+Turkmenistan 993|Turks and Caicos Islands 1649|Tuvalu 688|Uganda 256|Ukraine 380|United Arab Emirates 971|
+United Kingdom 44|United States 1|Uruguay 598|US Virgin Islands 1340|Uzbekistan 998|Vanuatu 678|Vatican City 39|
+Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambia 260|Zimbabwe 263`
+    .split("|")
+    .map((entry) => {
+      const cleaned = entry.trim();
+      const cut = cleaned.lastIndexOf(" ");
+      return [cleaned.slice(0, cut), cleaned.slice(cut + 1)];
+    });
+
+  const DEFAULT_COUNTRY = "India";
+  const DIALS = new Map(COUNTRY_CODES);
+  function dialOf(country) { return DIALS.get(country) || DIALS.get(DEFAULT_COUNTRY); }
+
   /* -------------------------------------------------------- claim codes -- */
 
   /* No I, L, O, U, 0 or 1: the characters people mistype when copying a code off
@@ -216,8 +263,9 @@
   function initialState() {
     return {
       giftId: "growth",
-      designId: "signature",
-      form: { recipientName: "", recipientEmail: "", recipientPhone: "", purchaserName: "", purchaserEmail: "", message: "" },
+      designId: "rakhi",
+      form: { recipientName: "", recipientEmail: "", recipientCountry: DEFAULT_COUNTRY, recipientPhone: "",
+              purchaserName: "", purchaserEmail: "", message: "" },
       /* No channel is chosen for the purchaser. Deciding how a gift reaches
          someone is part of giving it, so the page waits for that decision rather
          than assuming email. `when` is the timing default *within* email, which
@@ -233,35 +281,22 @@
     };
   }
 
-  function loadState() {
-    try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (!raw) return initialState();
-      const saved = JSON.parse(raw);
-      const base = initialState();
-      return {
-        ...base, ...saved,
-        form: { ...base.form, ...(saved.form || {}) },
-        delivery: { ...base.delivery, ...(saved.delivery || {}) },
-        custom: { ...(saved.custom || {}) },
-        editor: { ...base.editor, ...(saved.editor || {}) },
-        claim: { ...base.claim, ...(saved.claim || {}), errors: {} },
-        /* Transient by design: a reload never resumes mid-payment. */
-        errors: {},
-        payment: { ...base.payment }
-      };
-    } catch (_error) {
-      return initialState();
-    }
-  }
+  /* The gifting session lives for the life of the page and nowhere else. A gift
+     carries someone's name, address, phone number and a personal note, so a
+     refresh or a step backwards clears it rather than leaving it sitting in
+     storage for whoever opens the tab next. Nothing is written to sessionStorage.
 
-  let state = loadState();
+     The issued-code ledger and the credit balance are separate: those stand in
+     for the server, so they survive on purpose. */
+  let state = initialState();
 
-  /* Entered configuration survives back navigation and a refresh. Nothing
-     sensitive is stored: no payment detail is ever collected. */
-  function persist() {
-    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-    catch (_error) { /* Storage unavailable — state lives for the life of the page. */ }
+  /* Everything the purchaser configured, discarded. The recipient's claim
+     journey is a different person's session and is left alone. */
+  function resetGift() {
+    const keepClaim = state.claim;
+    state = initialState();
+    state.claim = keepClaim;
+    if (timers.payment) window.clearTimeout(timers.payment);
   }
 
   /* ------------------------------------------------------------- helpers -- */
@@ -288,7 +323,6 @@
 
   function setCustom(patch) {
     state.custom[state.designId] = { ...custom(), ...patch };
-    persist();
   }
 
   function isCustomised(designId = state.designId) {
@@ -611,19 +645,49 @@
   /* --------------------------------------------------------- form parts -- */
 
   function field({ id, label, value, type = "text", autocomplete = "off", inputmode = "text",
-                   maxlength = 254, placeholder = "", help = "", errorKey = "", optional = false }) {
+                   maxlength = 254, placeholder = "", help = "", errorKey = "" }) {
     const key = errorKey || id;
     const error = state.errors[key] || "";
     const described = [help ? `${id}-help` : "", `${id}-error`].filter(Boolean).join(" ");
     return `
       <div class="field">
-        <label class="field__label" for="${id}">${e(label)}${optional ? ' <span class="field__optional">optional</span>' : ""}</label>
+        <label class="field__label" for="${id}">${e(label)}</label>
         <input id="${id}" name="${id}" data-field="${id}" type="${type}" inputmode="${inputmode}"
                autocomplete="${autocomplete}" maxlength="${maxlength}" value="${e(value)}"
                placeholder="${e(placeholder)}" aria-invalid="${error ? "true" : "false"}"
                aria-describedby="${described}">
         ${help ? `<span class="field__help" id="${id}-help">${e(help)}</span>` : ""}
         <span class="field__error" id="${id}-error" role="alert">${e(error)}</span>
+      </div>`;
+  }
+
+  /* The country carries the calling code, so the purchaser types the number the
+     way they would say it. The select sits transparently over the readout: the
+     closed control shows the dial code rather than a long country name, and the
+     native picker — including the mobile wheel — is still the real control. */
+  function phoneField(f) {
+    const error = state.errors.recipientPhone || "";
+    return `
+      <div class="field">
+        <label class="field__label" for="recipientPhone">Their WhatsApp number
+          <span class="field__optional">optional</span></label>
+        <div class="phone-input" data-invalid="${error ? "true" : "false"}">
+          <span class="phone-input__country">
+            <select id="recipientCountry" data-field="recipientCountry" aria-label="Country calling code">
+              ${COUNTRY_CODES.map(([name, dial]) =>
+                `<option value="${e(name)}" ${name === f.recipientCountry ? "selected" : ""}>${e(name)} +${e(dial)}</option>`).join("")}
+            </select>
+            <span class="phone-input__dial" aria-hidden="true">+${e(dialOf(f.recipientCountry))}</span>
+            <span class="phone-input__caret" aria-hidden="true"></span>
+          </span>
+          <input id="recipientPhone" name="recipientPhone" data-field="recipientPhone" type="tel" inputmode="tel"
+                 autocomplete="tel-national" maxlength="18" value="${e(f.recipientPhone)}"
+                 placeholder="98765 43210" aria-invalid="${error ? "true" : "false"}"
+                 aria-describedby="recipientPhone-help recipientPhone-error">
+        </div>
+        <span class="field__help" id="recipientPhone-help">Once you've paid, WhatsApp opens with the gift and
+          claim code written for you — add a number and it's addressed too.</span>
+        <span class="field__error" id="recipientPhone-error" role="alert">${e(error)}</span>
       </div>`;
   }
 
@@ -837,13 +901,7 @@
                       Scheduling is not offered here: nothing sends the message for
                       you, so a scheduled WhatsApp would be a promise the build
                       cannot keep. */ ""}
-                ${d.whatsapp ? `
-                  <div class="deliver-reveal">
-                    ${field({ id: "recipientPhone", label: "Their WhatsApp number", value: f.recipientPhone,
-                              type: "tel", inputmode: "tel", autocomplete: "tel", maxlength: 20,
-                              placeholder: "+91 98765 43210", optional: true,
-                              help: "Once you've paid, WhatsApp opens with the gift and claim code written for you — add a number and it's addressed too." })}
-                  </div>` : ""}
+                ${d.whatsapp ? `<div class="deliver-reveal">${phoneField(f)}</div>` : ""}
               </div>
               <span class="field__error" id="delivery-error" role="alert">${e(state.errors.delivery || "")}</span>
             </section>
@@ -1110,8 +1168,12 @@
       message: state.form.message,
       range: conversationLabel(g),
       credits: g.credits,
-      validity: g.validityLabel,
-      code: state.order && state.order.code ? state.order.code : ""
+      validity: g.validityLabel
+      /* No code, ever. This data drives the live preview and the six thumbnails,
+         which only exist while a gift is being configured — and a code that has
+         been issued belongs to an order that was already paid for, not to the
+         gift on screen. The issued code reaches the printable card and the
+         Email and WhatsApp messages from the order itself. */
     };
   }
 
@@ -1342,6 +1404,9 @@
               <strong class="print-card__code-value numeric">${e(d.code)}</strong>
               <span class="print-card__code-where">Redeem at ${e(CLAIM_URL)}</span>
             </div>` : ""}
+          ${/* The same call to action the email carries, so a card handed over in
+                person tells the recipient what to do as plainly as an inbox does. */ ""}
+          <p class="print-card__cta">Claim your gift</p>
           <p class="print-card__fine">${e(t.closing(d))}${d.code ? " Anyone with this code can claim it, once." : ""}</p>
         </div>
       </div>`;
@@ -1497,7 +1562,9 @@
       `${order.senderName} has gifted you ${order.range} with MentorUnion.`,
       order.message.trim() ? `“${order.message.trim()}”` : "",
       `Your claim code: ${order.code}`,
-      `Claim it at ${CLAIM_URL}. It works once and it never expires.`
+      /* The same call to action the email and the printed card carry. */
+      `Claim your gift → ${CLAIM_URL}`,
+      "It works once and it never expires."
     ].filter(Boolean).join("\n\n");
   }
 
@@ -1506,8 +1573,7 @@
      conversation already chosen. The purchaser still presses send. Nothing here
      sends a WhatsApp message on MentorUnion's behalf. */
   function whatsappShareHref(order) {
-    const digits = String(order.recipientPhone || "").replace(/\D/g, "");
-    return `https://wa.me/${digits}?text=${encodeURIComponent(giftShareText(order))}`;
+    return `https://wa.me/${order.recipientPhoneE164 || ""}?text=${encodeURIComponent(giftShareText(order))}`;
   }
 
   /* Same principle for email: the purchaser's own mail client, prefilled. */
@@ -1758,11 +1824,47 @@
 
   function redirect(route) { window.setTimeout(() => navigate(route), 0); return ""; }
 
+  /* Each history entry is stamped with a rising number, because `popstate` says
+     the user moved but never which way. Comparing the entry's stamp with the one
+     we were on tells a Back press from a Forward one.
+
+     Routing pushes the entry itself rather than assigning `location.hash`: the
+     assignment fires `popstate` before the stamp can be written, which would make
+     every ordinary step forward look like a step back. */
+  let navIndex = 0;
+  const stampEntry = (n) => {
+    try { window.history.replaceState({ giftNav: n }, ""); }
+    catch (_error) { /* History unavailable — back navigation simply won't reset. */ }
+  };
+  stampEntry(0);
+
   function navigate(route) {
     const next = `#/${route}`;
-    if (window.location.hash === next) render();
-    else window.location.hash = next;
+    if (window.location.hash === next) { render(); return; }
+    navIndex += 1;
+    try { window.history.pushState({ giftNav: navIndex }, "", next); }
+    catch (_error) { window.location.hash = next; return; }
+    render();
   }
+
+  /* Stepping backwards abandons the gift, so Back and a refresh leave the same
+     clean page. Every in-page way of revising a gift — "Back to the gift" in the
+     editor, "Back" in the checkout, "Edit the gift" after a failed payment —
+     moves forward through history, so the work those are meant to keep never
+     reaches this handler. */
+  window.addEventListener("popstate", (event) => {
+    const to = event.state && typeof event.state.giftNav === "number" ? event.state.giftNav : null;
+    if (to === null) {
+      /* An entry this app did not stamp: a plain `href="#/…"` link, which is
+         always a step forward. Stamp it so the next Back press can be read. */
+      navIndex += 1;
+      stampEntry(navIndex);
+      return;
+    }
+    const backwards = to < navIndex;
+    navIndex = to;
+    if (backwards) resetGift();
+  });
 
   const RENDERERS = {
     "": renderLanding,
@@ -1799,8 +1901,26 @@
 
   function isValidEmail(value) { return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(value).trim()); }
   function containsLink(value) { return /(https?:\/\/|www\.|[a-z0-9-]+\.(com|net|org|in|io|co)\b)/i.test(String(value)); }
-  /* E.164-shaped: a leading + and 8–15 digits once spacing and brackets are stripped. */
-  function isValidPhone(value) { return /^\+[1-9]\d{7,14}$/.test(String(value).replace(/[\s()-]/g, "")); }
+  /* The country's calling code is chosen, not typed, so this checks the national
+     number alone: digits, spaces and the separators people paste, nothing else.
+     Lengths run from 4 (Niue) to 13 (Austria) nationally. */
+  function phoneDigits(value) { return String(value || "").replace(/\D/g, ""); }
+  function isValidPhone(value) {
+    /* A `+` means the country code has been typed in as well, which would dial
+       it twice. The selector is the only place a calling code comes from. */
+    if (String(value).includes("+")) return false;
+    if (/[^\d\s()\-.]/.test(String(value))) return false;
+    const digits = phoneDigits(value);
+    return digits.length >= 4 && digits.length <= 14;
+  }
+
+  /* Written the way it would be dialled internationally. */
+  function phoneDisplay(f = state.form) {
+    return f.recipientPhone.trim() ? `+${dialOf(f.recipientCountry)} ${f.recipientPhone.trim()}` : "";
+  }
+  function phoneE164(f = state.form) {
+    return f.recipientPhone.trim() ? dialOf(f.recipientCountry) + phoneDigits(f.recipientPhone) : "";
+  }
 
   function validateField(name, raw) {
     const value = String(raw ?? "").trim();
@@ -1831,7 +1951,7 @@
            a number only saves them picking the contact. It is still checked when
            one is given, so a malformed number never reaches the share link. */
         if (!value) return "";
-        if (!isValidPhone(value)) return "Include the country code, like +91 98765 43210.";
+        if (!isValidPhone(value)) return `Enter just the number — +${dialOf(state.form.recipientCountry)} is already set.`;
         return "";
       case "message":
         if (value.length > MESSAGE_MAX) return `Your note is ${value.length - MESSAGE_MAX} characters over.`;
@@ -1899,7 +2019,6 @@
       announce("Check the highlighted details.");
       return;
     }
-    persist();
     navigate("checkout");
   }
 
@@ -1947,7 +2066,8 @@
       total: q.total,
       recipientName: state.form.recipientName.trim(),
       recipientEmail: state.form.recipientEmail.trim(),
-      recipientPhone: state.form.recipientPhone.trim(),
+      recipientPhone: phoneDisplay(),
+      recipientPhoneE164: phoneE164(),
       senderName: firstName(state.form.purchaserName) || "someone",
       purchaserEmail: state.form.purchaserEmail.trim(),
       message: state.form.message,
@@ -1956,7 +2076,6 @@
     order.code = issueCode(order);
     state.order = order;
     state.payment.status = "idle";
-    persist();
     navigate("gift/confirmed");
     /* SIMULATED delivery: no email is composed, queued or sent. */
     announce(order.delivery.email && order.delivery.when === "later"
@@ -2025,7 +2144,6 @@
 
       case "choose-gift": {
         state.giftId = trigger.dataset.gift;
-        persist();
         app.querySelectorAll('[data-action="choose-gift"]').forEach((card) => {
           card.setAttribute("aria-pressed", String(card.dataset.gift === state.giftId));
         });
@@ -2037,7 +2155,6 @@
 
       case "choose-design": {
         state.designId = trigger.dataset.design;
-        persist();
         if (currentRoute() === "personalise") { render(); announce(`${design().name} template selected.`); break; }
         app.querySelectorAll('[data-action="choose-design"]').forEach((card) => {
           card.setAttribute("aria-pressed", String(card.dataset.design === state.designId));
@@ -2060,20 +2177,17 @@
           announce("Check the highlighted details before personalising.");
           break;
         }
-        persist();
         navigate("personalise");
         break;
       }
 
       case "set-editor-group":
         state.editor.group = trigger.dataset.value;
-        persist();
         render();
         break;
 
       case "set-region":
         state.editor.region = trigger.dataset.value;
-        persist();
         render();
         break;
 
@@ -2097,7 +2211,6 @@
 
       case "reset-design":
         delete state.custom[state.designId];
-        persist();
         render();
         announce(`${design().name} reset to the original design.`);
         break;
@@ -2111,7 +2224,6 @@
         delete state.errors.delivery;
         delete state.errors.recipientEmail;
         if (!state.delivery.email) { delete state.errors.scheduleDate; delete state.errors.scheduleTime; }
-        persist();
         render();
         restoreChannelFocus("toggle-email");
         break;
@@ -2120,7 +2232,6 @@
         state.delivery.whatsapp = !state.delivery.whatsapp;
         delete state.errors.delivery;
         if (!state.delivery.whatsapp) delete state.errors.recipientPhone;
-        persist();
         render();
         restoreChannelFocus("toggle-whatsapp");
         break;
@@ -2128,14 +2239,12 @@
       case "toggle-printable":
         state.delivery.printable = !state.delivery.printable;
         delete state.errors.delivery;
-        persist();
         render();
         restoreChannelFocus("toggle-printable");
         break;
 
       case "toggle-preview": {
         state.previewOpen = !state.previewOpen;
-        persist();
         const body = app.querySelector("#preview-body");
         if (body) body.hidden = !state.previewOpen;
         trigger.setAttribute("aria-expanded", String(state.previewOpen));
@@ -2166,26 +2275,20 @@
          not a PDF generator in the page. */
       case "print-card": window.print(); break;
 
-      case "gift-again": {
-        const keep = state.claim;
-        state = initialState();
-        state.claim = keep;
-        persist();
+      case "gift-again":
+        resetGift();
         navigate("gift");
         break;
-      }
 
       case "claim-confirm": claimConfirm(); break;
 
       case "claim-signout":
         state.claim.account = "";
-        persist();
         render();
         break;
 
       case "claim-restart":
         state.claim = { ...initialState().claim, account: state.claim.account };
-        persist();
         render();
         break;
 
@@ -2201,9 +2304,16 @@
       /* The date and time are kept when switching back to immediate delivery,
          so toggling between the two options never discards a chosen slot. */
       if (target.value === "now") { delete state.errors.scheduleDate; delete state.errors.scheduleTime; }
-      persist();
       render();
       if (target.value === "later") window.setTimeout(() => app.querySelector("#scheduleDate")?.focus(), 0);
+      return;
+    }
+    if (target.dataset.field === "recipientCountry") {
+      state.form.recipientCountry = target.value;
+      /* The number itself may now be the wrong length for the new country. */
+      validateGroup(["recipientPhone"]);
+      render();
+      window.setTimeout(() => app.querySelector("#recipientCountry")?.focus({ preventScroll: true }), 0);
       return;
     }
     if (target.dataset.action === "set-method") { state.payment.method = target.value; render(); return; }
@@ -2217,7 +2327,6 @@
       else state.delivery.time = target.value;
       /* Re-check both: a date change can invalidate an already-valid time. */
       validateGroup(["scheduleDate", "scheduleTime"]);
-      persist();
       render();
       window.setTimeout(() => app.querySelector(`#${target.id}`)?.focus(), 0);
     }
@@ -2257,18 +2366,15 @@
         const slot = app.querySelector("#claimCode-error");
         if (slot) slot.textContent = "";
       }
-      persist();
       return;
     }
     if (name === "claimAccount") {
       state.claim.account = target.value;
-      persist();
       return;
     }
 
     if (name in state.form) state.form[name] = target.value;
     else if (name === "scheduleDate") state.delivery.date = target.value;
-    persist();
 
     if (name === "message") {
       const counter = app.querySelector("[data-counter]");
@@ -2358,7 +2464,6 @@
     state.claim.claimedCredits = record.credits;
     state.claim.stage = "done";
     state.claim.errors = {};
-    persist();
     render();
     announce(`${record.credits} credits added to your account.`);
   }
@@ -2368,7 +2473,6 @@
       event.preventDefault();
       state.claim.errors = {};
       claimLookup();
-      persist();
       render();
       if (state.claim.errors.claimCode) window.setTimeout(() => app.querySelector("#claimCode")?.focus(), 0);
       return;
