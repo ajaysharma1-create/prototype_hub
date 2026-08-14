@@ -53,6 +53,12 @@
 
      `nudge` is the contextual line shown once the design is chosen. Each is
      specific to that design's occasion — no design borrows another's tone. */
+
+  /* Eyebrows are set in capitals, but a {{marker}} is a variable name rather than
+     copy, so it keeps the casing it is declared with and stays greppable. */
+  const isVar = (v) => /^\{\{.+\}\}$/.test(String(v));
+  const upper = (v) => (isVar(v) ? v : String(v).toUpperCase());
+
   const DESIGNS = {
     signature: {
       id: "signature", name: "Signature", occasion: "Any occasion",
@@ -60,7 +66,7 @@
       ornaments: null,
       nudge: "No occasion to lean on here — so the note does the work. A line about why you thought of them is enough.",
       subject: (d) => `${d.sender} sent you something for what's next`,
-      eyebrow: (d) => `A GIFT FROM ${d.sender.toUpperCase()}`,
+      eyebrow: (d) => `A GIFT FROM ${upper(d.sender)}`,
       headline: (d) => `${d.name}, your next conversation is already paid for`,
       lead: (d) => `Time with mentors you pick yourself — ${d.range}, 30 minutes each, whenever you're ready.`,
       closing: (d) => `There's no rush. The gift waits until you claim it, and the ${d.validity} only start counting from that day.`
@@ -71,7 +77,7 @@
       ornaments: { label: "Underline", options: [["scribble", "Scribble"], ["rule", "Straight rule"], ["none", "None"]] },
       nudge: "They already did the hard part. Name the thing you watched them pull off.",
       subject: (d) => `Congratulations from ${d.sender}`,
-      eyebrow: (d) => `CONGRATULATIONS FROM ${d.sender.toUpperCase()}`,
+      eyebrow: (d) => `CONGRATULATIONS FROM ${upper(d.sender)}`,
       headline: (d) => `You did it, ${d.name}`,
       lead: (d) => `${d.sender} sent you time with people who have already made the move you're making — ${d.range}, whenever you want them.`,
       closing: (d) => `Claim whenever you're ready; the ${d.validity} start from that day, not today.`
@@ -82,7 +88,7 @@
       ornaments: { label: "Ribbon", options: [["ribbon", "Ribbon"], ["none", "None"]] },
       nudge: "A birthday gift they'll still be using months from now. Keep the note light — it's a birthday.",
       subject: (d) => `Happy birthday, ${d.name} — a gift from ${d.sender}`,
-      eyebrow: (d) => `HAPPY BIRTHDAY FROM ${d.sender.toUpperCase()}`,
+      eyebrow: (d) => `HAPPY BIRTHDAY FROM ${upper(d.sender)}`,
       headline: (d) => `Happy birthday, ${d.name}`,
       lead: (d) => `Not a thing to find space for — just time with people who have been where you're going.`,
       closing: (d) => `Claim them when you like; the ${d.validity} start from that day.`
@@ -93,7 +99,7 @@
       ornaments: { label: "Headline rule", options: [["rule", "Rule"], ["none", "None"]] },
       nudge: "Mid-turn, most people mainly need to hear that it's navigable. You've seen them navigate before — say so.",
       subject: (d) => `${d.sender} sent you something for the new chapter`,
-      eyebrow: (d) => `FROM ${d.sender.toUpperCase()}`,
+      eyebrow: (d) => `FROM ${upper(d.sender)}`,
       headline: (d) => `New chapter, ${d.name}`,
       lead: (d) => `${d.sender} thought you could use someone to think it through with — ${d.range} with mentors who have made the same turn.`,
       closing: (d) => `Nothing expires while the gift sits unclaimed, and the ${d.validity} start the day you claim it.`
@@ -104,7 +110,7 @@
       ornaments: { label: "Thread", options: [["thread", "Woven thread"], ["none", "None"]] },
       nudge: "The promise behind the thread is looking out for them. This is that promise in a form that outlasts the day.",
       subject: (d) => `Happy Raksha Bandhan, ${d.name}`,
-      eyebrow: (d) => `RAKSHA BANDHAN · FROM ${d.sender.toUpperCase()}`,
+      eyebrow: (d) => `RAKSHA BANDHAN · FROM ${upper(d.sender)}`,
       headline: (d) => `Happy Raksha Bandhan, ${d.name}`,
       lead: (d) => `${d.sender} sent you ${d.range} with mentors of your choosing — the kind of looking out for you that lasts a good deal longer than a day.`,
       closing: (d) => `Claim them whenever you like; the ${d.validity} start from that day.`
@@ -115,7 +121,7 @@
       ornaments: { label: "Quote marks", options: [["quotes", "Shown"], ["none", "Hidden"]] },
       nudge: "Here the note is the gift and everything else is packaging. A few honest lines carry it.",
       subject: (d) => `A note from ${d.sender}`,
-      eyebrow: (d) => `FROM ${d.sender.toUpperCase()}`,
+      eyebrow: (d) => `FROM ${upper(d.sender)}`,
       headline: (d) => `${d.name}, this came with a note`,
       lead: (d) => `Along with it, ${d.range} with mentors you choose yourself.`,
       closing: (d) => `A conversation costs 1 to 3 credits, always shown before you book. The ${d.validity} start the day you claim them, not today.`
@@ -1035,11 +1041,22 @@
 
   /* ------------------------------------------------------- gift preview -- */
 
+  /* Anything the purchaser supplies that is still empty renders as {{Label}}, using
+     the same wording as the field that fills it. A glance at any design then says
+     which words are data and which are ours. Values from the chosen gift — range,
+     credits, validity — are always resolved, so they never need a marker. */
+  const VAR = {
+    recipientName: "{{Their name}}",
+    purchaserName: "{{Your name}}",
+    message: "{{Gift card message}}",
+    code: "{{Claim code}}"
+  };
+
   function previewData() {
     const g = gift();
     return {
-      name: state.form.recipientName.trim() || "your recipient",
-      sender: firstName(state.form.purchaserName) || "someone",
+      name: state.form.recipientName.trim() || VAR.recipientName,
+      sender: firstName(state.form.purchaserName) || VAR.purchaserName,
       email: state.form.recipientEmail.trim(),
       message: state.form.message,
       range: conversationLabel(g),
@@ -1110,12 +1127,14 @@
       return `<header class="email-hero">${brand}${c.ornament === "thread" ? RAKHI : ""}${eyebrow}${headline}${lead}</header>`;
     }
 
-    /* Quiet note puts the message itself in the hero. */
+    /* Quiet note puts the message itself in the hero, so the marker belongs there
+       too — otherwise this is the one design that never names the variable. */
     if (t.id === "note") {
       const marks = c.ornament !== "none";
-      const body = d.message.trim()
-        ? `<blockquote class="email-hero-note" data-em="heronote">${marks ? `“${e(d.message.trim())}”` : e(d.message.trim())}</blockquote>`
-        : headline;
+      const written = d.message.trim();
+      const body = written
+        ? `<blockquote class="email-hero-note" data-em="heronote">${marks ? `“${e(written)}”` : e(written)}</blockquote>`
+        : `<blockquote class="email-hero-note" data-em="heronote" data-empty="true">${e(VAR.message)}</blockquote>`;
       return `<header class="email-hero">${brand}${eyebrow}${body}${lead}</header>`;
     }
 
@@ -1131,14 +1150,14 @@
   };
 
   /* Every design reserves the same block for the redemption code. Before payment
-     it shows the shape of a code rather than an empty slot, so the preview reads
-     as finished without implying a code already exists. */
+     it names the variable rather than showing a masked shape, so nobody reads the
+     dots as a code that already exists. */
   function codeBlock(code) {
     const issued = Boolean(code);
     return `
       <div class="email-code" data-em="code" data-issued="${issued}">
         <span class="email-code__label">Claim code</span>
-        <span class="email-code__value numeric">${e(issued ? code : "MU-••••-••••")}</span>
+        <span class="email-code__value numeric">${e(issued ? code : VAR.code)}</span>
         <span class="email-code__where">${e(CLAIM_URL)}</span>
       </div>`;
   }
@@ -1157,7 +1176,7 @@
         ${emailHero(t, d, c, r)}
         <div class="email-body">
           ${showQuote ? `<blockquote class="email-quote" data-em="quote" data-empty="${d.message.trim() ? "false" : "true"}">${
-            d.message.trim() ? `“${e(d.message.trim())}”` : "Your note appears here."
+            d.message.trim() ? `“${e(d.message.trim())}”` : e(VAR.message)
           }</blockquote>` : ""}
           <p class="email-closing" data-em="closing">${e(t.closing(d))}</p>
           ${codeBlock(d.code)}
@@ -1182,13 +1201,16 @@
       if (el) el.textContent = text;
     };
 
-    /* The quiet-note hero swaps between a headline and the message itself, so
-       that design re-renders whenever the note crosses empty. */
+    /* The quiet-note hero carries the message, or its {{marker}} while empty —
+       the element is always present now, so this patches rather than re-renders. */
     if (t.messageHero) {
-      const hasNote = Boolean(d.message.trim());
-      const showing = Boolean(mount.querySelector('[data-em="heronote"]'));
-      if (hasNote !== showing) { mount.innerHTML = emailCard(); markPreviewInert(); return; }
-      if (hasNote) set("heronote", c.ornament === "none" ? d.message.trim() : `“${d.message.trim()}”`);
+      const note = mount.querySelector('[data-em="heronote"]');
+      if (!note) { mount.innerHTML = emailCard(); markPreviewInert(); return; }
+      const written = d.message.trim();
+      note.dataset.empty = written ? "false" : "true";
+      note.textContent = written
+        ? (c.ornament === "none" ? written : `“${written}”`)
+        : VAR.message;
     }
 
     set("eyebrow", t.eyebrow(d));
@@ -1201,7 +1223,7 @@
     if (quoteEl) {
       const has = Boolean(d.message.trim());
       quoteEl.dataset.empty = has ? "false" : "true";
-      quoteEl.textContent = has ? `“${d.message.trim()}”` : "Your note appears here.";
+      quoteEl.textContent = has ? `“${d.message.trim()}”` : VAR.message;
     }
   }
 
@@ -1263,7 +1285,7 @@
           <p class="print-card__lead">${e(t.lead(d))}</p>
           <div class="print-card__code">
             <span class="print-card__code-label">Claim code</span>
-            <strong class="print-card__code-value numeric">${e(d.code || "MU-••••-••••")}</strong>
+            <strong class="print-card__code-value numeric">${e(d.code || VAR.code)}</strong>
             <span class="print-card__code-where">Redeem at ${e(CLAIM_URL)}</span>
           </div>
           <p class="print-card__fine">${e(t.closing(d))} Anyone with this code can claim it, once.</p>

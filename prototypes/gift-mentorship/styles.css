@@ -940,7 +940,9 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   font-weight: var(--emc-signoff-weight, 700);
   letter-spacing: 0.16em;
   text-align: var(--emc-signoff-align, start);
-  text-transform: uppercase;
+  /* Capitals come from the eyebrow strings and upper() in app.js, not from here,
+     so a {{marker}} keeps the casing it is declared with. */
+  text-transform: none;
 }
 
 /* Headline region. */
@@ -1002,7 +1004,9 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
-.email-quote[data-empty="true"] { opacity: 0.55; }
+/* Unfilled variables read as {{markers}} — dimmed so they never pass for copy. */
+.email-quote[data-empty="true"],
+.email-hero-note[data-empty="true"] { opacity: 0.55; }
 
 .email-closing { margin-block-start: var(--mu-space-4); color: var(--em-body-fg); font-size: 0.75rem; line-height: 1.6; }
 
@@ -1493,7 +1497,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   font-weight: var(--emc-signoff-weight, 700);
   letter-spacing: 0.18em;
   text-align: var(--emc-signoff-align, start);
-  text-transform: uppercase;
+  text-transform: none;
 }
 .print-card__headline {
   color: var(--emc-headline-color, var(--em-hero-fg));
