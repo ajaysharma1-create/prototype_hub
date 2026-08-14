@@ -149,6 +149,6 @@ Prototype interactions may intentionally simulate product actions. Any inert pol
 
 ## Maintenance ownership
 
-**Owner:** TBD — assign a Product or Design Operations maintainer before public deployment.
+**Owner:** TBD - assign a Product or Design Operations maintainer before public deployment.
 
 The maintainer owns approval verification, metadata accuracy, preview quality, link checks, responsive regression checks, and publication hygiene.

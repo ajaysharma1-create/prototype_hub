@@ -1,4 +1,4 @@
-/* Gift a Career — MentorUnion
+/* Gift a Career - MentorUnion
    Landing → one unified gifting page → guided design editor → provider
    checkout → confirmation, plus the recipient's Claim a Gift journey. There is
    no visible step tracker: the page hierarchy and a single continuation action
@@ -12,7 +12,7 @@
   "use strict";
 
   /* SIMULATED issuance store. localStorage rather than sessionStorage so a code
-     bought in one tab can be claimed in another — the closest a front-end build
+     bought in one tab can be claimed in another - the closest a front-end build
      gets to a shared ledger. It is neither secret nor authoritative. */
   const LEDGER_KEY = "mentorunion-gift-codes-v1";
   const BALANCE_KEY = "mentorunion-credit-balance-v1";
@@ -25,11 +25,11 @@
   /* Credits, prices and validity are transcribed from the approved catalogue in
      live/credit-purchase/pricing-page-research/b2c_pricing_landing_page.html.
      Credits are the internal unit. Purchaser-facing copy is expressed as
-     conversations — derived arithmetic on the published 1–3 credit range. */
+     conversations - derived arithmetic on the published 1–3 credit range. */
   const CREDIT_COST_MAX = 3;
 
   /* Descriptions are the approved catalogue copy, transcribed verbatim from
-     b2c_pricing_landing_page.html — not rewritten for this journey. */
+     b2c_pricing_landing_page.html - not rewritten for this journey. */
   const GIFTS = {
     focus: { id: "focus", name: "Focus", credits: 4, price: 4500, validityLabel: "2 months",
              description: "Turn one question into a clear next step" },
@@ -51,7 +51,7 @@
      card is measured against its own template rather than a global default.
 
      `nudge` is the contextual line shown once the design is chosen. Each is
-     specific to that design's occasion — no design borrows another's tone. */
+     specific to that design's occasion - no design borrows another's tone. */
 
   /* Eyebrows are set in capitals, but a {{marker}} is a variable name rather than
      copy, so it keeps the casing it is declared with and stays greppable. */
@@ -63,11 +63,11 @@
       id: "signature", name: "Signature", occasion: "Any occasion",
       base: { edge: "linear-gradient(90deg,#39B6D8,#F7D344,#E38330)", hero: "#0d0d0d", body: "#faf7ec", fg: "#ffffff", accent: "#39b6d8" },
       ornaments: null,
-      nudge: "No occasion to lean on here — so the note does the work. A line about why you thought of them is enough.",
+      nudge: "No occasion to lean on here - so the note does the work. A line about why you thought of them is enough.",
       subject: (d) => `${d.sender} sent you something for what's next`,
       eyebrow: (d) => `A GIFT FROM ${upper(d.sender)}`,
       headline: (d) => `${d.name}, your next conversation is already paid for`,
-      lead: (d) => `Time with mentors you pick yourself — ${d.range}, 30 minutes each, whenever you're ready.`,
+      lead: (d) => `Time with mentors you pick yourself - ${d.range}, 30 minutes each, whenever you're ready.`,
       closing: (d) => `There's no rush. The gift waits until you claim it, and the ${d.validity} only start counting from that day.`
     },
     milestone: {
@@ -78,29 +78,29 @@
       subject: (d) => `Congratulations from ${d.sender}`,
       eyebrow: (d) => `CONGRATULATIONS FROM ${upper(d.sender)}`,
       headline: (d) => `You did it, ${d.name}`,
-      lead: (d) => `${d.sender} sent you time with people who have already made the move you're making — ${d.range}, whenever you want them.`,
+      lead: (d) => `${d.sender} sent you time with people who have already made the move you're making - ${d.range}, whenever you want them.`,
       closing: (d) => `Claim whenever you're ready; the ${d.validity} start from that day, not today.`
     },
     birthday: {
       id: "birthday", name: "Birthday", occasion: "Birthday", showCredits: true,
       base: { edge: "linear-gradient(90deg,#e38330,#f7d344,#39b6d8)", hero: "#231710", body: "#fdf8ee", fg: "#ffe9cf", accent: "#f0a65e" },
       ornaments: { label: "Ribbon", options: [["ribbon", "Ribbon"], ["none", "None"]] },
-      nudge: "A birthday gift they'll still be using months from now. Keep the note light — it's a birthday.",
-      subject: (d) => `Happy birthday, ${d.name} — a gift from ${d.sender}`,
+      nudge: "A birthday gift they'll still be using months from now. Keep the note light - it's a birthday.",
+      subject: (d) => `Happy birthday, ${d.name} - a gift from ${d.sender}`,
       eyebrow: (d) => `HAPPY BIRTHDAY FROM ${upper(d.sender)}`,
       headline: (d) => `Happy birthday, ${d.name}`,
-      lead: (d) => `Not a thing to find space for — just time with people who have been where you're going.`,
+      lead: (d) => `Not a thing to find space for - just time with people who have been where you're going.`,
       closing: (d) => `Claim them when you like; the ${d.validity} start from that day.`
     },
     chapter: {
       id: "chapter", name: "New chapter", occasion: "Career change",
       base: { edge: "linear-gradient(90deg,#39b6d8,#5cc4bd,#7fd0b2)", hero: "#f1f5f4", body: "#fbfdfc", fg: "#0f1715", accent: "#2e94a8" },
       ornaments: { label: "Headline rule", options: [["rule", "Rule"], ["none", "None"]] },
-      nudge: "Mid-turn, most people mainly need to hear that it's navigable. You've seen them navigate before — say so.",
+      nudge: "Mid-turn, most people mainly need to hear that it's navigable. You've seen them navigate before - say so.",
       subject: (d) => `${d.sender} sent you something for the new chapter`,
       eyebrow: (d) => `FROM ${upper(d.sender)}`,
       headline: (d) => `New chapter, ${d.name}`,
-      lead: (d) => `${d.sender} thought you could use someone to think it through with — ${d.range} with mentors who have made the same turn.`,
+      lead: (d) => `${d.sender} thought you could use someone to think it through with - ${d.range} with mentors who have made the same turn.`,
       closing: (d) => `Nothing expires while the gift sits unclaimed, and the ${d.validity} start the day you claim it.`
     },
     rakhi: {
@@ -111,7 +111,7 @@
       subject: (d) => `Happy Raksha Bandhan, ${d.name}`,
       eyebrow: (d) => `RAKSHA BANDHAN · FROM ${upper(d.sender)}`,
       headline: (d) => `Happy Raksha Bandhan, ${d.name}`,
-      lead: (d) => `${d.sender} sent you ${d.range} with mentors of your choosing — the kind of looking out for you that lasts a good deal longer than a day.`,
+      lead: (d) => `${d.sender} sent you ${d.range} with mentors of your choosing - the kind of looking out for you that lasts a good deal longer than a day.`,
       closing: (d) => `Claim them whenever you like; the ${d.validity} start from that day.`
     },
     note: {
@@ -228,7 +228,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
 
   /* One source for the CTA label, so the nav and the landing stand-in can never
-     drift apart — the stand-in tells people to click it by name. */
+     drift apart - the stand-in tells people to click it by name. */
   const GIFT_CTA = "Gift a Career";
 
   const ROUTES = ["", "gift", "personalise", "checkout", "gift/confirmed", "claim"];
@@ -241,7 +241,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     "claim": "Claim a gift"
   };
 
-  /* Transparent 376x111 lockup — white artwork, used on dark grounds directly.
+  /* Transparent 376x111 lockup - white artwork, used on dark grounds directly.
      The supplied dark-variant board is used on light heroes, where its white
      ground is multiplied away. Which one is used follows the measured luminance
      of the hero, so a recoloured card never renders an illegible lockup. */
@@ -256,6 +256,13 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
      whole editor exactly as it was. */
   const PERSONALISE_ENABLED = false;
   const PERSONALISE_OFF = "Personalising the design isn't covered in this build.";
+
+  /* Off while design and engineering walk the flow: an empty field stops nothing,
+     so the journey can be crossed end to end without retyping a recipient every
+     time. Anything actually entered is still checked, so a malformed email still
+     says so. Set this to true to require the details again; no rule below it has
+     been removed. */
+  const REQUIRE_DETAILS = false;
 
   const app = document.querySelector("#app");
   const liveRegion = document.querySelector("#live-region");
@@ -281,6 +288,10 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       custom: {},
       editor: { group: "type", region: "headline" },
       errors: {},
+      /* Set only by the commit action. With every field optional, an entered name
+         no longer proves a gift was configured, so this is what the checkout
+         checks instead: it is reachable by committing and by nothing else. */
+      committed: false,
       payment: { method: "upi", status: "idle", failure: "" },
       previewOpen: true,
       order: null,
@@ -459,7 +470,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
 
   /* Walks a chosen colour towards the far end of its own lightness until it
      clears the ratio on the ground it will sit on. Hue is kept, so the result is
-     still the colour the purchaser picked — just legible. */
+     still the colour the purchaser picked - just legible. */
   function ensureContrast(fg, bg, min = 4.5) {
     if (!fg) return fg;
     if (contrastRatio(fg, bg) >= min) return fg;
@@ -492,8 +503,8 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* Resolves a design plus its customisation into concrete colours. Everything
-     downstream — the card, the thumbnails, the printable card and the logo
-     variant — reads from here, so they cannot disagree. */
+     downstream - the card, the thumbnails, the printable card and the logo
+     variant - reads from here, so they cannot disagree. */
   function resolved(t = design(), c = custom(t.id)) {
     const preset = c.preset && c.preset !== "original" ? presetPalette(t, c.preset) : null;
     const heroSet = Boolean(c.bg || preset);
@@ -572,7 +583,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   function formatCode(payload) { return `MU-${payload.slice(0, 4)}-${payload.slice(4, 8)}`; }
 
   /* SIMULATED issuance. crypto.getRandomValues is a real CSPRNG, but the code is
-     minted, stored and validated entirely in this browser — there is no server
+     minted, stored and validated entirely in this browser - there is no server
      issuing it and nothing stops anyone reading or editing the store. */
   function generateCode() {
     const ledger = readLedger();
@@ -598,7 +609,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* Shape and check character are verified before the store is touched, so a
-     mistyped code never becomes a lookup — and a wrong code and an unknown code
+     mistyped code never becomes a lookup - and a wrong code and an unknown code
      are answered identically. */
   function codeWellFormed(raw) {
     const p = normaliseCode(raw);
@@ -614,7 +625,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
 
   function writeLedger(ledger) {
     try { localStorage.setItem(LEDGER_KEY, JSON.stringify(ledger)); }
-    catch (_error) { /* Storage unavailable — the claim journey cannot be demonstrated. */ }
+    catch (_error) { /* Storage unavailable - the claim journey cannot be demonstrated. */ }
   }
 
   function issueCode(order) {
@@ -671,7 +682,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   /* The country carries the calling code, so the purchaser types the number the
      way they would say it. The select sits transparently over the readout: the
      closed control shows the dial code rather than a long country name, and the
-     native picker — including the mobile wheel — is still the real control. */
+     native picker - including the mobile wheel - is still the real control. */
   function phoneField(f) {
     const error = state.errors.recipientPhone || "";
     return `
@@ -693,7 +704,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
                  aria-describedby="recipientPhone-help recipientPhone-error">
         </div>
         <span class="field__help" id="recipientPhone-help">Once you've paid, WhatsApp opens with the gift and
-          claim code written for you — add a number and it's addressed too.</span>
+          claim code written for you - add a number and it's addressed too.</span>
         <span class="field__error" id="recipientPhone-error" role="alert">${e(error)}</span>
       </div>`;
   }
@@ -731,7 +742,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* ======================================================================
-     Unified gifting configuration — one page, no visible step tracker
+     Unified gifting configuration - one page, no visible step tracker
      ====================================================================== */
 
   function sizeCard(g) {
@@ -747,7 +758,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       </button>`;
   }
 
-  /* The thumbnail is the real card, scaled down and cropped to its top — the
+  /* The thumbnail is the real card, scaled down and cropped to its top - the
      part that carries each design's signature (edge gradient, hero ground,
      lockup colour, ornament, headline treatment). It renders that design's own
      saved customisation, so the reel shows what the purchaser has made. */
@@ -904,7 +915,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
                   </div>` : ""}
 
                 ${/* After the email block, so the scheduling radios above can only
-                      read as belonging to email — the order matches the channels.
+                      read as belonging to email - the order matches the channels.
                       Scheduling is not offered here: nothing sends the message for
                       you, so a scheduled WhatsApp would be a promise the build
                       cannot keep. */ ""}
@@ -939,7 +950,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* ======================================================================
-     Guided design editor — controls beside a large preview
+     Guided design editor - controls beside a large preview
      ====================================================================== */
 
   function colourControl({ key, label, value, fallback, applied = "" }) {
@@ -1038,7 +1049,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       ${segmented({ name: "density", label: "Spacing", value: c.density, options: DENSITY_STEPS, action: "set-custom" })}
       ${t.ornaments ? segmented({ name: "ornament", label: t.ornaments.label, value: c.ornament, options: t.ornaments.options, action: "set-custom" }) : ""}
       ${t.showCredits ? segmented({ name: "lead", label: "Open with the number", value: c.lead, options: [["on", "Yes"], ["off", "No"]], action: "set-custom" }) : ""}
-      ${!t.ornaments ? '<p class="control__note">Signature carries no ornament of its own — the edge, frame and spacing are its adjustable parts.</p>' : ""}`;
+      ${!t.ornaments ? '<p class="control__note">Signature carries no ornament of its own - the edge, frame and spacing are its adjustable parts.</p>' : ""}`;
   }
 
   function editorTemplatePanel() {
@@ -1165,8 +1176,8 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
 
   /* Anything the purchaser supplies that is still empty renders as {{Label}}, using
      the same wording as the field that fills it. A glance at any design then says
-     which words are data and which are ours. Values from the chosen gift — range,
-     credits, validity — are always resolved, so they never need a marker. */
+     which words are data and which are ours. Values from the chosen gift - range,
+     credits, validity - are always resolved, so they never need a marker. */
   const VAR = {
     recipientName: "{{Their name}}",
     purchaserName: "{{Your name}}",
@@ -1184,7 +1195,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       credits: g.credits,
       validity: g.validityLabel
       /* No code, ever. This data drives the live preview and the six thumbnails,
-         which only exist while a gift is being configured — and a code that has
+         which only exist while a gift is being configured - and a code that has
          been issued belongs to an order that was already paid for, not to the
          gift on screen. The issued code reaches the printable card and the
          Email and WhatsApp messages from the order itself. */
@@ -1220,7 +1231,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
 
   /* The lockup is never a customisable region. Which master is used follows the
      measured luminance of the hero the purchaser chose, so recolouring the card
-     changes which variant renders — never whether it is legible. */
+     changes which variant renders - never whether it is legible. */
   function brandMark(light) {
     return `
       <div class="email-brand">
@@ -1253,7 +1264,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     }
 
     /* Quiet note puts the message itself in the hero, so the marker belongs there
-       too — otherwise this is the one design that never names the variable. */
+       too - otherwise this is the one design that never names the variable. */
     if (t.id === "note") {
       const marks = c.ornament !== "none";
       const written = d.message.trim();
@@ -1328,7 +1339,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       if (el) el.textContent = text;
     };
 
-    /* The quiet-note hero carries the message, or its {{marker}} while empty —
+    /* The quiet-note hero carries the message, or its {{marker}} while empty -
        the element is always present now, so this patches rather than re-renders. */
     if (t.messageHero) {
       const note = mount.querySelector('[data-em="heronote"]');
@@ -1360,8 +1371,8 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     if (card) card.inert = true;
   }
 
-  /* The printable card is drawn at its true print size — 480 x 672 CSS pixels,
-     exactly 5 x 7 inches — and scaled down only to preview it. The factor is
+  /* The printable card is drawn at its true print size - 480 x 672 CSS pixels,
+     exactly 5 x 7 inches - and scaled down only to preview it. The factor is
      measured rather than expressed in CSS, because a container-query division
      produces a length and scale() takes a number. */
   function fitPrintPreview() {
@@ -1372,7 +1383,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* ==================================================================
-     Printable gift card — 5 x 7 inches, portrait
+     Printable gift card - 5 x 7 inches, portrait
      ================================================================== */
 
   /* 480 x 672 CSS pixels is exactly 5 x 7 inches at the CSS-fixed 96px/inch, so
@@ -1432,7 +1443,9 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
      live/credit-purchase/pricing-page-research/b2c_pricing_landing_page.html.
      No provider SDK is loaded, no card details are collected, no money moves. */
   function renderCheckout() {
-    if (!state.form.recipientName) return redirect("gift");
+    /* Reached by committing a gift, never by URL and never by stepping back into
+       it after the session was cleared. */
+    if (!state.committed) return redirect("gift");
     const g = gift();
     const q = quote(g);
     const st = state.payment.status;
@@ -1454,7 +1467,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
           <aside class="rzp-order" aria-label="Order summary">
             <span class="rzp-merchant">MentorUnion</span>
             <h3>${e(g.name)} · gift</h3>
-            <p class="rzp-order-sub">${e(conversationLabel(g))} for ${e(state.form.recipientName)}</p>
+            <p class="rzp-order-sub">${e(conversationLabel(g))} for ${e(recipientLabel())}</p>
             <div class="rzp-amount">
               <span>Amount</span>
               <strong class="numeric">${e(money(q.total))}</strong>
@@ -1531,18 +1544,18 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
           <p>${cancelled ? "You closed the checkout before paying, so nothing was charged."
                          : e(state.payment.failure || "Your bank declined the payment.")}
             <strong>Your gift has not been sent</strong>, no claim code has been created and
-            ${e(state.form.recipientName)} hasn't been notified.</p>
+            ${e(recipientLabel())} hasn't been notified.</p>
 
           <section class="outcome-card" aria-labelledby="problem-summary">
             <h2 class="heading-5" id="problem-summary">Your gift is saved</h2>
             <div class="outcome-line">
               <div>
                 <strong>${e(g.name)} · ${e(conversationLabel(g))}</strong>
-                <span>For ${e(state.form.recipientName)} · ${e(deliverySummary())}</span>
+                <span>For ${e(recipientLabel())} · ${e(deliverySummary())}</span>
               </div>
               <strong class="numeric">${e(money(q.total))}</strong>
             </div>
-            <p class="note">Everything you entered — including the design you personalised — is still
+            <p class="note">Everything you entered - including the design you personalised - is still
               here. Pick up where you left off, or change the gift before trying again.</p>
           </section>
 
@@ -1610,7 +1623,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* Every route stays open after payment. What the purchaser chose earlier shapes
-     what each card says, never which cards exist — nobody should have to go back
+     what each card says, never which cards exist - nobody should have to go back
      and re-buy a gift to print the card they already paid for. */
   function shareSection(order, scheduled) {
     return `
@@ -1650,7 +1663,11 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
               .map(([left, color, delay]) => `<i style="left:${left};background:${color};animation-delay:${delay}"></i>`).join("")}
           </div>
           <div class="outcome__icon outcome__icon--success" aria-hidden="true">✓</div>
-          <h1 class="heading-1" tabindex="-1">${e(order.recipientName)}'s gift is ready</h1>
+          ${/* The possessive needs a name to hang off; without one the gift is
+                still ready, so the sentence simply loses its owner. */ ""}
+          <h1 class="heading-1" tabindex="-1">${order.recipientName
+            ? `${e(order.recipientName)}'s gift is ready`
+            : "Your gift is ready"}</h1>
           <p class="lead">${scheduled
             ? `It's built, paid for and waiting. It reaches them on ${e(scheduleSummary(order.delivery))}.`
             : order.delivery.email
@@ -1681,15 +1698,17 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
                 ${order.delivery.email ? `
                   <li>
                     <strong>${scheduled ? `Email scheduled for ${e(scheduleSummary(order.delivery))}` : "Email on its way"}</strong>
+                    ${/* Without an address the sentence has no subject, so it
+                          says who receives it in the general. */ ""}
                     <span>${scheduled
-                      ? `Nothing has been sent yet. ${e(order.recipientEmail)} receives the ${e(order.designName)} design at the time you picked.`
-                      : `${e(order.recipientEmail)} receives the ${e(order.designName)} design within a few minutes.`}</span>
+                      ? `Nothing has been sent yet. ${e(order.recipientEmail || recipientLabel(order.recipientName))} receives the ${e(order.designName)} design at the time you picked.`
+                      : `${e(order.recipientEmail || recipientLabel(order.recipientName))} receives the ${e(order.designName)} design within a few minutes.`}</span>
                   </li>` : ""}
                 ${order.delivery.whatsapp ? `
                   <li>
                     <strong>WhatsApp message ready</strong>
                     <span>The message and the claim code are written${order.recipientPhone ? ` and addressed to ${e(order.recipientPhone)}` : ""}.
-                      You send it yourself — MentorUnion doesn't message anyone on your behalf.</span>
+                      You send it yourself - MentorUnion doesn't message anyone on your behalf.</span>
                   </li>` : ""}
                 ${order.delivery.printable ? `
                   <li>
@@ -1703,7 +1722,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
               </ol>
               <p class="caption caption--fine">Order ${e(order.reference)} · ${e(money(order.total))} paid ·
                 receipt to ${e(order.purchaserEmail)}. Gift purchases are non-refundable.
-                <em>Simulated — no email leaves the browser.</em></p>
+                <em>Simulated - no email leaves the browser.</em></p>
             </section>
 
             <div class="outcome__actions outcome__actions--start">
@@ -1727,7 +1746,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* ==================================================================
-     Claim a Gift — the recipient's journey
+     Claim a Gift - the recipient's journey
      ================================================================== */
 
   function renderClaim() {
@@ -1754,7 +1773,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       body = `
         <div class="claim-state claim-state--warn">
           <h2 class="heading-5">We couldn't validate that code</h2>
-          <p>Check it against the card or email it came on — codes never contain the letters I, L, O or
+          <p>Check it against the card or email it came on - codes never contain the letters I, L, O or
             U, or the digits 0 or 1.</p>
         </div>
         ${codeEntry}`;
@@ -1772,7 +1791,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
           <span class="eyebrow">Ready to claim</span>
           <h2 class="heading-3">${e(record.giftName)} · ${e(record.range)}</h2>
           <p>${e(record.credits)} credits, added to your MentorUnion balance. You choose the mentors and
-            book when you're ready — ${e(record.validityLabel)} from the day you claim.</p>
+            book when you're ready - ${e(record.validityLabel)} from the day you claim.</p>
         </div>
 
         <div class="claim-account">
@@ -1801,7 +1820,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
           <div class="outcome__icon outcome__icon--success" aria-hidden="true">✓</div>
           <h2 class="heading-3">${e(state.claim.claimedCredits)} credits are in your account</h2>
           <p>Added to <strong>${e(c.account)}</strong>. Your balance is now
-            <strong class="numeric">${e(balance)} credits</strong> — enough for
+            <strong class="numeric">${e(balance)} credits</strong> - enough for
             ${e(Math.ceil(balance / CREDIT_COST_MAX))}–${e(balance)} conversations.</p>
           <div class="outcome__actions">
             <a class="button button--primary" href="#/" data-inert-nav>Find a mentor</a>
@@ -1824,7 +1843,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
           </header>
           ${body}
           <p class="caption caption--fine">Codes are issued and checked inside this browser for the
-            prototype. <em>Simulated — there is no server validating them.</em></p>
+            prototype. <em>Simulated - there is no server validating them.</em></p>
         </div>
       </div>`;
   }
@@ -1848,7 +1867,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   let navIndex = 0;
   const stampEntry = (n) => {
     try { window.history.replaceState({ giftNav: n }, ""); }
-    catch (_error) { /* History unavailable — back navigation simply won't reset. */ }
+    catch (_error) { /* History unavailable - back navigation simply won't reset. */ }
   };
   stampEntry(0);
 
@@ -1862,8 +1881,8 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* Stepping backwards abandons the gift, so Back and a refresh leave the same
-     clean page. Every in-page way of revising a gift — "Back to the gift" in the
-     editor, "Back" in the checkout, "Edit the gift" after a failed payment —
+     clean page. Every in-page way of revising a gift - "Back to the gift" in the
+     editor, "Back" in the checkout, "Edit the gift" after a failed payment -
      moves forward through history, so the work those are meant to keep never
      reaches this handler. */
   window.addEventListener("popstate", (event) => {
@@ -1928,6 +1947,13 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     return digits.length >= 4 && digits.length <= 14;
   }
 
+  /* Copy that names the recipient has to read as a sentence when no name was
+     given, which an unfilled flow now allows. The card designs already mark an
+     empty name as {{Their name}}; running prose cannot, so it stands them in. */
+  function recipientLabel(name = state.form.recipientName) {
+    return String(name || "").trim() || "your recipient";
+  }
+
   /* Written the way it would be dialled internationally. */
   function phoneDisplay(f = state.form) {
     return f.recipientPhone.trim() ? `+${dialOf(f.recipientCountry)} ${f.recipientPhone.trim()}` : "";
@@ -1938,6 +1964,10 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
 
   function validateField(name, raw) {
     const value = String(raw ?? "").trim();
+    /* Requiredness is the only thing suspended. An empty field passes; a filled
+       one is checked exactly as before, so the rules below still hold and still
+       demonstrate themselves the moment anything is typed. */
+    if (!REQUIRE_DETAILS && !value) return "";
     switch (name) {
       case "recipientName":
         if (!value) return "Add their name.";
@@ -1965,7 +1995,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
            a number only saves them picking the contact. It is still checked when
            one is given, so a malformed number never reaches the share link. */
         if (!value) return "";
-        if (!isValidPhone(value)) return `Enter just the number — +${dialOf(state.form.recipientCountry)} is already set.`;
+        if (!isValidPhone(value)) return `Enter just the number - +${dialOf(state.form.recipientCountry)} is already set.`;
         return "";
       case "message":
         if (value.length > MESSAGE_MAX) return `Your note is ${value.length - MESSAGE_MAX} characters over.`;
@@ -2024,7 +2054,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* Everything the checkout needs is collected on the gifting page, so both the
-     direct action and the editor's action verify it here — the editor never
+     direct action and the editor's action verify it here - the editor never
      hands an incomplete gift to the provider. */
   function commitToPayment() {
     if (!validateGroup(requiredNames())) {
@@ -2033,6 +2063,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       announce("Check the highlighted details.");
       return;
     }
+    state.committed = true;
     navigate("checkout");
   }
 
@@ -2063,7 +2094,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* The only place a code is ever minted, and the only place delivery is ever
-     triggered — both hang off the success path and nothing else. */
+     triggered - both hang off the success path and nothing else. */
   function completeOrder() {
     const g = gift();
     const q = quote(g);
@@ -2137,7 +2168,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       /* Unrelated navbar and footer destinations stay visible but do not
          navigate anywhere in this prototype. */
       event.preventDefault();
-      toast("Outside this prototype — only the gifting journey is built.");
+      toast("Outside this prototype - only the gifting journey is built.");
       closeMenu();
       return;
     }
@@ -2285,8 +2316,8 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
         break;
       }
 
-      /* SIMULATED PDF. The printable card is real geometry — 5 x 7 inches at
-         full bleed — but it is the browser's own print pipeline that renders it,
+      /* SIMULATED PDF. The printable card is real geometry - 5 x 7 inches at
+         full bleed - but it is the browser's own print pipeline that renders it,
          not a PDF generator in the page. */
       case "print-card": window.print(); break;
 

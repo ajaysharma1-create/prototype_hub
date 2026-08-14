@@ -1,21 +1,21 @@
-/* Gift a Career — MentorUnion
+/* Gift a Career - MentorUnion
    Tokens, roles and geometry follow shared/design/website-design-schema.md v2.0.2.
 
    Density note: this build runs a deliberately compact application scale. The
    schema's token *values* are unchanged; what changed is which step each role
-   consumes — headings step down, fields sit on the 44px accessibility floor
+   consumes - headings step down, fields sit on the 44px accessibility floor
    rather than the 48px default, and gaps drop one or two steps. The 44px
    minimum target rule is held everywhere. */
 
 /* ----------------------------------------------------- reference tokens -- */
 
 :root {
-  /* Parent-brand accents — INHERITED */
+  /* Parent-brand accents - INHERITED */
   --mu-ref-brand-cyan: #39B6D8;
   --mu-ref-brand-yellow: #F7D344;
   --mu-ref-brand-orange: #E38330;
 
-  /* Parent-brand neutral ramp — INHERITED */
+  /* Parent-brand neutral ramp - INHERITED */
   --mu-ref-neutral-white: #FFFFFF;
   --mu-ref-neutral-100: #E5E5E5;
   --mu-ref-neutral-200: #D4D4D4;
@@ -26,13 +26,13 @@
   --mu-ref-neutral-900: #171717;
   --mu-ref-neutral-950: #090909;
 
-  /* Audited MentorUnion website support values — OBSERVED / WORKING */
+  /* Audited MentorUnion website support values - OBSERVED / WORKING */
   --mu-ref-web-canvas: #0D0D0D;
   --mu-ref-web-ink: #111111;
   --mu-ref-web-off-white: #F5F5F2;
   --mu-ref-web-text-faint: #8A8A8A;
 
-  /* UI meaning only — WORKING */
+  /* UI meaning only - WORKING */
   --mu-ref-state-success: #7FD0B2;
   --mu-ref-state-error: #F08B7F;
   --mu-ref-state-error-strong: #E96F60;
@@ -108,7 +108,7 @@
 
   --mu-shadow-raised: 0 0.75rem 2rem rgb(0 0 0 / 0.28);
 
-  --mu-control-height-sm: 2.75rem;  /* 44px — accessibility floor, held */
+  --mu-control-height-sm: 2.75rem;  /* 44px - accessibility floor, held */
   --mu-control-height-md: 2.75rem;  /* fields now sit on the floor, not 48px */
   --mu-focus-width: 0.1875rem;
   --mu-focus-offset: 0.125rem;
@@ -229,8 +229,8 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 }
 
 /* The lockup is the transparent 376x111 master; its visible 364x99 artwork sits
-   inside a 6px pad. Height 30px renders the artwork at ~98px wide — inside the
-   schema's 90-130px band — with no crop, recolour or ratio change. */
+   inside a 6px pad. Height 30px renders the artwork at ~98px wide - inside the
+   schema's 90-130px band - with no crop, recolour or ratio change. */
 .brand {
   flex: none;
   display: inline-flex;
@@ -250,7 +250,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 }
 
 /* Gift a Career sits immediately after Pricing and reads as an ordinary
-   navigation item — it is a destination, not the page's conversion action. */
+   navigation item - it is a destination, not the page's conversion action. */
 .nav-link {
   display: inline-flex;
   align-items: center;
@@ -285,7 +285,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 }
 .nav-cta:hover { background: var(--mu-color-text); }
 
-/* Collapse is a stylesheet default below the breakpoint, not a JS effect — see
+/* Collapse is a stylesheet default below the breakpoint, not a JS effect - see
    the rules at 64rem. Above it, the toggle does not exist. */
 .menu-toggle { display: none; }
 
@@ -504,9 +504,9 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .config-form > .summary-bar { grid-column: 1; }
 
 /* Sections are separated by a rule and rhythm rather than by nesting each one
-   in its own card — that stacked-card treatment was most of the old bulk. */
+   in its own card - that stacked-card treatment was most of the old bulk. */
 
-/* Groups are separated by rhythm alone — no rules. Spacing carries the
+/* Groups are separated by rhythm alone - no rules. Spacing carries the
    grouping, so nothing draws a line the reader has to look past, and the rhythm
    is the smallest that still reads as a break rather than a gap. */
 .section { padding-block: var(--mu-space-3); }
@@ -646,7 +646,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 /* -------------------------------------------------- design thumbnails -- */
 
 /* Six thumbnails, each a real render of its own design scaled down and cropped
-   to the top — the part carrying the signature (edge gradient, hero ground,
+   to the top - the part carrying the signature (edge gradient, hero ground,
    lockup colour, ornament, headline treatment). The same component draws the
    thumbnail and the full preview, so they cannot drift apart. */
 .design-grid {
@@ -766,7 +766,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 }
 
 /* The disc holds the channel's own colour so it is recognisable at a glance, and
-   holds it nowhere else — no page token changes with it. */
+   holds it nowhere else - no page token changes with it. */
 .channel-mark {
   flex: none;
   display: grid;
@@ -790,7 +790,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 
 /* One control, two parts. The select is laid transparently over the dial
    readout so the closed state stays as narrow as "+91" while the picker itself
-   is still a real native select — which is what makes it usable on a phone. */
+   is still a real native select - which is what makes it usable on a phone. */
 .phone-input {
   display: flex;
   align-items: stretch;
@@ -910,14 +910,14 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .preview-toggle { display: none; }
 
 /* ============================================================== */
-/*  Gift email designs — six variants                             */
+/*  Gift email designs - six variants                             */
 /*  Palettes, ornaments and structure transcribed from            */
 /*  prototype-hub/prototypes/gift-mentorship (source of truth).   */
 /* ============================================================== */
 
 /* The token block is shared by the email card and its printable counterpart.
    Both carry only the `email-card--<id>` variant class, and a variant overrides
-   only what it changes — so anything the base defines has to be defined for both
+   only what it changes - so anything the base defines has to be defined for both
    or a print card would resolve those roles to nothing. */
 .email-card, .print-card {
   /* Signature is the base; each variant overrides only these tokens.
@@ -992,7 +992,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   letter-spacing: 0.16em;
 }
 
-/* Dark heroes take the transparent white lockup directly — no blend, no crop. */
+/* Dark heroes take the transparent white lockup directly - no blend, no crop. */
 .email-logo { flex: none; height: 22px; width: auto; }
 
 /* Light heroes take the supplied dark-variant master, which is a 512px board
@@ -1094,14 +1094,14 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
-/* Unfilled variables read as {{markers}} — dimmed so they never pass for copy. */
+/* Unfilled variables read as {{markers}} - dimmed so they never pass for copy. */
 .email-quote[data-empty="true"],
 .email-hero-note[data-empty="true"] { opacity: 0.55; }
 
 .email-closing { margin-block-start: var(--mu-space-4); color: var(--em-body-fg); font-size: 0.75rem; line-height: 1.6; }
 
 /* Every design reserves the same place for the redemption code, but the block is
-   only ever drawn once a code exists — that is, after a payment succeeds. There
+   only ever drawn once a code exists - that is, after a payment succeeds. There
    is deliberately no empty or dashed pre-payment state: the card is complete
    without it, and complete again with it. */
 .email-code {
@@ -1144,7 +1144,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   overflow-wrap: anywhere;
 }
 
-/* --- Milestone — warm gold on a light hero; scribble underlines the moment -- */
+/* --- Milestone - warm gold on a light hero; scribble underlines the moment -- */
 .email-card--milestone {
   --em-edge: linear-gradient(90deg, #f7d344 0%, #e9a63c 55%, #e38330 100%);
   --em-hero-bg: #f6f1df;
@@ -1162,7 +1162,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .email-scribble { display: block; width: min(100%, 240px); height: 22px; margin-block-start: var(--mu-space-1); }
 .email-card--milestone .email-scribble { --sc-1: #f7d344; --sc-2: #e9a63c; --sc-3: #c98a1c; }
 
-/* --- Birthday — deep warm hero, amber ribbon, number as headline ---------- */
+/* --- Birthday - deep warm hero, amber ribbon, number as headline ---------- */
 .email-card--birthday {
   --em-edge: linear-gradient(90deg, #e38330 0%, #f7d344 50%, #39b6d8 100%);
   --em-hero-bg: linear-gradient(155deg, #1d1410 0%, #2a1a12 60%, #21170f 100%);
@@ -1176,7 +1176,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   --em-ink: #a35f1c;
   --em-button-bg: #2a1a12;
 }
-/* A gift ribbon running down the hero, behind the content — birthday's strongest
+/* A gift ribbon running down the hero, behind the content - birthday's strongest
    signature, so it carries into the printable card too. */
 .email-card--birthday .email-hero::before,
 .email-card--birthday .print-card__hero::before {
@@ -1194,7 +1194,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .email-card--birthday[data-ornament="none"] .print-card__hero::before { display: none; }
 .email-card--birthday .email-credits strong { color: #ffe9cf; }
 
-/* --- Rakhi — saffron, maroon and gold, woven thread across the hero ------- */
+/* --- Rakhi - saffron, maroon and gold, woven thread across the hero ------- */
 .email-card--rakhi {
   --em-edge: linear-gradient(90deg, #a3302a 0%, #d97b2b 45%, #edc25c 100%);
   --em-hero-bg: linear-gradient(160deg, #35150f 0%, #4a1e13 55%, #33140e 100%);
@@ -1222,7 +1222,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   aspect-ratio: 420 / 56;
 }
 
-/* --- New chapter — cool and editorial; serif headline against a teal rule -- */
+/* --- New chapter - cool and editorial; serif headline against a teal rule -- */
 .email-card--chapter {
   --em-edge: linear-gradient(90deg, #39b6d8 0%, #5cc4bd 55%, #7fd0b2 100%);
   --em-hero-bg: #f1f5f4;
@@ -1252,7 +1252,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .email-card--chapter[data-ornament="none"] .email-hero h2 { padding-inline-start: 0; border-inline-start: 0; }
 .email-card--chapter[data-ornament="none"] .email-hero p { padding-inline-start: 0; }
 
-/* --- Quiet note — cool ink; the message is the hero ---------------------- */
+/* --- Quiet note - cool ink; the message is the hero ---------------------- */
 .email-card--note {
   --em-edge: linear-gradient(90deg, #39b6d8 0%, #4d7f9b 100%);
   --em-hero-bg: #111619;
@@ -1570,7 +1570,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 }
 
 /* ============================================================== */
-/*  Printable gift card — 5 x 7 inches, portrait                  */
+/*  Printable gift card - 5 x 7 inches, portrait                  */
 /*  480 x 672 CSS px is exactly 5 x 7in at the CSS-fixed 96px/in,  */
 /*  so one element is both the on-screen preview and the print.    */
 /* ============================================================== */
@@ -1640,7 +1640,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   text-align: var(--emc-headline-align, start);
   overflow-wrap: anywhere;
 }
-/* New chapter's signature is the serif headline against a teal rule — it has to
+/* New chapter's signature is the serif headline against a teal rule - it has to
    survive the change of proportion, not just the change of palette. */
 .email-card--chapter .print-card__headline {
   padding-inline-start: 18px;
@@ -1985,7 +1985,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   }
   .preview-toggle:hover { color: var(--mu-color-text-strong); border-color: var(--mu-color-border-strong); }
   .preview-body[hidden] { display: none; }
-  /* The card keeps its email proportion when the preview goes full width —
+  /* The card keeps its email proportion when the preview goes full width -
      widening it here would flatten every design back to a squat card. */
   .email-card { max-width: 25rem; }
 }
