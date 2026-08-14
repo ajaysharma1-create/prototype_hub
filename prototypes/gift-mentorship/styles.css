@@ -1,4 +1,4 @@
-/* Gift Direction — MentorUnion
+/* Gift a Career — MentorUnion
    Tokens, roles and geometry follow shared/design/website-design-schema.md v2.0.2.
 
    Density note: this build runs a deliberately compact application scale. The
@@ -249,7 +249,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   gap: var(--mu-space-1);
 }
 
-/* Gift Direction sits immediately after Pricing and reads as an ordinary
+/* Gift a Career sits immediately after Pricing and reads as an ordinary
    navigation item — it is a destination, not the page's conversion action. */
 .nav-link {
   display: inline-flex;
@@ -439,50 +439,37 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ------------------------------------------------------------ landing -- */
+/* ------------------------------------------------- landing stand-in -- */
 
-.landing-hero {
-  padding-block: clamp(2.5rem, 6vw, var(--mu-space-11));
+/* The marketing site is out of scope, so this route carries a single diagonal
+   note instead. Sized off the viewport so it fills the space the real page
+   would have, and clipped horizontally because rotation widens its footprint. */
+.stand-in {
+  min-height: clamp(20rem, calc(100vh - 16rem), 40rem);
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  align-items: center;
-  gap: clamp(2rem, 5vw, var(--mu-space-10));
-}
-.landing-hero__copy { max-width: 33rem; }
-.landing-hero .lead { margin-block-start: var(--mu-space-4); font-size: 1rem; }
-.landing-hero__actions { margin-block-start: var(--mu-space-6); display: flex; flex-wrap: wrap; gap: var(--mu-space-3); }
-.landing-hero__actions .button { min-height: 3rem; padding-inline: var(--mu-space-6); }
-
-.landing-stats {
-  margin-block-start: var(--mu-space-7);
-  padding-block-start: var(--mu-space-5);
-  border-block-start: 1px solid var(--mu-color-border-subtle);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--mu-space-7);
-}
-.landing-stats div strong { display: block; color: var(--mu-color-text-strong); font-size: 1.125rem; font-weight: 700; }
-.landing-stats div span { color: var(--mu-color-text-subtle); font-size: 0.75rem; }
-
-.hero-art {
-  position: relative;
-  aspect-ratio: 5 / 4;
-  border-radius: var(--mu-radius-card);
-  background: linear-gradient(160deg, var(--mu-ref-neutral-900), var(--mu-color-canvas-deep));
-  border: 1px solid var(--mu-color-border-subtle);
+  place-items: center;
   overflow: hidden;
+  padding-inline: var(--mu-space-5);
 }
-.hero-art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-.landing-section { padding-block: clamp(2.5rem, 6vw, var(--mu-space-10)); border-block-start: 1px solid var(--mu-color-border-subtle); }
-.landing-section__head { max-width: 44rem; }
-.landing-section__head .lead { margin-block-start: var(--mu-space-3); }
+.stand-in__note {
+  margin: 0;
+  display: grid;
+  gap: 0.15em;
+  color: var(--mu-color-text-muted);
+  font-size: clamp(1.05rem, 3.6vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  text-wrap: balance;
+  transform: rotate(-13deg);
+}
 
-.value-grid { margin-block-start: var(--mu-space-6); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--mu-space-4); }
-.value-card { padding: var(--mu-space-5); border: 1px solid var(--mu-color-border-subtle); border-radius: var(--mu-radius-card); background: var(--mu-color-surface); }
-.value-card__icon { color: var(--mu-color-accent-cyan); }
-.value-card h3 { margin-block: var(--mu-space-3) var(--mu-space-2); }
-.value-card p { color: var(--mu-color-text-muted); font-size: 0.8125rem; line-height: 1.5; }
+.stand-in__note em {
+  color: var(--mu-color-text-strong);
+  font-style: normal;
+  font-weight: 700;
+}
 
 
 /* ============================================================== */
@@ -1846,12 +1833,6 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .email-card { max-width: 25rem; }
 }
 
-@media (max-width: 60rem) {
-  .landing-hero { grid-template-columns: minmax(0, 1fr); }
-  .hero-art { order: -1; aspect-ratio: 16 / 9; }
-  .value-grid { grid-template-columns: minmax(0, 1fr); }
-}
-
 @media (max-width: 52rem) {
   .field-row { grid-template-columns: minmax(0, 1fr); gap: var(--mu-space-3); }
   .size-row { grid-template-columns: minmax(0, 1fr); }
@@ -1859,7 +1840,6 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .schedule-reveal { max-width: none; }
   .outcome__actions { flex-direction: column; }
   .outcome__actions .button { width: 100%; }
-  .landing-stats { gap: var(--mu-space-5); }
   .claim-code-card__actions .button { width: 100%; }
   .control--colour { grid-template-columns: minmax(0, 1fr) auto; }
 }
@@ -1869,7 +1849,6 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
      a native date picker, so they stack instead of compressing. */
   .schedule-row { grid-template-columns: minmax(0, 1fr); max-width: none; }
   .email-hero, .email-body { padding-inline: var(--mu-space-4); }
-  .landing-stats { flex-direction: column; gap: var(--mu-space-3); }
   .editor-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .preset-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tpl-grid { grid-template-columns: minmax(0, 1fr); }

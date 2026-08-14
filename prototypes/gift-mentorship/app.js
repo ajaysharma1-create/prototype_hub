@@ -1,4 +1,4 @@
-/* Gift Direction — MentorUnion
+/* Gift a Career — MentorUnion
    Landing → one unified gifting page → guided design editor → provider
    checkout → confirmation, plus the recipient's Claim a Gift journey. There is
    no visible step tracker: the page hierarchy and a single continuation action
@@ -174,9 +174,13 @@
      slips before anything is looked up. */
   const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
 
+  /* One source for the CTA label, so the nav and the landing stand-in can never
+     drift apart — the stand-in tells people to click it by name. */
+  const GIFT_CTA = "Gift a Career";
+
   const ROUTES = ["", "gift", "personalise", "checkout", "gift/confirmed", "claim"];
   const ROUTE_TITLES = {
-    "": "Gift Direction",
+    "": GIFT_CTA,
     "gift": "Create your gift",
     "personalise": "Personalise the design",
     "checkout": "Checkout",
@@ -188,7 +192,7 @@
      The supplied dark-variant board is used on light heroes, where its white
      ground is multiplied away. Which one is used follows the measured luminance
      of the hero, so a recoloured card never renders an illegible lockup. */
-  const LOGO_LIGHT = "assets/logos/black-bg-logo.png";
+  const LOGO_LIGHT = "assets/logos/mentor-union-logo.png";
   const LOGO_DARK = "assets/logos/white-bg-logo.png";
 
   const CLAIM_URL = "mentorunion.com/claim";
@@ -630,68 +634,17 @@
 
   /* ------------------------------------------------------------ landing -- */
 
+  /* The marketing site is out of scope. This route stands in for it so the nav has
+     somewhere to sit and the prototype has an obvious starting point. */
   function renderLanding() {
     return `
-      <div class="container container--wide">
-        <section class="landing-hero">
-          <div class="landing-hero__copy">
-            <p class="eyebrow">MENTORUNION</p>
-            <h1 class="display" tabindex="-1">Careers move faster with someone who's been there.</h1>
-            <p class="lead">Book 30-minute conversations with practitioners who have already made the
-              move you're making. Pick your own mentor, in your own time.</p>
-            <div class="landing-hero__actions">
-              <a class="button button--primary" href="#/" data-inert-nav>Find a mentor</a>
-              <a class="button button--secondary" href="#/" data-inert-nav>See pricing</a>
-            </div>
-            <div class="landing-stats">
-              <div><strong>30 min</strong><span>per conversation</span></div>
-              <div><strong>1–3 credits</strong><span>per conversation</span></div>
-              <div><strong>No subscription</strong><span>nothing auto-renews</span></div>
-            </div>
-          </div>
-          <div class="hero-art" aria-hidden="true">
-            <svg viewBox="0 0 400 320" preserveAspectRatio="xMidYMid slice" role="presentation">
-              <rect x="40" y="214" width="96" height="12" rx="6" fill="#262626"/>
-              <rect x="152" y="166" width="96" height="12" rx="6" fill="#404040"/>
-              <rect x="264" y="112" width="96" height="12" rx="6" fill="#525252"/>
-              <path d="M60 200 C 130 190, 150 150, 210 146 C 270 142, 290 106, 348 98"
-                    fill="none" stroke="url(#gd-grad)" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
-              <circle cx="348" cy="98" r="7" fill="#F5F5F2"/>
-              <defs>
-                <linearGradient id="gd-grad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stop-color="#39B6D8"/><stop offset="50%" stop-color="#F7D344"/><stop offset="100%" stop-color="#E38330"/>
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-        </section>
-
-        <section class="landing-section" aria-labelledby="how-title">
-          <div class="landing-section__head">
-            <p class="eyebrow">HOW IT WORKS</p>
-            <h2 class="heading-3" id="how-title">Three steps, no subscription</h2>
-          </div>
-          <div class="value-grid">
-            ${[
-              ["Choose a mentor", "Every mentor lists what a conversation costs before you book — between 1 and 3 credits."],
-              ["Book 30 minutes", "Pick a slot that works. One credit is 30 minutes of someone's full attention."],
-              ["Come back when you need to", "Credits sit in your balance. Nothing renews and nothing is charged again."]
-            ].map(([title, copy], i) => `
-              <article class="value-card">
-                <div class="value-card__icon" aria-hidden="true">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    ${['<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>',
-                       '<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',
-                       '<path d="M4 6h16v12H4z"/><path d="M4 10h16"/><path d="M9 15h6"/>'][i]}
-                  </svg>
-                </div>
-                <h3 class="heading-5">${e(title)}</h3>
-                <p>${e(copy)}</p>
-              </article>`).join("")}
-          </div>
-        </section>
-
-      </div>`;
+      <section class="stand-in">
+        <h1 class="stand-in__note" tabindex="-1">
+          <span>Consider this as a Landing page,</span>
+          <span>the core prototype starts as you</span>
+          <span>click <em>“${e(GIFT_CTA)}”</em></span>
+        </h1>
+      </section>`;
   }
 
   /* ======================================================================
@@ -746,7 +699,7 @@
     return `
       <div class="container container--wide">
         <header class="config-head">
-          <p class="eyebrow">GIFT DIRECTION</p>
+          <p class="eyebrow">GIFT A CAREER</p>
           <h1 class="heading-1" tabindex="-1">Give someone a clearer next step</h1>
           <p class="lead">They choose their own mentors and book when they're ready. Nothing expires
             while the gift sits unclaimed.</p>
@@ -1670,7 +1623,7 @@
   function render() {
     const route = currentRoute();
     app.innerHTML = (RENDERERS[route] || renderLanding)();
-    document.title = `${ROUTE_TITLES[route] || "Gift Direction"} · MentorUnion`;
+    document.title = `${ROUTE_TITLES[route] || "Gift a Career"} · MentorUnion`;
     markPreviewInert();
     fitPrintPreview();
 
