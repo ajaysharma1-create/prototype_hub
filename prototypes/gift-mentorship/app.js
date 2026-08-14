@@ -217,8 +217,12 @@
     return {
       giftId: "growth",
       designId: "signature",
-      form: { recipientName: "", recipientEmail: "", purchaserName: "", purchaserEmail: "", message: "" },
-      delivery: { email: true, when: "now", date: "", time: "09:00", printable: true },
+      form: { recipientName: "", recipientEmail: "", recipientPhone: "", purchaserName: "", purchaserEmail: "", message: "" },
+      /* No channel is chosen for the purchaser. Deciding how a gift reaches
+         someone is part of giving it, so the page waits for that decision rather
+         than assuming email. `when` is the timing default *within* email, which
+         only exists once email has been chosen. */
+      delivery: { email: false, whatsapp: false, printable: false, when: "now", date: "", time: "09:00" },
       custom: {},
       editor: { group: "type", region: "headline" },
       errors: {},
@@ -350,10 +354,12 @@
   /* The action label follows what the purchaser actually chose, so the button
      describes their gift rather than the transaction behind it. */
   function commitLabel(delivery = state.delivery) {
-    if (!delivery.email && delivery.printable) return "Finish this gift";
+    /* Only email actually sends anything, so only email earns "Send". */
     if (delivery.email && delivery.when === "later") return "Schedule this gift";
-    if (delivery.email && delivery.printable) return "Complete this gift";
-    return "Send this gift";
+    if (delivery.email) return "Send this gift";
+    if (delivery.whatsapp || delivery.printable) return "Finish this gift";
+    /* Nothing chosen yet: the label cannot describe a delivery that isn't there. */
+    return "Complete this gift";
   }
 
   /* ---------------------------------------------------------- colour ----- */
@@ -605,13 +611,13 @@
   /* --------------------------------------------------------- form parts -- */
 
   function field({ id, label, value, type = "text", autocomplete = "off", inputmode = "text",
-                   maxlength = 254, placeholder = "", help = "", errorKey = "" }) {
+                   maxlength = 254, placeholder = "", help = "", errorKey = "", optional = false }) {
     const key = errorKey || id;
     const error = state.errors[key] || "";
     const described = [help ? `${id}-help` : "", `${id}-error`].filter(Boolean).join(" ");
     return `
       <div class="field">
-        <label class="field__label" for="${id}">${e(label)}</label>
+        <label class="field__label" for="${id}">${e(label)}${optional ? ' <span class="field__optional">optional</span>' : ""}</label>
         <input id="${id}" name="${id}" data-field="${id}" type="${type}" inputmode="${inputmode}"
                autocomplete="${autocomplete}" maxlength="${maxlength}" value="${e(value)}"
                placeholder="${e(placeholder)}" aria-invalid="${error ? "true" : "false"}"
@@ -782,17 +788,12 @@
             </section>
 
             <section class="section" data-section="delivery" aria-labelledby="sec-delivery">
-              <div class="section__head"><h2 class="section__title" id="sec-delivery">Delivery</h2></div>
+              <div class="section__head"><h2 class="section__title" id="sec-delivery">How would you like them to receive it?</h2></div>
               <div class="deliver-stack">
-                <div class="delivery-methods" role="group" aria-label="Delivery formats">
-                  <label class="check-card">
-                    <input type="checkbox" data-action="toggle-email" ${d.email ? "checked" : ""}>
-                    <span>Email</span>
-                  </label>
-                  <label class="check-card">
-                    <input type="checkbox" data-action="toggle-printable" ${d.printable ? "checked" : ""}>
-                    <span>Printable card / PDF</span>
-                  </label>
+                <div class="delivery-methods" role="group" aria-labelledby="sec-delivery">
+                  ${deliveryOption("toggle-email", "email", "Email", d.email)}
+                  ${deliveryOption("toggle-whatsapp", "whatsapp", "WhatsApp", d.whatsapp)}
+                  ${deliveryOption("toggle-printable", "pdf", "Printable card", d.printable)}
                 </div>
 
                 ${d.email ? `
@@ -829,6 +830,19 @@
                         ${d.date && d.time && !state.errors.scheduleDate && !state.errors.scheduleTime
                           ? `<p class="schedule-confirm">Arrives ${e(scheduleSummary())}</p>` : ""}
                       </div>` : ""}
+                  </div>` : ""}
+
+                ${/* After the email block, so the scheduling radios above can only
+                      read as belonging to email — the order matches the channels.
+                      Scheduling is not offered here: nothing sends the message for
+                      you, so a scheduled WhatsApp would be a promise the build
+                      cannot keep. */ ""}
+                ${d.whatsapp ? `
+                  <div class="deliver-reveal">
+                    ${field({ id: "recipientPhone", label: "Their WhatsApp number", value: f.recipientPhone,
+                              type: "tel", inputmode: "tel", autocomplete: "tel", maxlength: 20,
+                              placeholder: "+91 98765 43210", optional: true,
+                              help: "Once you've paid, WhatsApp opens with the gift and claim code written for you — add a number and it's addressed too." })}
                   </div>` : ""}
               </div>
               <span class="field__error" id="delivery-error" role="alert">${e(state.errors.delivery || "")}</span>
@@ -1027,7 +1041,8 @@
 
             <div class="editor-foot">
               ${isCustomised() ? `<button class="link-button" type="button" data-action="reset-design">Reset ${e(t.name)} to the original</button>` : ""}
-              <p class="editor-locked">The MentorUnion lockup, the claim code and the terms line are fixed.</p>
+              <p class="editor-locked">The MentorUnion lockup and the terms line are fixed. The claim
+                code is added to the finished gift once payment goes through.</p>
             </div>
           </div>
         </div>
@@ -1039,6 +1054,41 @@
       </div>`;
   }
 
+  /* Channel marks. These carry the channel's own colour, which is a deliberate
+     exception to §"no provider colour, logo or visual language has leaked into
+     MentorUnion-owned UI" in the website design schema: recognition at a glance
+     is what the delivery step is being judged on. The colour is contained inside
+     a 28px disc and appears nowhere else, so no page-level token changes. */
+  const CHANNEL_ICONS = {
+    email: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <rect x="2.2" y="5.2" width="19.6" height="13.6" rx="2.6" fill="#fff"/>
+      <path d="M3.8 7.6 12 13.5l8.2-5.9" fill="none" stroke="#2B6CE9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    whatsapp: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="#fff" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.39-1.48-.89-.79-1.48-1.76-1.66-2.06-.17-.3-.02-.46.13-.6.14-.14.3-.35.44-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.87 1.22 3.07c.15.2 2.1 3.2 5.08 4.49.7.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.42-.08-.12-.28-.2-.58-.34"/>
+      <path fill="#fff" d="M12.05 21.79h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m0-21.79a11.87 11.87 0 0 0-10.3 17.79L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45 11.9 11.9 0 0 0 0-23.8"/></svg>`,
+    pdf: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6.1 2.6h7.3L18.7 8v13.4H6.1z" fill="#fff"/>
+      <path d="M13.4 2.6 18.7 8h-5.3z" fill="#F7C9CA"/>
+      <rect x="4.3" y="12.2" width="13.3" height="6.4" rx="1.4" fill="#C4181C"/>
+      <text x="10.95" y="16.95" text-anchor="middle" font-size="4.5" font-weight="700"
+            letter-spacing=".25" fill="#fff" font-family="inherit">PDF</text></svg>`
+  };
+
+  function channelMark(icon) {
+    return `<span class="channel-mark" data-channel="${icon}" aria-hidden="true">${CHANNEL_ICONS[icon]}</span>`;
+  }
+
+  /* A pressed toggle rather than a checkbox: the channels are independent, any
+     combination is valid, and the card itself has to read as chosen or not. The
+     word stays beside the mark as the control's accessible name. */
+  function deliveryOption(action, icon, label, on) {
+    return `
+      <button class="channel-card" type="button" data-action="${action}" aria-pressed="${on ? "true" : "false"}">
+        ${channelMark(icon)}
+        <span class="channel-name">${e(label)}</span>
+      </button>`;
+  }
+
   /* ------------------------------------------------------- gift preview -- */
 
   /* Anything the purchaser supplies that is still empty renders as {{Label}}, using
@@ -1048,8 +1098,7 @@
   const VAR = {
     recipientName: "{{Their name}}",
     purchaserName: "{{Your name}}",
-    message: "{{Gift card message}}",
-    code: "{{Claim code}}"
+    message: "{{Gift card message}}"
   };
 
   function previewData() {
@@ -1149,15 +1198,16 @@
     range: "4–10 conversations", credits: 10, validity: "4 months", code: ""
   };
 
-  /* Every design reserves the same block for the redemption code. Before payment
-     it names the variable rather than showing a masked shape, so nobody reads the
-     dots as a code that already exists. */
+  /* Every design reserves the same slot for the redemption code, but the slot is
+     structural, not visual: no code exists until a payment succeeds, so before
+     that the block is not drawn at all. A dotted frame or a {{marker}} here would
+     be showing the purchaser a code that has not been created. */
   function codeBlock(code) {
-    const issued = Boolean(code);
+    if (!code) return "";
     return `
-      <div class="email-code" data-em="code" data-issued="${issued}">
+      <div class="email-code" data-em="code" data-issued="true">
         <span class="email-code__label">Claim code</span>
-        <span class="email-code__value numeric">${e(issued ? code : VAR.code)}</span>
+        <span class="email-code__value numeric">${e(code)}</span>
         <span class="email-code__where">${e(CLAIM_URL)}</span>
       </div>`;
   }
@@ -1181,7 +1231,8 @@
           <p class="email-closing" data-em="closing">${e(t.closing(d))}</p>
           ${codeBlock(d.code)}
           <p class="email-cta">Claim your gift</p>
-          <p class="email-foot" data-em="foot">Anyone with this code can claim it, once. Keep it to yourself until you have.</p>
+          ${/* The footnote is about the code, so it appears with the code. */ ""}
+          ${d.code ? `<p class="email-foot" data-em="foot">Anyone with this code can claim it, once. Keep it to yourself until you have.</p>` : ""}
         </div>
       </article>`;
   }
@@ -1283,12 +1334,15 @@
         <div class="print-card__body">
           ${!t.messageHero && d.message.trim() ? `<blockquote class="print-card__note">“${e(d.message.trim())}”</blockquote>` : ""}
           <p class="print-card__lead">${e(t.lead(d))}</p>
-          <div class="print-card__code">
-            <span class="print-card__code-label">Claim code</span>
-            <strong class="print-card__code-value numeric">${e(d.code || VAR.code)}</strong>
-            <span class="print-card__code-where">Redeem at ${e(CLAIM_URL)}</span>
-          </div>
-          <p class="print-card__fine">${e(t.closing(d))} Anyone with this code can claim it, once.</p>
+          ${/* Same rule as the email: the card is only ever composed once a code
+                exists, and it composes without the block if one somehow doesn't. */ ""}
+          ${d.code ? `
+            <div class="print-card__code">
+              <span class="print-card__code-label">Claim code</span>
+              <strong class="print-card__code-value numeric">${e(d.code)}</strong>
+              <span class="print-card__code-where">Redeem at ${e(CLAIM_URL)}</span>
+            </div>` : ""}
+          <p class="print-card__fine">${e(t.closing(d))}${d.code ? " Anyone with this code can claim it, once." : ""}</p>
         </div>
       </div>`;
   }
@@ -1428,11 +1482,79 @@
         ? `Email scheduled for ${scheduleSummary(delivery)}`
         : "Email as soon as payment succeeds");
     }
+    if (delivery.whatsapp) parts.push("WhatsApp message ready after payment");
     if (delivery.printable) parts.push("Printable card");
     return parts.join(" · ") || "No delivery chosen";
   }
 
   /* ---------------------------------------------------------- confirmed -- */
+
+  /* The finished gift as plain text: the same facts the card and the email carry,
+     in the form a message app will take. Only ever built from a paid order, so
+     the code is always real by the time this runs. */
+  function giftShareText(order) {
+    return [
+      `${order.senderName} has gifted you ${order.range} with MentorUnion.`,
+      order.message.trim() ? `“${order.message.trim()}”` : "",
+      `Your claim code: ${order.code}`,
+      `Claim it at ${CLAIM_URL}. It works once and it never expires.`
+    ].filter(Boolean).join("\n\n");
+  }
+
+  /* PROTOTYPE BEHAVIOUR, not an integration. wa.me is WhatsApp's own share link:
+     it opens WhatsApp with the message composed and, if a number was given, the
+     conversation already chosen. The purchaser still presses send. Nothing here
+     sends a WhatsApp message on MentorUnion's behalf. */
+  function whatsappShareHref(order) {
+    const digits = String(order.recipientPhone || "").replace(/\D/g, "");
+    return `https://wa.me/${digits}?text=${encodeURIComponent(giftShareText(order))}`;
+  }
+
+  /* Same principle for email: the purchaser's own mail client, prefilled. */
+  function mailShareHref(order) {
+    const subject = `${order.senderName} sent you a MentorUnion gift`;
+    return `mailto:${encodeURIComponent(order.recipientEmail)}`
+      + `?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(giftShareText(order))}`;
+  }
+
+  function shareCard({ href, action, icon, name, note, state: badge = "" }) {
+    const inner = `
+      ${channelMark(icon)}
+      <span class="share-card__text">
+        <span class="share-card__name">${e(name)}${badge ? `<span class="share-card__state">${e(badge)}</span>` : ""}</span>
+        <span class="share-card__note">${e(note)}</span>
+      </span>`;
+    return href
+      ? `<a class="share-card" href="${e(href)}" target="_blank" rel="noopener">${inner}</a>`
+      : `<button class="share-card" type="button" data-action="${e(action)}">${inner}</button>`;
+  }
+
+  /* Every route stays open after payment. What the purchaser chose earlier shapes
+     what each card says, never which cards exist — nobody should have to go back
+     and re-buy a gift to print the card they already paid for. */
+  function shareSection(order, scheduled) {
+    return `
+      <section class="share-section" aria-labelledby="share-title">
+        <h2 class="heading-5" id="share-title">Choose how you'd like to share it</h2>
+        <div class="share-row">
+          ${shareCard({
+            href: mailShareHref(order), icon: "email", name: "Email",
+            state: order.delivery.email ? (scheduled ? "Scheduled" : "Sent") : "",
+            note: "Opens your mail app, written out"
+          })}
+          ${shareCard({
+            href: whatsappShareHref(order), icon: "whatsapp", name: "WhatsApp",
+            state: order.delivery.whatsapp ? "Ready" : "",
+            note: order.recipientPhone ? `Opens a message to ${order.recipientPhone}` : "Opens WhatsApp, message written"
+          })}
+          ${shareCard({
+            action: "print-card", icon: "pdf", name: "Printable card",
+            state: order.delivery.printable ? "Ready" : "",
+            note: "Print it or save it as a PDF"
+          })}
+        </div>
+      </section>`;
+  }
 
   function renderConfirmed() {
     const order = state.order;
@@ -1453,7 +1575,9 @@
             ? `It's built, paid for and waiting. It reaches them on ${e(scheduleSummary(order.delivery))}.`
             : order.delivery.email
               ? "It's built, paid for and on its way to their inbox."
-              : "It's built and paid for. Print the card whenever you're ready to hand it over."}</p>
+              : order.delivery.whatsapp
+                ? "It's built and paid for, with a WhatsApp message written and waiting for you to send."
+                : "It's built and paid for. Print the card whenever you're ready to hand it over."}</p>
         </div>
 
         <div class="confirm-grid">
@@ -1469,6 +1593,8 @@
                 moment it is claimed. It has no expiry date.</p>
             </section>
 
+            ${shareSection(order, scheduled)}
+
             <section class="outcome-card" aria-labelledby="confirm-summary">
               <h2 class="heading-5" id="confirm-summary">What happens next</h2>
               <ol class="next-list">
@@ -1478,6 +1604,12 @@
                     <span>${scheduled
                       ? `Nothing has been sent yet. ${e(order.recipientEmail)} receives the ${e(order.designName)} design at the time you picked.`
                       : `${e(order.recipientEmail)} receives the ${e(order.designName)} design within a few minutes.`}</span>
+                  </li>` : ""}
+                ${order.delivery.whatsapp ? `
+                  <li>
+                    <strong>WhatsApp message ready</strong>
+                    <span>The message and the claim code are written${order.recipientPhone ? ` and addressed to ${e(order.recipientPhone)}` : ""}.
+                      You send it yourself — MentorUnion doesn't message anyone on your behalf.</span>
                   </li>` : ""}
                 ${order.delivery.printable ? `
                   <li>
@@ -1505,8 +1637,9 @@
             <div class="print-preview">
               <div class="print-shell" id="print-root">${printCard(order)}</div>
             </div>
-            <button class="button button--primary button--block" type="button" data-action="print-card"
-                    ${order.delivery.printable ? "" : "disabled"}>Download printable card</button>
+            ${/* Available whatever was chosen before payment: the card is part of
+                  the gift that was paid for, not a separate purchase. */ ""}
+            <button class="button button--primary button--block" type="button" data-action="print-card">Download printable card</button>
             <p class="caption">5 × 7 inches, full bleed. Your browser's print dialog can save it as a PDF.</p>
           </aside>
         </div>
@@ -1666,6 +1799,8 @@
 
   function isValidEmail(value) { return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(value).trim()); }
   function containsLink(value) { return /(https?:\/\/|www\.|[a-z0-9-]+\.(com|net|org|in|io|co)\b)/i.test(String(value)); }
+  /* E.164-shaped: a leading + and 8–15 digits once spacing and brackets are stripped. */
+  function isValidPhone(value) { return /^\+[1-9]\d{7,14}$/.test(String(value).replace(/[\s()-]/g, "")); }
 
   function validateField(name, raw) {
     const value = String(raw ?? "").trim();
@@ -1691,12 +1826,19 @@
         if (!value) return "Add your address for the receipt.";
         if (!isValidEmail(value)) return "That doesn't look like a complete email address.";
         return "";
+      case "recipientPhone":
+        /* Never required: the purchaser sends the WhatsApp message themselves, so
+           a number only saves them picking the contact. It is still checked when
+           one is given, so a malformed number never reaches the share link. */
+        if (!value) return "";
+        if (!isValidPhone(value)) return "Include the country code, like +91 98765 43210.";
+        return "";
       case "message":
         if (value.length > MESSAGE_MAX) return `Your note is ${value.length - MESSAGE_MAX} characters over.`;
         if (containsLink(value)) return "Links can't be included in the note.";
         return "";
       case "delivery":
-        if (!state.delivery.email && !state.delivery.printable) return "Choose at least one way to give it.";
+        if (!state.delivery.email && !state.delivery.printable && !state.delivery.whatsapp) return "Choose at least one way to give it.";
         return "";
       case "scheduleDate":
         if (!state.delivery.email || state.delivery.when !== "later") return "";
@@ -1729,9 +1871,15 @@
   }
 
   function requiredNames() {
-    const names = ["recipientName", "recipientEmail", "purchaserName", "purchaserEmail", "message", "delivery"];
+    const names = ["recipientName", "recipientEmail", "recipientPhone", "purchaserName", "purchaserEmail", "message", "delivery"];
     if (state.delivery.email && state.delivery.when === "later") names.push("scheduleDate", "scheduleTime");
     return names;
+  }
+
+  /* A channel toggle re-renders the section it lives in, which would otherwise
+     drop focus to the body and strand keyboard users mid-choice. */
+  function restoreChannelFocus(action) {
+    window.setTimeout(() => app.querySelector(`.channel-card[data-action="${action}"]`)?.focus({ preventScroll: true }), 0);
   }
 
   function focusFirstError() {
@@ -1799,6 +1947,7 @@
       total: q.total,
       recipientName: state.form.recipientName.trim(),
       recipientEmail: state.form.recipientEmail.trim(),
+      recipientPhone: state.form.recipientPhone.trim(),
       senderName: firstName(state.form.purchaserName) || "someone",
       purchaserEmail: state.form.purchaserEmail.trim(),
       message: state.form.message,
@@ -1955,6 +2104,35 @@
 
       case "commit": commitToPayment(); break;
 
+      /* Channels are pressed toggles, so they arrive here rather than as a form
+         change. Any combination is valid; none starts pressed. */
+      case "toggle-email":
+        state.delivery.email = !state.delivery.email;
+        delete state.errors.delivery;
+        delete state.errors.recipientEmail;
+        if (!state.delivery.email) { delete state.errors.scheduleDate; delete state.errors.scheduleTime; }
+        persist();
+        render();
+        restoreChannelFocus("toggle-email");
+        break;
+
+      case "toggle-whatsapp":
+        state.delivery.whatsapp = !state.delivery.whatsapp;
+        delete state.errors.delivery;
+        if (!state.delivery.whatsapp) delete state.errors.recipientPhone;
+        persist();
+        render();
+        restoreChannelFocus("toggle-whatsapp");
+        break;
+
+      case "toggle-printable":
+        state.delivery.printable = !state.delivery.printable;
+        delete state.errors.delivery;
+        persist();
+        render();
+        restoreChannelFocus("toggle-printable");
+        break;
+
       case "toggle-preview": {
         state.previewOpen = !state.previewOpen;
         persist();
@@ -2018,22 +2196,6 @@
   document.addEventListener("change", (event) => {
     const target = event.target;
 
-    if (target.dataset.action === "toggle-email") {
-      state.delivery.email = target.checked;
-      if (!target.checked) { delete state.errors.scheduleDate; delete state.errors.scheduleTime; }
-      delete state.errors.delivery;
-      delete state.errors.recipientEmail;
-      persist();
-      render();
-      return;
-    }
-    if (target.dataset.action === "toggle-printable") {
-      state.delivery.printable = target.checked;
-      delete state.errors.delivery;
-      persist();
-      render();
-      return;
-    }
     if (target.dataset.action === "set-delivery") {
       state.delivery.when = target.value;
       /* The date and time are kept when switching back to immediate delivery,

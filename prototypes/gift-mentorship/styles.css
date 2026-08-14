@@ -597,6 +597,8 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .field input[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: var(--mu-color-error-strong); }
 
 .field__help { display: block; margin-block-start: var(--mu-space-1); color: var(--mu-color-text-subtle); font-size: 0.6875rem; line-height: 1.45; }
+/* Said once, in the label, so the field never needs a sentence to excuse itself. */
+.field__optional { margin-inline-start: var(--mu-space-1); color: var(--mu-color-text-subtle); font-weight: 400; text-transform: none; }
 .field__error {
   display: block;
   margin-block-start: var(--mu-space-1);
@@ -721,34 +723,65 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 
 /* ---------------------------------------------------------- delivery -- */
 
-/* Email and printable are independent choices, not a fork: both can be on, and
-   the schedule only exists underneath the option it belongs to. */
+/* Email, WhatsApp and the printable card are independent choices, not a fork:
+   any combination is valid, and the schedule only exists underneath the option it
+   belongs to. */
 .deliver-stack { display: grid; gap: var(--mu-space-2); align-items: start; }
 .delivery-methods { display: flex; flex-wrap: wrap; align-items: center; gap: var(--mu-space-2); }
 
-/* Delivery formats are compact choices, not content panels. Their labels keep
-   the 44px touch target while the visible checkbox and copy stay minimal. */
-.check-card {
+/* A pressed toggle, not a checkbox. There is no tick, box or mark of any kind:
+   the card's own border, ground and lift say whether it is chosen, which is why
+   nothing has to be preselected to make the control legible. */
+.channel-card {
   display: inline-flex;
   align-items: center;
   gap: var(--mu-space-2);
   width: fit-content;
   min-height: var(--mu-control-height-sm);
-  padding: var(--mu-space-1) var(--mu-space-3);
+  padding: var(--mu-space-1) var(--mu-space-4) var(--mu-space-1) var(--mu-space-2);
   border: 1px solid var(--mu-color-border-subtle);
   border-radius: var(--mu-radius-pill);
   background: transparent;
-  cursor: pointer;
+  color: inherit;
+  font: inherit;
   font-size: 0.8125rem;
   line-height: 1.35;
+  cursor: pointer;
   transition: border-color var(--mu-duration-fast) var(--mu-ease-out),
-              background-color var(--mu-duration-fast) var(--mu-ease-out);
+              background-color var(--mu-duration-fast) var(--mu-ease-out),
+              box-shadow var(--mu-duration-fast) var(--mu-ease-out);
 }
-.check-card > span { display: block; white-space: nowrap; }
-.check-card:hover { border-color: var(--mu-color-border-strong); }
-.check-card:has(input:checked) { border-color: var(--mu-color-focus); background: var(--mu-color-surface-selected); color: var(--mu-color-text-strong); }
-.check-card:has(input:focus-visible) { outline: var(--mu-focus-width) solid var(--mu-color-focus); outline-offset: var(--mu-focus-offset); }
-.check-card input { flex: none; width: 1rem; height: 1rem; margin: 0; accent-color: var(--mu-color-focus); }
+.channel-card:hover { border-color: var(--mu-color-border-strong); }
+.channel-card:focus-visible { outline: var(--mu-focus-width) solid var(--mu-color-focus); outline-offset: var(--mu-focus-offset); }
+.channel-card[aria-pressed="true"] {
+  border-color: var(--mu-color-focus);
+  background: var(--mu-color-surface-selected);
+  color: var(--mu-color-text-strong);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.28);
+}
+
+/* The disc holds the channel's own colour so it is recognisable at a glance, and
+   holds it nowhere else — no page token changes with it. */
+.channel-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--ch-disc);
+  transition: box-shadow var(--mu-duration-fast) var(--mu-ease-out),
+              opacity var(--mu-duration-fast) var(--mu-ease-out);
+}
+.channel-mark[data-channel="email"] { --ch-disc: #2B6CE9; }
+.channel-mark[data-channel="whatsapp"] { --ch-disc: #25D366; }
+.channel-mark[data-channel="pdf"] { --ch-disc: #E5252A; }
+.channel-mark svg { display: block; width: 62%; height: 62%; }
+
+/* Unpressed reads a shade quieter without becoming a different icon. */
+.channel-card[aria-pressed="false"] .channel-mark { opacity: 0.78; }
+.channel-card[aria-pressed="true"] .channel-mark { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ch-disc) 30%, transparent); }
+.channel-name { font-weight: 500; white-space: nowrap; }
 
 .deliver-reveal { min-width: 0; }
 
@@ -1010,20 +1043,20 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 
 .email-closing { margin-block-start: var(--mu-space-4); color: var(--em-body-fg); font-size: 0.75rem; line-height: 1.6; }
 
-/* Every design reserves the same block for the redemption code, so the region
-   is planned rather than appended. Before payment it shows the shape of a code
-   and reads as deliberate; after payment the same block carries the real one. */
+/* Every design reserves the same place for the redemption code, but the block is
+   only ever drawn once a code exists — that is, after a payment succeeds. There
+   is deliberately no empty or dashed pre-payment state: the card is complete
+   without it, and complete again with it. */
 .email-code {
   margin-block-start: var(--mu-space-4);
   padding: var(--mu-space-3) var(--mu-space-4);
   display: grid;
   gap: 2px;
-  border: 1px dashed var(--em-ink);
+  border: 1px solid var(--em-ink);
   border-radius: var(--mu-radius-control);
   background: var(--em-quote-bg);
   text-align: center;
 }
-.email-code[data-issued="true"] { border-style: solid; }
 .email-code__label { color: var(--em-ink); font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
 .email-code__value {
   color: var(--em-body-fg);
@@ -1031,7 +1064,6 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   font-weight: 700;
   letter-spacing: 0.1em;
 }
-.email-code[data-issued="false"] .email-code__value { opacity: 0.5; }
 .email-code__where { color: var(--em-body-faint); font-size: 0.5625rem; letter-spacing: 0.02em; }
 
 .email-cta {
@@ -1405,6 +1437,48 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   overflow-wrap: anywhere;
 }
 .claim-code-card__actions { display: flex; flex-wrap: wrap; gap: var(--mu-space-2); margin-block-end: var(--mu-space-3); }
+
+/* The share routes read as three ways to hand the gift over, not as three more
+   steps of a checkout: no totals, no primary action, no sequence. */
+.share-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--mu-space-2);
+  margin-block-start: var(--mu-space-3);
+}
+.share-card {
+  display: flex;
+  align-items: center;
+  gap: var(--mu-space-2);
+  min-height: var(--mu-control-height-sm);
+  padding: var(--mu-space-3);
+  border: 1px solid var(--mu-color-border-subtle);
+  border-radius: var(--mu-radius-control);
+  background: var(--mu-color-surface);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--mu-duration-fast) var(--mu-ease-out),
+              background-color var(--mu-duration-fast) var(--mu-ease-out);
+}
+.share-card:hover { border-color: var(--mu-color-border-strong); background: var(--mu-color-surface-selected); }
+.share-card:focus-visible { outline: var(--mu-focus-width) solid var(--mu-color-focus); outline-offset: var(--mu-focus-offset); }
+.share-card__text { min-width: 0; }
+.share-card__name {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--mu-space-1);
+  color: var(--mu-color-text-strong); font-size: 0.8125rem; font-weight: 600;
+}
+/* What was configured before payment, stated once and quietly. */
+.share-card__state {
+  padding: 1px var(--mu-space-1);
+  border-radius: var(--mu-radius-pill);
+  background: var(--mu-color-surface-selected);
+  color: var(--mu-color-text-muted);
+  font-size: 0.625rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.share-card__note { display: block; margin-block-start: 1px; color: var(--mu-color-text-muted); font-size: 0.6875rem; line-height: 1.45; }
 
 .next-list { display: grid; gap: var(--mu-space-3); margin-block-start: var(--mu-space-3); counter-reset: step; }
 .next-list li { position: relative; padding-inline-start: var(--mu-space-6); }
@@ -1845,6 +1919,8 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .outcome__actions { flex-direction: column; }
   .outcome__actions .button { width: 100%; }
   .claim-code-card__actions .button { width: 100%; }
+  /* Three abbreviated cards read worse than three full-width ones. */
+  .share-row { grid-template-columns: minmax(0, 1fr); }
   .control--colour { grid-template-columns: minmax(0, 1fr) auto; }
 }
 
@@ -1897,9 +1973,10 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 }
 
 @media (forced-colors: active) {
-  .size-card, .radio-card, .check-card, .chip, .design-option, .outcome-card,
+  .size-card, .radio-card, .channel-card, .share-card, .chip, .design-option, .outcome-card,
   .segmented, .font-option, .preset, .tpl-option, .editor-panel, .claim-state { border: 1px solid CanvasText; }
   .size-card[aria-pressed="true"], .chip[aria-pressed="true"], .design-option[aria-pressed="true"],
+  .channel-card[aria-pressed="true"],
   .font-option[aria-checked="true"], .preset[aria-checked="true"], .tpl-option[aria-checked="true"],
   .segmented__item[aria-checked="true"] { border: 2px solid Highlight; }
   .editor-tab[aria-selected="true"] { border-block-end: 3px solid Highlight; }
