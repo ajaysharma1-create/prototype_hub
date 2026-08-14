@@ -250,6 +250,13 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
 
   const CLAIM_URL = "mentorunion.com/claim";
 
+  /* The guided design editor is built and works, but is out of scope for this
+     build. The flag is the only thing holding it shut: nothing below it has been
+     removed, so setting this to true restores the route, the control and the
+     whole editor exactly as it was. */
+  const PERSONALISE_ENABLED = false;
+  const PERSONALISE_OFF = "Personalising the design isn't covered in this build.";
+
   const app = document.querySelector("#app");
   const liveRegion = document.querySelector("#live-region");
   const toastRegion = document.querySelector("#toast-region");
@@ -916,7 +923,11 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
               </div>
               <div class="config-actions">
                 <button class="button button--accent button--pay button--block" type="submit" data-commit>${e(commitLabel())}</button>
-                <button class="button button--ghost button--block" type="button" data-action="personalise-more">
+                ${/* Marked with aria-disabled rather than the disabled attribute:
+                      a disabled button swallows the click, and the control has to
+                      be able to answer someone who tries it. */ ""}
+                <button class="button button--ghost button--block" type="button" data-action="personalise-more"
+                        ${PERSONALISE_ENABLED ? "" : 'aria-disabled="true"'}>
                   Personalise the design more
                 </button>
                 <p class="caption caption--fine">Gift purchases are non-refundable.</p>
@@ -1054,6 +1065,9 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   function renderEditor() {
+    /* Held shut at the route as well as the control, so a typed or bookmarked
+       #/personalise gets the same answer as the button. */
+    if (!PERSONALISE_ENABLED) { toast(PERSONALISE_OFF); announce(PERSONALISE_OFF); return redirect("gift"); }
     if (!state.form.recipientName) return redirect("gift");
     const t = design();
     const c = custom();
@@ -2171,6 +2185,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       /* The editor commits straight to the provider, so the gift has to be
          complete before it opens. */
       case "personalise-more": {
+        if (!PERSONALISE_ENABLED) { toast(PERSONALISE_OFF); announce(PERSONALISE_OFF); break; }
         if (!validateGroup(requiredNames())) {
           render();
           focusFirstError();

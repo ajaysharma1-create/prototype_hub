@@ -407,13 +407,18 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .button--ghost { color: var(--mu-color-text-muted); font-weight: 500; font-size: 0.8125rem; }
 .button--ghost:hover:not(:disabled) { background: var(--mu-color-action-hover); color: var(--mu-color-text-strong); }
 
-.button:disabled {
+/* One disabled treatment, reached either way. `aria-disabled` is used where the
+   control still has to answer a click; the look is identical, so nothing new is
+   introduced to the design. */
+.button:disabled,
+.button[aria-disabled="true"] {
   background: var(--mu-color-surface-subtle);
   border-color: var(--mu-color-border-subtle);
   color: var(--mu-color-text-disabled);
   cursor: not-allowed;
   opacity: 0.55;
 }
+.button[aria-disabled="true"]:hover { background: var(--mu-color-surface-subtle); color: var(--mu-color-text-disabled); }
 
 .link-button {
   min-height: var(--mu-control-height-sm);
