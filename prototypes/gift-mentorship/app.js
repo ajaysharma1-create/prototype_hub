@@ -1579,26 +1579,170 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     return parts.join(" · ") || "No delivery chosen";
   }
 
-  /* ---------------------------------------------------------- confirmed -- */
+  /* ============================================================ WhatsApp ==
+     Message templates, written to the WhatsApp Cloud API's own shape.
+
+     These are the artefacts that would be submitted to Meta for approval, one
+     per gift design, so the occasion the purchaser chose survives into the
+     message the recipient actually receives. Nothing here sends anything: the
+     structure is real, the delivery is not. See §"what is real and what is not"
+     in whatsapp-template-spec.md.
+
+     Every template shares one positional contract, and every body uses the five
+     in ascending order of appearance, because Meta's validator requires
+     placeholders to be sequential and a body may neither open nor close on one:
+
+       body {{1}}  sender's first name
+       body {{2}}  conversations range, e.g. "4-10 conversations"
+       body {{3}}  the purchaser's note, already quoted, or its stand-in
+       body {{4}}  claim code
+       body {{5}}  validity window, e.g. "4 months"
+       header {{1}}  recipient's first name   (components number independently)
+       button {{1}}  claim code, as the URL's dynamic suffix
+
+     Header is capped at 60 characters, footer at 60 with no variables, and a URL
+     button's label at 25. Those limits are held below rather than assumed. */
+
+  const WA_API_VERSION = "v23.0";
+  const WA_LANGUAGE = "en";
+  const WA_FOOTER = "Gifted through MentorUnion";
+  const WA_BUTTON_LABEL = "Claim your gift";
+  const WA_BUTTON_URL = "https://mentorunion.com/claim/{{1}}";
+
+  /* A template cannot skip a placeholder: every one it declares must be supplied
+     on every send. When no note was written, {{3}} still has to carry something,
+     and it has to read as a paragraph in its own right rather than as an empty
+     quotation. */
+  const WA_NO_NOTE = "They did not leave a note, but they chose this one for you.";
+
+  const WHATSAPP_TEMPLATES = {
+    signature: {
+      name: "gift_ready_signature",
+      header: "A gift for {{1}}",
+      body: "Someone has been thinking about what comes next for you. {{1}} has gifted you {{2}} with MentorUnion, "
+        + "which is time with mentors you pick yourself.\n\n{{3}}\n\nYour claim code is {{4}}. There is no rush: the "
+        + "gift waits until you claim it, and the {{5}} only start counting from that day."
+    },
+    milestone: {
+      name: "gift_ready_milestone",
+      header: "Congratulations, {{1}}",
+      body: "You did it. {{1}} has sent you {{2}} with MentorUnion, time with people who have already made the move "
+        + "you are making.\n\n{{3}}\n\nYour claim code is {{4}}. Claim whenever you are ready; the {{5}} start from "
+        + "that day, not today."
+    },
+    birthday: {
+      name: "gift_ready_birthday",
+      header: "Happy birthday, {{1}}",
+      body: "Not a thing to find space for, just time with people who have been where you are going. {{1}} has gifted "
+        + "you {{2}} with MentorUnion.\n\n{{3}}\n\nYour claim code is {{4}}. Claim them when you like; the {{5}} start "
+        + "from that day."
+    },
+    chapter: {
+      name: "gift_ready_chapter",
+      header: "A new chapter, {{1}}",
+      body: "Something for the turn you are making. {{1}} has sent you {{2}} with MentorUnion, with mentors who have "
+        + "made the same one.\n\n{{3}}\n\nYour claim code is {{4}}. Nothing expires while the gift sits unclaimed, and "
+        + "the {{5}} start the day you claim it."
+    },
+    rakhi: {
+      name: "gift_ready_rakhi",
+      header: "Happy Raksha Bandhan, {{1}}",
+      body: "The kind of looking out for you that lasts a good deal longer than a day. {{1}} has sent you {{2}} with "
+        + "MentorUnion, with mentors of your choosing.\n\n{{3}}\n\nYour claim code is {{4}}. Claim them whenever you "
+        + "like; the {{5}} start from that day."
+    },
+    note: {
+      name: "gift_ready_note",
+      header: "A note for {{1}}",
+      body: "This came with more than a note. {{1}} has sent you {{2}} with mentors you choose yourself, and "
+        + "wrote:\n\n{{3}}\n\nYour claim code is {{4}}. A conversation costs 1 to 3 credits, always shown before you "
+        + "book, and the {{5}} start the day you claim them."
+    }
+  };
+
+  /* Template parameters may not carry newlines, tabs, or runs of four or more
+     spaces; a send containing them is rejected outright rather than reformatted.
+     The note is free text typed by a purchaser, so it is flattened here. */
+  function waParam(value) {
+    return String(value ?? "").replace(/\s+/g, " ").trim();
+  }
+
+  function waTemplate(order) {
+    return WHATSAPP_TEMPLATES[order.designId] || WHATSAPP_TEMPLATES.signature;
+  }
+
+  /* The five body parameters, in the order the contract above declares them. */
+  function waBodyParams(order) {
+    const note = waParam(order.message);
+    return [
+      waParam(order.senderName),
+      waParam(order.range),
+      note ? `"${note}"` : WA_NO_NOTE,
+      order.code,
+      waParam(order.validityLabel)
+    ];
+  }
+
+  /* The request as it would leave the server: exactly the body posted to
+     /{phone-number-id}/messages, no more and no less. Built only from a paid
+     order, so the claim code in it is always one that exists. */
+  function waPayload(order) {
+    const t = waTemplate(order);
+    return {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: order.recipientPhoneE164 || "",
+      type: "template",
+      template: {
+        name: t.name,
+        language: { code: WA_LANGUAGE },
+        components: [
+          { type: "header", parameters: [{ type: "text", text: waParam(recipientLabel(order.recipientName)) }] },
+          { type: "body", parameters: waBodyParams(order).map((text) => ({ type: "text", text })) },
+          { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: order.code }] }
+        ]
+      }
+    };
+  }
+
+  function waRequest(order) {
+    return {
+      method: "POST",
+      url: `https://graph.facebook.com/${WA_API_VERSION}/{PHONE_NUMBER_ID}/messages`,
+      headers: { Authorization: "Bearer {ACCESS_TOKEN}", "Content-Type": "application/json" },
+      body: waPayload(order)
+    };
+  }
+
+  /* Substituting the parameters back into the registered text gives the message
+     the recipient would read. The prepared share below is built from this, so
+     what the prototype actually sends and what the API would send are the same
+     words rather than two drafts that drift. */
+  function waRendered(order) {
+    const t = waTemplate(order);
+    const body = waBodyParams(order);
+    return {
+      header: t.header.replace("{{1}}", recipientLabel(order.recipientName)),
+      body: t.body.replace(/\{\{([1-5])\}\}/g, (_m, n) => body[Number(n) - 1]),
+      footer: WA_FOOTER,
+      buttonLabel: WA_BUTTON_LABEL,
+      buttonUrl: WA_BUTTON_URL.replace("{{1}}", order.code)
+    };
+  }
 
   /* The finished gift as plain text: the same facts the card and the email carry,
      in the form a message app will take. Only ever built from a paid order, so
      the code is always real by the time this runs. */
   function giftShareText(order) {
-    return [
-      `${order.senderName} has gifted you ${order.range} with MentorUnion.`,
-      order.message.trim() ? `“${order.message.trim()}”` : "",
-      `Your claim code: ${order.code}`,
-      /* The same call to action the email and the printed card carry. */
-      `Claim your gift → ${CLAIM_URL}`,
-      "It works once and it never expires."
-    ].filter(Boolean).join("\n\n");
+    const m = waRendered(order);
+    return `${m.header}\n\n${m.body}\n\n${m.buttonLabel}: ${m.buttonUrl}\n\n${m.footer}`;
   }
 
   /* PROTOTYPE BEHAVIOUR, not an integration. wa.me is WhatsApp's own share link:
      it opens WhatsApp with the message composed and, if a number was given, the
      conversation already chosen. The purchaser still presses send. Nothing here
-     sends a WhatsApp message on MentorUnion's behalf. */
+     sends a WhatsApp message on MentorUnion's behalf, and no Cloud API request is
+     issued; waRequest() describes the call, it does not make it. */
   function whatsappShareHref(order) {
     return `https://wa.me/${order.recipientPhoneE164 || ""}?text=${encodeURIComponent(giftShareText(order))}`;
   }
@@ -1729,6 +1873,19 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
               <a class="button button--primary" href="#/">Back to MentorUnion</a>
               <button class="button button--secondary" type="button" data-action="gift-again">Create another gift</button>
             </div>
+
+            ${/* Last on the page and shut by default, so the purchaser's screen
+                  is unchanged and engineering still has the request to hand while
+                  walking the flow. It exists only here, after payment, because
+                  the payload cannot be built before a code exists. */ ""}
+            <details class="dev-note">
+              <summary>Engineering reference: the WhatsApp request this would issue</summary>
+              <p class="dev-note__lede">Template <code>${e(waTemplate(order).name)}</code>, chosen by the gift design.
+                Nothing is sent by this prototype; this is the request the integration would make.</p>
+              <pre class="dev-note__code"><code>${e(JSON.stringify(waRequest(order), null, 2))}</code></pre>
+              <p class="dev-note__lede">Rendered for the recipient:</p>
+              <pre class="dev-note__code"><code>${e(giftShareText(order))}</code></pre>
+            </details>
           </div>
 
           <aside class="confirm-aside" aria-labelledby="print-title">
@@ -2122,6 +2279,15 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     state.order = order;
     state.payment.status = "idle";
     navigate("gift/confirmed");
+
+    /* The point at which the server would call the Cloud API. Logged rather than
+       sent, so the team walking this prototype can read the exact request the
+       integration has to make without one being made. */
+    if (order.delivery.whatsapp) {
+      /* eslint-disable-next-line no-console */
+      console.info("[SIMULATED] WhatsApp Cloud API request that would be issued now:", waRequest(order));
+    }
+
     /* SIMULATED delivery: no email is composed, queued or sent. */
     announce(order.delivery.email && order.delivery.when === "later"
       ? "Payment successful. Your gift is scheduled and the claim code is ready."

@@ -1537,6 +1537,44 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 }
 .share-card__note { display: block; margin-block-start: 1px; color: var(--mu-color-text-muted); font-size: 0.6875rem; line-height: 1.45; }
 
+/* Reference material for the team reading the build, not part of the gifting
+   experience: quiet, last, and shut until someone asks for it. */
+.dev-note {
+  /* A grid item defaults to min-width: auto, which would let the payload's own
+     width push the column and the page wider than the viewport. */
+  min-width: 0;
+  border: 1px dashed var(--mu-color-border);
+  border-radius: var(--mu-radius-control);
+  background: var(--mu-color-surface-subtle);
+}
+.dev-note > summary {
+  padding: var(--mu-space-3);
+  color: var(--mu-color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dev-note > summary:hover { color: var(--mu-color-text-strong); }
+.dev-note[open] > summary { border-block-end: 1px dashed var(--mu-color-border); }
+.dev-note__lede { padding: var(--mu-space-3) var(--mu-space-3) 0; color: var(--mu-color-text-muted); font-size: 0.6875rem; }
+.dev-note__lede code { color: var(--mu-color-text-strong); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+/* Wide content scrolls inside its own box rather than widening the page. */
+.dev-note__code {
+  min-width: 0;
+  margin: var(--mu-space-2) var(--mu-space-3) var(--mu-space-3);
+  padding: var(--mu-space-3);
+  border-radius: var(--mu-radius-small);
+  background: var(--mu-color-canvas-deep);
+  color: var(--mu-color-text);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
 .next-list { display: grid; gap: var(--mu-space-3); margin-block-start: var(--mu-space-3); counter-reset: step; }
 .next-list li { position: relative; padding-inline-start: var(--mu-space-6); }
 .next-list li::before {
