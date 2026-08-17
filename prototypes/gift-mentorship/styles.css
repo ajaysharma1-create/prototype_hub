@@ -2052,6 +2052,504 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .editor-stage__inner { max-height: 40vh; }
 }
 
+/* ============================================================== */
+/*  Signed-in platform surface — the claim journey                */
+/*                                                                */
+/*  Transcribed from two sources, in this order:                  */
+/*                                                                */
+/*  1. live/mentee-direct-onboarding/prototype — the All Mentors  */
+/*     dashboard (its `mentorunion-schema.css` and the `.am`      */
+/*     shell). That is the concrete authenticated product this    */
+/*     flow has to belong to: left icon rail, topbar carrying the */
+/*     page title and its actions, hairline panels, 46px controls.*/
+/*  2. shared/design/platform-design-schema.md v1.1.0, which      */
+/*     governs where the two differ.                              */
+/*                                                                */
+/*  Nothing here is imported from the mentee prototype at run     */
+/*  time: its stylesheet sets html/body/a/* globally and would    */
+/*  repaint the whole gifting journey. The recipes are copied and */
+/*  every one of them is scoped to [data-surface="platform"] or   */
+/*  to a .plat- class that only the claim journey renders, so the */
+/*  rest of this prototype keeps its own colour scheme untouched. */
+/* ============================================================== */
+
+[data-surface="platform"] {
+  /* Surfaces */
+  --mu-plat-page: #121212;
+  --mu-plat-panel: #1b1b1b;
+  --mu-plat-raised: #171717;
+  --mu-plat-inset: #121212;
+  --mu-plat-chip: #1f1f1f;
+  --mu-plat-ghost: #161616;
+  --mu-plat-ghost-hover: #1d1d1d;
+
+  /* Functional accent (amber). One accent, for primary and selected
+     emphasis only - never as a semantic status colour. Schema 1 and 10.1. */
+  --mu-plat-accent: #d2a25a;
+  --mu-plat-accent-hover: #dcab63;
+  --mu-plat-on-accent: #1a1306;
+  --mu-plat-accent-tint-12: rgb(210 162 90 / 0.12);
+  --mu-plat-accent-tint-08: rgb(210 162 90 / 0.08);
+  --mu-plat-accent-ring: rgb(210 162 90 / 0.28);
+  --mu-plat-accent-chip-border: rgb(210 162 90 / 0.22);
+
+  /* Neutral action */
+  --mu-plat-neutral: #f5f4f1;
+  --mu-plat-neutral-hover: #ffffff;
+  --mu-plat-on-neutral: #161616;
+
+  /* Text. The schema's lower-contrast legacy roles (text/muted-cool,
+     text/faint, text/placeholder) are deliberately not aliased - schema 1
+     rules them out for required copy, so nothing here can reach for them. */
+  --mu-plat-text-primary: #ffffff;
+  --mu-plat-text-high: #f4f4f4;
+  --mu-plat-text-input: #f0f0f0;
+  --mu-plat-text-label: #e9e9e9;
+  --mu-plat-text-strong: #dcdcdc;
+  --mu-plat-text-secondary: #b5b5b5;
+  --mu-plat-text-muted: #9a979b;
+  --mu-plat-text-icon: #7a7a7a;
+
+  /* Borders */
+  --mu-plat-hairline: rgb(255 255 255 / 0.06);
+  --mu-plat-divider: rgb(255 255 255 / 0.05);
+  --mu-plat-chip-border: rgb(255 255 255 / 0.08);
+  --mu-plat-control-hover: rgb(255 255 255 / 0.18);
+
+  /* The dashboard rests its controls on #2a2a2a. Schema 1 measures that at
+     1.20:1 on the panel and states it cannot be the only visual boundary, so
+     the resting border here resolves to ~#686868 and clears 3:1. Everything
+     else about the control - fill, radius, height, focus - is the
+     dashboard's. */
+  --mu-plat-control: rgb(255 255 255 / 0.34);
+
+  /* Status. Schema 1 defines only this legacy error value and forbids
+     inventing success/warning/info. It is 4.23:1 on the panel, so it is used
+     as a NON-TEXT cue only - icon and border, where the 3:1 non-text bar
+     applies - while every error word sits in a conforming text role. The
+     tints below are the same 12%/22% recipe the dashboard uses for its
+     accent callout, applied to the documented error value rather than to a
+     hue invented here. */
+  --mu-plat-error-cue: #e83e2a;
+  --mu-plat-error-tint: rgb(232 62 42 / 0.12);
+  --mu-plat-error-border: rgb(232 62 42 / 0.30);
+
+  --mu-plat-glow: 0 4px 18px rgb(210 162 90 / 0.18);
+
+  /* Radii - schema 4 */
+  --mu-plat-radius-chip: 6px;
+  --mu-plat-radius-control: 8px;
+  --mu-plat-radius-input: 9px;
+  --mu-plat-radius-menu: 10px;
+  --mu-plat-radius-panel: 14px;
+
+  /* Schema 2: the platform face is Helvetica, not the website's Montserrat. */
+  --mu-plat-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+body[data-surface="platform"] {
+  background: var(--mu-plat-page);
+  color: var(--mu-plat-text-high);
+  font-family: var(--mu-plat-font);
+}
+body[data-surface="platform"] .site-header,
+body[data-surface="platform"] .site-footer { display: none; }
+
+body[data-surface="platform"] :focus-visible {
+  outline: 2px solid var(--mu-plat-accent);
+  outline-offset: 2px;
+  border-radius: var(--mu-plat-radius-chip);
+}
+/* Route and outcome headings are focused by script so the screen change is
+   announced. The user did not navigate to them, so they carry no ring - the
+   same rule the rest of this build already applies, restated here because the
+   platform focus rule above would otherwise win on source order. */
+body[data-surface="platform"] h1[tabindex="-1"]:focus,
+body[data-surface="platform"] h1[tabindex="-1"]:focus-visible { outline: none; }
+
+/* ==============================================================
+   Dashboard shell — the `.am` structure from the All Mentors page:
+   a fixed icon rail, then a main column whose topbar carries the
+   page title on the left and its actions on the right.
+   ============================================================== */
+
+.plat-shell { display: flex; min-height: 100vh; min-height: 100dvh; background: var(--mu-plat-page); }
+.plat-shell[hidden] { display: none; }
+
+.plat-rail {
+  width: 62px; flex: none;
+  border-inline-end: 1px solid var(--mu-plat-hairline);
+  padding: 14px 0;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+/* The dashboard's rail tile is 30px. Schema 9 requires a 44px target for new
+   platform UI, so the tile keeps its size and the hit area grows around it -
+   44 + 8 gap reproduces the reference's 52px pitch exactly. */
+.plat-rail__ico {
+  width: 44px; height: 44px; flex: none;
+  display: grid; place-items: center;
+  border: none; background: none; padding: 0;
+  color: var(--mu-plat-text-icon); cursor: pointer; text-decoration: none;
+}
+.plat-rail__tile {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border-radius: var(--mu-plat-radius-control);
+  transition: background-color 0.15s, color 0.15s;
+}
+.plat-rail__ico:hover .plat-rail__tile { background: var(--mu-plat-ghost-hover); color: var(--mu-plat-text-high); }
+.plat-rail__ico[data-current="true"] .plat-rail__tile { background: var(--mu-plat-accent-tint-12); color: var(--mu-plat-accent); }
+
+.plat-main { flex: 1; min-width: 0; padding: 22px 26px 30px; }
+
+/* Schema 3: content is held to 1120px and centred. Applied to the topbar as
+   well as the view, so on a wide monitor the claim action stays at the right
+   edge of the *content* rather than drifting into a far corner with nothing
+   under it. */
+.plat-topbar, .plat-view { max-width: 1120px; margin-inline: auto; }
+
+.plat-topbar { display: flex; align-items: center; gap: 18px; margin-block-end: 20px; }
+.plat-topbar__title {
+  margin: 0; flex: none;
+  font-size: 23px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2;
+  color: var(--mu-plat-text-primary);
+}
+
+/* --- the persistent Claim your Gift action -------------------------------
+   Sits at the right-hand end of the dashboard topbar, on the `.btn.primary`
+   recipe the dashboard already uses for its own primary action: 46px,
+   9px radius, 13.5px/700, amber fill, accent glow. It is the only amber
+   fill on the surface, per schema 10.1-10.2.
+
+   The attention treatment is a slow, low-amplitude breathe of that same
+   accent glow, three times and then at rest. No transform, no movement, no
+   second colour, and nothing the control needs in order to work. */
+.plat-claim {
+  margin-inline-start: auto; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  min-height: 46px; padding: 0 22px;
+  border: 1px solid transparent; border-radius: var(--mu-plat-radius-input);
+  background: var(--mu-plat-accent); color: var(--mu-plat-on-accent);
+  font-family: inherit; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; white-space: nowrap;
+  box-shadow: var(--mu-plat-glow);
+  transition: background-color 0.15s, box-shadow 0.15s, color 0.15s;
+  animation: plat-claim-breathe 2600ms ease-in-out 3;
+}
+.plat-claim:hover { background: var(--mu-plat-accent-hover); }
+/* Pressed reads as the glow going out - a colour and elevation change, not a
+   nudge, so nothing moves under the finger. */
+.plat-claim:active { background: var(--mu-plat-accent); box-shadow: none; }
+
+@keyframes plat-claim-breathe {
+  0%, 100% { box-shadow: 0 4px 18px rgb(210 162 90 / 0.18); }
+  50%      { box-shadow: 0 4px 22px rgb(210 162 90 / 0.34); }
+}
+
+/* The rakhi mark. Both movements are transforms on the glyph alone, so neither
+   can shift the button, the topbar or the page. The hover step is 22.5deg -
+   exactly one petal of the eight - so the rosette turns visibly and lands
+   looking identical, which is the whole of the effect. */
+.plat-claim__mark {
+  flex: none;
+  transform-origin: 50% 50%;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: plat-rakhi-settle 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.plat-claim:hover .plat-claim__mark,
+.plat-claim:focus-visible .plat-claim__mark { transform: rotate(22.5deg); }
+
+@keyframes plat-rakhi-settle {
+  from { transform: rotate(-40deg); opacity: 0; }
+  to   { transform: rotate(0); opacity: 1; }
+}
+
+/* On the claim page the action has nowhere left to send anyone, and a second
+   amber fill would compete with the submit button doing the actual work. It
+   drops to the dashboard's own selected treatment - the accent-on-tint used
+   by `.chip.sel` and the selected dropdown row. */
+.plat-claim[data-current="true"] {
+  animation: none;
+  background: var(--mu-plat-accent-tint-12);
+  border-color: var(--mu-plat-accent-chip-border);
+  color: var(--mu-plat-accent);
+  box-shadow: none;
+}
+.plat-claim[data-current="true"]:hover { background: var(--mu-plat-accent-tint-08); }
+
+/* ------------------------------------------------ platform surfaces -- */
+
+/* A focused task runs in its own centred column. The dashboard's form card is
+   452px; this is a step wider so the claim summary's label/value rows stay
+   two-column and readable. Every state of the journey shares the one measure,
+   so nothing changes width mid-flow, and the whitespace either side stays
+   balanced at every viewport instead of pooling on the right. */
+.plat-col { max-width: 560px; margin-inline: auto; display: flex; flex-direction: column; }
+/* Wide enough for the balance chip and its note to share a line, tight enough
+   that a two-part list row does not pull its halves to opposite ends of the
+   screen. */
+.plat-col--wide { max-width: 760px; margin-inline: auto; }
+
+/* The claim journey is one vertical stack on a single rhythm: 10px between the
+   supporting lines above the card, 18px before the card itself. Set here
+   rather than on each child so no element can drift out of step. */
+.plat-col > * + * { margin-block-start: 10px; }
+.plat-col > .plat-card { margin-block-start: 18px; }
+
+.plat-card {
+  background: var(--mu-plat-panel);
+  border: 1px solid var(--mu-plat-hairline);
+  border-radius: var(--mu-plat-radius-panel);
+  padding: 20px 22px;
+}
+.plat-card + .plat-card { margin-block-start: 16px; }
+.plat-card__title { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--mu-plat-text-primary); }
+.plat-card__sub { margin: 7px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--mu-plat-text-muted); }
+
+/* Held to a comfortable reading measure rather than the full column. No margin
+   of its own: the column's stack rule owns the gaps, and a shorthand here would
+   outrank it on source order. */
+.plat-lede { font-size: 13.5px; line-height: 1.55; color: var(--mu-plat-text-muted); max-width: 56ch; }
+
+/* Back affordance: the dashboard's ghost-icon idiom at a text scale. */
+/* Hangs 11px to the left so the label, not the button's padding box, lines up
+   with the column edge below it. */
+.plat-back {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  min-height: 44px; margin: 0 0 0 -11px; padding: 0 13px 0 11px;
+  border: none; border-radius: var(--mu-plat-radius-control);
+  background: transparent; color: var(--mu-plat-text-secondary);
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  text-decoration: none; cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+.plat-back:hover { background: var(--mu-plat-ghost-hover); color: var(--mu-plat-text-high); }
+
+/* ------------------------------------------------- platform controls -- */
+
+/* The dashboard's `.field`: a bordered row that owns the focus state, with a
+   borderless input inside it. */
+.plat-flabel { display: block; margin-block-end: 7px; font-size: 13px; font-weight: 600; color: var(--mu-plat-text-label); }
+/* The hint and a problem note are alternatives in one slot, so the gap below
+   the field belongs to the slot and neither of them can set a different one. */
+.plat-fieldnote { margin-block-start: 8px; }
+.plat-fhint { display: block; font-size: 12px; line-height: 1.5; color: var(--mu-plat-text-muted); max-width: 52ch; }
+
+.plat-field {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 46px; padding: 0 13px;
+  border: 1px solid var(--mu-plat-control); border-radius: var(--mu-plat-radius-input);
+  background: var(--mu-plat-inset);
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+}
+.plat-field:hover { border-color: var(--mu-plat-control-hover); }
+/* The ring-on-focus is the dashboard's own OTP-field pattern. */
+.plat-field:focus-within {
+  border-color: var(--mu-plat-accent);
+  background: var(--mu-plat-ghost);
+  box-shadow: 0 0 0 3px var(--mu-plat-accent-tint-12);
+}
+.plat-field input {
+  flex: 1; min-width: 0;
+  border: none; background: transparent; outline: none;
+  font-family: inherit; font-size: 13.5px; font-weight: 400;
+  color: var(--mu-plat-text-input);
+}
+.plat-field input::placeholder { color: var(--mu-plat-text-muted); }
+.plat-field input:disabled { cursor: not-allowed; }
+.plat-field[data-disabled="true"] { opacity: 0.6; }
+/* The wrapper carries the whole focus state, so the inner control does not
+   draw a second ring inside it. Forced colours restore one below, where the
+   author-coloured border and box-shadow are dropped. */
+body[data-surface="platform"] .plat-field input:focus-visible { outline: none; }
+
+/* Tracking and tabular figures - not a larger type step - are what make a
+   code readable character by character. */
+.plat-field--code input {
+  font-size: 15px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The dashboard's two action weights: amber primary, off-white secondary,
+   plus its quieter ghost. */
+.plat-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  min-height: 46px; padding: 0 22px;
+  border: 1px solid transparent; border-radius: var(--mu-plat-radius-input);
+  font-family: inherit; font-size: 13.5px; font-weight: 700;
+  text-decoration: none; cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+.plat-btn--primary { background: var(--mu-plat-accent); color: var(--mu-plat-on-accent); border: none; box-shadow: var(--mu-plat-glow); }
+.plat-btn--primary:hover:not(:disabled) { background: var(--mu-plat-accent-hover); }
+.plat-btn--secondary { background: var(--mu-plat-neutral); color: var(--mu-plat-on-neutral); font-weight: 600; border: none; }
+.plat-btn--secondary:hover:not(:disabled) { background: var(--mu-plat-neutral-hover); }
+.plat-btn--ghost { background: var(--mu-plat-ghost); border-color: var(--mu-plat-chip-border); color: #e8e8e8; font-weight: 600; }
+.plat-btn--ghost:hover:not(:disabled) { background: var(--mu-plat-ghost-hover); border-color: var(--mu-plat-control-hover); }
+.plat-btn--full { width: 100%; }
+.plat-btn:disabled, .plat-btn[aria-disabled="true"] { opacity: 0.5; box-shadow: none; cursor: not-allowed; }
+.plat-btn svg { flex: none; }
+
+.plat-spinner {
+  width: 15px; height: 15px; flex: none;
+  border: 2px solid currentColor; border-block-start-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+.plat-actions { margin-block-start: 16px; display: flex; flex-wrap: wrap; gap: 10px; }
+/* Inside the centred success column the row would otherwise shrink to its
+   contents, so a stacked full-width button ended up narrower than the card. */
+.plat-ok .plat-actions { width: 100%; justify-content: center; margin-block-start: 18px; }
+
+/* ------------------------------------------------------ platform notes -- */
+
+/* One component for every claim outcome that is not a success, on the
+   dashboard's `.calm` / `.callout` geometry. Meaning is carried by the
+   heading, the icon and the sentence; the tint is a cue and never the
+   message - schema 5 and 9. */
+.plat-note {
+  display: flex; gap: 11px;
+  padding: 13px 15px;
+  border: 1px solid var(--mu-plat-hairline); border-radius: var(--mu-plat-radius-menu);
+  background: rgb(255 255 255 / 0.03);
+}
+/* 18px glyph against a 13px/1.45 title: the half-leading either side is
+   (18.85 - 13) / 2, so a 0.4px nudge puts the two optical centres together. */
+.plat-note__icon { flex: none; margin-block-start: 0.4px; color: var(--mu-plat-text-muted); }
+.plat-note__title { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.45; color: var(--mu-plat-text-high); }
+.plat-note__body { margin: 3px 0 0; font-size: 12px; line-height: 1.55; color: var(--mu-plat-text-muted); }
+.plat-note__body strong { color: var(--mu-plat-text-strong); font-weight: 600; }
+.plat-note--problem {
+  background: var(--mu-plat-error-tint);
+  border-color: var(--mu-plat-error-border);
+}
+.plat-note--problem .plat-note__icon { color: var(--mu-plat-error-cue); }
+.plat-note:empty { display: none; }
+
+/* ------------------------------------------------- platform success -- */
+
+/* The outcome reads top to bottom on one rhythm: mark, verdict, detail, the
+   amount received, then the facts, then the action. Extra top padding gives the
+   badge room to be the first thing seen. */
+.plat-ok {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  /* Deeper than the form card on purpose: the badge needs room above it to be
+     the first thing read, and the actions need room below them to stop looking
+     wedged against the edge. */
+  padding-block: 30px 24px;
+}
+
+/* The dashboard's own 64px success badge, which is also the schema's
+   documented recipe. Schema 1 is explicit that amber is not a semantic
+   success definition, so the wording carries the outcome and the badge only
+   marks it - see the report's open decision on a semantic status palette. */
+/* Cords, knot, cords. The row is centred as one object, so the badge stays on
+   the column's centre line whether or not the cords have room. */
+.plat-ok__crest { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.plat-ok__cord { flex: none; color: var(--mu-plat-accent); opacity: 0.38; }
+.plat-ok__crest .plat-ok__cord:last-child { transform: scaleX(-1); }
+
+.plat-ok__badge {
+  flex: none;
+  width: 64px; height: 64px;
+  display: grid; place-items: center;
+  border: 1px solid var(--mu-plat-accent-ring); border-radius: 50%;
+  background: var(--mu-plat-accent-tint-12); color: var(--mu-plat-accent);
+  animation: plat-pop 300ms ease-out both;
+}
+@keyframes plat-pop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+
+.plat-ok__title { margin: 14px 0 0; font-size: 21px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--mu-plat-text-primary); }
+.plat-ok__sub { margin: 7px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--mu-plat-text-muted); max-width: 42ch; }
+.plat-ok__sub strong { color: var(--mu-plat-text-high); font-weight: 600; }
+
+/* The dashboard's credit chip: the platform's existing way of stating an
+   amount of credits. */
+.plat-credit-chip {
+  display: inline-flex; align-items: center; gap: 9px;
+  margin-block-start: 18px; padding: 10px 16px;
+  border: 1px solid var(--mu-plat-accent-chip-border); border-radius: var(--mu-plat-radius-input);
+  background: var(--mu-plat-accent-tint-12);
+}
+.plat-credit-chip svg { color: var(--mu-plat-accent); flex: none; }
+.plat-credit-chip b { font-size: 18px; font-weight: 800; color: var(--mu-plat-text-primary); font-variant-numeric: tabular-nums; }
+.plat-credit-chip span { font-size: 12.5px; font-weight: 600; color: var(--mu-plat-text-strong); }
+
+/* Fact rows on the schema's documented two-column form row: a 140px label
+   column, a fluid value, hairline dividers. */
+.plat-rows { width: 100%; margin-block-start: 24px; text-align: start; }
+.plat-rows > div {
+  display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px 24px;
+  padding: 14px 0; border-block-start: 1px solid var(--mu-plat-divider);
+}
+.plat-rows > div:last-child { border-block-end: 1px solid var(--mu-plat-divider); }
+.plat-rows dt { font-size: 13px; color: var(--mu-plat-text-muted); }
+.plat-rows dd { margin: 0; font-size: 13.5px; color: var(--mu-plat-text-high); }
+.plat-rows dd span { display: block; margin-block-start: 3px; font-size: 12px; line-height: 1.5; color: var(--mu-plat-text-muted); }
+
+/* --------------------------------------------- platform credits home -- */
+
+.plat-balance { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.plat-balance__note { font-size: 12.5px; color: var(--mu-plat-text-muted); }
+
+.plat-list { margin: 4px 0 0; padding: 0; list-style: none; }
+.plat-list > li {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px;
+  padding: 13px 0; border-block-start: 1px solid var(--mu-plat-divider);
+}
+.plat-list__name { font-size: 13.5px; font-weight: 600; color: var(--mu-plat-text-high); }
+.plat-list__meta { font-size: 12px; color: var(--mu-plat-text-muted); }
+
+.plat-empty { margin: 10px 0 0; font-size: 13.5px; line-height: 1.55; color: var(--mu-plat-text-muted); }
+.plat-empty a { color: var(--mu-plat-accent); font-weight: 600; }
+
+.plat-fine { margin-block-start: 18px; font-size: 11.5px; line-height: 1.5; color: var(--mu-plat-text-muted); }
+
+/* Developer-facing only: the seeded prototype codes. Shut by default so the
+   claim surface a stakeholder walks through carries no test instructions. */
+.plat-dev { margin-block-start: 20px; border-block-start: 1px solid var(--mu-plat-divider); padding-block-start: 12px; }
+.plat-dev > summary {
+  min-height: 44px; display: flex; align-items: center;
+  font-size: 12px; color: var(--mu-plat-text-muted); cursor: pointer;
+}
+.plat-dev > summary:hover { color: var(--mu-plat-text-high); }
+.plat-dev table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.plat-dev caption { text-align: start; padding-block-end: 8px; font-size: 11.5px; line-height: 1.5; color: var(--mu-plat-text-muted); }
+.plat-dev th, .plat-dev td { text-align: start; padding: 7px 10px 7px 0; border-block-end: 1px solid var(--mu-plat-divider); vertical-align: top; }
+.plat-dev th { font-weight: 600; color: var(--mu-plat-text-secondary); }
+.plat-dev td { color: var(--mu-plat-text-muted); }
+.plat-dev td:first-child { font-weight: 600; white-space: nowrap; color: var(--mu-plat-text-strong); font-variant-numeric: tabular-nums; }
+.plat-dev__scroll { overflow-x: auto; }
+
+/* ---------------------------------------------- platform responsive --
+   The dashboard's own breakpoints: the topbar wraps at 860, and at 760 the
+   rail drops away and the main column tightens its padding. */
+
+@media (max-width: 860px) {
+  .plat-topbar { flex-wrap: wrap; gap: 12px; }
+}
+
+@media (max-width: 760px) {
+  .plat-rail { display: none; }
+  .plat-main { padding: 18px 16px 28px; }
+  /* The action keeps `margin-inline-start: auto`, so it stays on the title's
+     line while it fits and drops to a right-aligned row of its own when it
+     does not. It is never hidden behind a menu, and it never becomes a
+     full-width amber bar competing with the card underneath it. */
+  .plat-topbar { row-gap: 10px; margin-block-end: 16px; }
+  .plat-rows > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .plat-rows dt { font-size: 12px; }
+  .plat-actions .plat-btn { width: 100%; }
+}
+
+@media (max-width: 30rem) {
+  .plat-card { padding: 18px 16px; }
+  .plat-ok { padding-block: 24px 20px; }
+  .plat-topbar__title { font-size: 21px; }
+}
+
 /* --------------------------------------------------------------- print -- */
 
 /* The printable card is the page when printing: a 5 x 7 inch sheet with no
@@ -2087,11 +2585,32 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
     transition-delay: 0ms !important;
   }
   .confetti { display: none; }
+  /* Schema 6: the attention treatment and the entrance are non-essential, and
+     no platform state is signalled by motion alone - the claim button also
+     changes its label and sets aria-busy while it works. */
+  .plat-claim { animation: none; box-shadow: var(--mu-plat-glow); }
+  /* The rosette settles instantly and stops turning on hover; it is decoration,
+     so removing the motion removes nothing the control needs. */
+  .plat-claim__mark { animation: none; transition: none; }
+  .plat-claim:hover .plat-claim__mark,
+  .plat-claim:focus-visible .plat-claim__mark { transform: none; }
+  .plat-ok__badge, .plat-ok__mark, .plat-spinner { animation: none; }
 }
 
 @media (forced-colors: active) {
   .size-card, .radio-card, .channel-card, .share-card, .chip, .design-option, .outcome-card,
   .segmented, .font-option, .preset, .tpl-option, .editor-panel, .claim-state { border: 1px solid CanvasText; }
+  .plat-card, .plat-note, .plat-field, .plat-credit-chip { border: 1px solid CanvasText; }
+  .plat-btn, .plat-claim { border: 1px solid ButtonText; }
+  .plat-claim[data-current="true"], .plat-rail__ico[data-current="true"] .plat-rail__tile { border: 2px solid Highlight; }
+  /* The field wrapper's amber border and ring are author colours that forced
+     colours drops, so the inner control takes its own outline back here. */
+  body[data-surface="platform"] .plat-field input:focus-visible { outline: 2px solid Highlight; outline-offset: 1px; }
+  /* The tint is the error cue in colour; forced colours drop it, so the icon
+     and heading are what remain - which is why the meaning never sat in the
+     colour to begin with. */
+  .plat-note--problem { border-width: 2px; }
+  .plat-ok__badge { forced-color-adjust: none; }
   .size-card[aria-pressed="true"], .chip[aria-pressed="true"], .design-option[aria-pressed="true"],
   .channel-card[aria-pressed="true"],
   .font-option[aria-checked="true"], .preset[aria-checked="true"], .tpl-option[aria-checked="true"],

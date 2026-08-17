@@ -135,9 +135,9 @@ Prototype interactions may intentionally simulate product actions. Any inert pol
 
 ### Current prototype limitations
 
-#### Gift Direction
+#### Gift a Career
 
-`gift-mentorship/index.html` is a front-end review prototype. Payment, email delivery, scheduling, code issuance, recipient sign-in, balance allocation, and PDF generation are simulated in the browser; no money moves and no message is sent. Gift state persists in browser storage, so it is not production-grade or secure. Policy and navigation links outside the gifting journey are intentionally inactive. Montserrat is an optional Google Fonts request; Instrument Serif and both logo masters are local.
+`gift-mentorship/index.html` is a front-end review prototype. Payment, email and WhatsApp delivery, scheduling, code issuance, recipient sign-in, balance allocation, and PDF generation are simulated in the browser; no money moves and no message is sent. Gift configuration lasts only for the current page; the simulated code ledger, claimed-gift wallet, and credit balance persist in local browser storage and are not production-grade or secure. Policy and navigation links outside the gifting journey are intentionally inactive. Montserrat is an optional Google Fonts request; Instrument Serif and both logo masters are local.
 
 #### Mentorship Credits Pricing
 

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-12",
+  "updatedAt": "2026-08-17",
   "prototypes": [
     {
       "id": "gift-mentorship",
@@ -9,13 +9,13 @@
       "type": "Product flow",
       "status": "approved",
       "version": "",
-      "updatedAt": "2026-08-12",
+      "updatedAt": "2026-08-17",
       "preview": "assets/previews/gift-mentorship.png",
       "previewAlt": "MentorUnion Gift a Career prototype showing the gift configuration page with six card designs, three gift plans and a live card preview.",
       "prototypePath": "prototypes/gift-mentorship/index.html",
       "sourcePath": "",
       "approvedBy": "Product Manager",
-      "approvalReference": "Direct PM instruction to publish the Gift a Career flow build - 2026-08-12",
+      "approvalReference": "Direct PM instruction to update and publish the Gift a Career flow build - 2026-08-17",
       "device": "Responsive web"
     },
     {

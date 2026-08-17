@@ -16,6 +16,10 @@
      gets to a shared ledger. It is neither secret nor authoritative. */
   const LEDGER_KEY = "mentorunion-gift-codes-v1";
   const BALANCE_KEY = "mentorunion-credit-balance-v1";
+  /* What each account actually holds, itemised. Kept apart from the ledger on
+     purpose: the ledger must stay unable to say who claimed a code, so the
+     entitlement is written against the account and carries no code. */
+  const WALLET_KEY = "mentorunion-credit-wallet-v1";
 
   const GST_RATE = 0.18;
   const MESSAGE_MAX = 300;
@@ -227,19 +231,76 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
      slips before anything is looked up. */
   const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
 
-  /* One source for the CTA label, so the nav and the landing stand-in can never
-     drift apart - the stand-in tells people to click it by name. */
+  /* One source for each CTA label, so the nav and the landing stand-in can never
+     drift apart - the stand-in tells people to click them by name. */
   const GIFT_CTA = "Gift a Career";
+  const SIGNUP_CTA = "Signup";
 
-  const ROUTES = ["", "gift", "personalise", "checkout", "gift/confirmed", "claim"];
+  /* ------------------------------------------- signed-in platform ------- */
+
+  /* SIMULATED session. The claiming journey happens inside the authenticated
+     platform, so the account is a given: the page already knows who is signed
+     in and never asks again. There is no auth here - this stands in for the
+     session a real platform would already hold. */
+  const SESSION = { name: "Ananya Rao", email: "ananya.rao@example.com" };
+
+  const CLAIM_CTA = "Claim your Gift";
+
+  /* Prototype claim codes. Deterministic, so every state can be demonstrated
+     and re-demonstrated without hunting for a code from a purchase.
+
+     Only the seven-character payload is written here; the check character is
+     computed by the same `checkChar` the real format uses, so a fixture can
+     never drift out of the format and be rejected before lookup. Credits,
+     names, ranges and validity are read from GIFTS at seed time rather than
+     copied, so the catalogue stays the single source.
+
+     `expires` is the ONLY place an expiry is ever set. `issueCode` does not
+     set one and is unchanged: a genuinely purchased gift still never expires
+     while it sits unclaimed, which is the rule this build already enforces.
+     See the implementation report's open decision on gift-code expiry. */
+  const PROTOTYPE_CODES = [
+    { payload: "TESTGRW", giftId: "growth", seed: "unclaimed",
+      note: "Valid and unclaimed. Redeems on submit." },
+    { payload: "TESTFCS", giftId: "focus", seed: "unclaimed",
+      note: "Valid and unclaimed, smallest gift." },
+    { payload: "TESTACC", giftId: "accelerator", seed: "unclaimed",
+      note: "Valid and unclaimed, largest gift." },
+    { payload: "TESTDNE", giftId: "growth", seed: "claimed",
+      note: "Already claimed before this session began." },
+    { payload: "TESTXPD", giftId: "focus", seed: "expired", expiresDaysAgo: 26,
+      note: "Exists, but past the date it could be claimed." }
+  ];
+
+  /* Never seeded, and named here so the invalid path has documented inputs
+     too. Both answer identically - see `resolveClaim`. */
+  const PROTOTYPE_INVALID = [
+    { code: "MU-TEST-BADQ", note: "Correctly formed, but no such gift exists." },
+    { code: "MU-TEST-BADX", note: "Check character does not match; never reaches a lookup." }
+  ];
+
+  const ROUTES = ["", "gift", "personalise", "checkout", "gift/confirmed", "claim",
+                  "app", "app/claim"];
   const ROUTE_TITLES = {
     "": GIFT_CTA,
     "gift": "Create your gift",
     "personalise": "Personalise the design",
     "checkout": "Checkout",
     "gift/confirmed": "Gift confirmed",
-    "claim": "Claim a gift"
+    "claim": "Claim a gift",
+    "app": "Your credits",
+    "app/claim": CLAIM_CTA
   };
+
+  /* Routes rendered inside the signed-in platform shell rather than the
+     marketing one. The two shells are mutually exclusive. */
+  const PLATFORM_ROUTES = ["app", "app/claim"];
+
+  /* Addresses that are already in print and must keep working, forwarded to
+     where the journey now lives. `mentorunion.com/claim` is on every gift card
+     ever produced by this build, and claiming now happens inside the signed-in
+     platform, so a card already handed over still lands in the right place. */
+  const ROUTE_ALIASES = { "claim": "app/claim" };
 
   /* Transparent 376x111 lockup - white artwork, used on dark grounds directly.
      The supplied dark-variant board is used on light heroes, where its white
@@ -269,8 +330,12 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   const toastRegion = document.querySelector("#toast-region");
   const navInner = document.querySelector(".nav-inner");
   const menuToggle = document.querySelector(".menu-toggle");
+  const pageMain = document.querySelector(".page-main");
+  const platShell = document.querySelector("#plat-shell");
+  const platView = document.querySelector("#plat-view");
+  const platTitle = document.querySelector("#plat-page-title");
 
-  const timers = { payment: null, toast: null };
+  const timers = { payment: null, toast: null, claim: null };
 
   /* --------------------------------------------------------------- state -- */
 
@@ -295,7 +360,10 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       payment: { method: "upi", status: "idle", failure: "" },
       previewOpen: true,
       order: null,
-      claim: { input: "", stage: "entry", code: "", account: "", claimedCredits: 0, errors: {} }
+      claim: { input: "", stage: "entry", code: "", account: "", claimedCredits: 0, errors: {} },
+      /* The signed-in claim page. `problem` is the last resolved failure and
+         `gift` the facts of a completed redemption; only one is ever set. */
+      appClaim: { input: "", status: "idle", problem: "", expiredOn: "", gift: null }
     };
   }
 
@@ -660,6 +728,170 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     return all[key];
   }
 
+  /* ------------------------------------------- account entitlements ------ */
+
+  /* What the account holds, itemised, so the credits page can say what each
+     block of credits was and how long it lasts. Deliberately carries no code:
+     linking an account to a code is exactly what the ledger refuses to do. */
+  function readWallet(account) {
+    try { return JSON.parse(localStorage.getItem(WALLET_KEY) || "{}")[String(account).toLowerCase()] || []; }
+    catch (_error) { return []; }
+  }
+
+  function addEntitlement(account, entry) {
+    let all = {};
+    try { all = JSON.parse(localStorage.getItem(WALLET_KEY) || "{}"); } catch (_error) { all = {}; }
+    const key = String(account).toLowerCase();
+    all[key] = [entry, ...(all[key] || [])];
+    try { localStorage.setItem(WALLET_KEY, JSON.stringify(all)); } catch (_error) { /* ignore */ }
+    return all[key];
+  }
+
+  /* ------------------------------------------------ validity arithmetic -- */
+
+  /* The catalogue states validity as "2 months" / "4 months" / "6 months", and
+     this build's established rule is that the clock starts the day the gift is
+     claimed. Both facts already exist, so the end date is arithmetic on them
+     rather than a new commercial term. An unparseable label yields no date and
+     the label is shown alone. */
+  function validityMonths(label) {
+    const found = /(\d+)\s*month/i.exec(String(label || ""));
+    return found ? Number(found[1]) : 0;
+  }
+
+  function addMonths(from, months) {
+    const d = new Date(from.getTime());
+    const day = d.getDate();
+    /* Set to the 1st before shifting: 31 January + 1 month must not roll into
+       March. The day is then clamped to the target month's length. */
+    d.setDate(1);
+    d.setMonth(d.getMonth() + months);
+    d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+    return d;
+  }
+
+  function validityEnd(fromISO, label) {
+    const months = validityMonths(label);
+    if (!months) return null;
+    const from = new Date(fromISO);
+    return Number.isNaN(from.getTime()) ? null : addMonths(from, months);
+  }
+
+  /* --------------------------------------------- prototype claim codes --- */
+
+  function prototypeCode(payload) { return formatCode(payload + checkChar(payload)); }
+
+  /* SIMULATED. Writes the fixture codes into the same store real issuance
+     uses, so the claim page has one lookup path rather than a test branch.
+
+     A fixture is only written when it is absent, so a code claimed in an
+     earlier session stays claimed across reloads - which is the single-use
+     rule, not a bug. `force` is the developer reset behind the details block
+     on the claim page; it touches nothing but the fixtures. */
+  function seedPrototypeCodes({ force = false } = {}) {
+    const ledger = readLedger();
+    let changed = false;
+
+    PROTOTYPE_CODES.forEach((fixture) => {
+      const code = prototypeCode(fixture.payload);
+      if (ledger[code] && !force) return;
+      const g = GIFTS[fixture.giftId];
+      if (!g) return;
+
+      const issued = new Date();
+      issued.setDate(issued.getDate() - 40);
+      const expired = fixture.seed === "expired";
+      const expiresAt = expired
+        ? new Date(Date.now() - (fixture.expiresDaysAgo || 1) * 86400000).toISOString()
+        : null;
+
+      ledger[code] = {
+        status: fixture.seed === "claimed" ? "claimed" : "unclaimed",
+        credits: g.credits,
+        giftName: g.name,
+        range: conversationLabel(g),
+        validityLabel: g.validityLabel,
+        issuedAt: issued.toISOString(),
+        claimedAt: fixture.seed === "claimed" ? new Date(Date.now() - 9 * 86400000).toISOString() : null,
+        expiresAt,
+        /* Marks a fixture so the developer reset can never disturb a code that
+           came out of a real run through the purchase flow. */
+        prototype: true
+      };
+      changed = true;
+    });
+
+    if (changed) writeLedger(ledger);
+  }
+
+  /* Surrounding whitespace, lower case, missing or extra dashes and a typed or
+     omitted MU prefix all reduce to the same payload. Unlike the shared
+     `normaliseCode` this does not truncate, so an over-long entry stays
+     over-long and is answered as invalid rather than quietly passing. */
+  function claimPayload(raw) {
+    return String(raw || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/^MU/, "");
+  }
+
+  /* Issued codes carry no `expiresAt`, so this is false for every gift that
+     came out of the purchase flow - the build's "no expiry" rule is intact. */
+  function codeExpired(record) {
+    if (!record || !record.expiresAt) return false;
+    const at = new Date(record.expiresAt);
+    return !Number.isNaN(at.getTime()) && at.getTime() < Date.now();
+  }
+
+  /* ============================================================
+     The claim seam.
+
+     Every simulated part of redemption is behind this one function. It takes
+     what the user typed and returns an outcome plus, on success, the facts
+     the success screen needs. The UI switches on `outcome` and reads nothing
+     from storage itself, so replacing this body with a server call - and
+     nothing else - moves the flow onto a real backend.
+
+     outcome: "empty" | "invalid" | "already-claimed" | "expired" | "redeemed"
+     ============================================================ */
+  function resolveClaim(rawInput, account) {
+    const typed = String(rawInput || "").trim();
+    const cleaned = claimPayload(typed);
+
+    if (!cleaned) return { outcome: "empty" };
+
+    /* Shape and check character before the store is consulted, so a mistyped
+       code never becomes a lookup - and an unknown code is answered exactly as
+       a malformed one, so the page cannot be used to discover which codes
+       exist. The length test is this surface's own: the shared normaliser
+       truncates, which would let trailing junk pass as a valid code. */
+    if (cleaned.length !== 8 || !codeWellFormed(typed)) return { outcome: "invalid" };
+
+    const code = displayCode(typed);
+    const ledger = readLedger();
+    const record = ledger[code];
+    if (!record) return { outcome: "invalid" };
+    if (record.status === "claimed") return { outcome: "already-claimed" };
+    if (codeExpired(record)) return { outcome: "expired", expiredOn: record.expiresAt };
+
+    /* Claimed here, on the record just read, then written back in the same
+       breath: a code claimed in another tab between a look and a submit is
+       caught rather than double-spent. */
+    const claimedAt = new Date().toISOString();
+    record.status = "claimed";
+    record.claimedAt = claimedAt;
+    writeLedger(ledger);
+
+    const gift = {
+      credits: record.credits,
+      giftName: record.giftName,
+      range: record.range,
+      validityLabel: record.validityLabel,
+      claimedAt
+    };
+    addBalance(account, record.credits);
+    addEntitlement(account, gift);
+
+    return { outcome: "redeemed", gift, balance: readBalance(account) };
+  }
+
   /* --------------------------------------------------------- form parts -- */
 
   function field({ id, label, value, type = "text", autocomplete = "off", inputmode = "text",
@@ -729,14 +961,19 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   /* ------------------------------------------------------------ landing -- */
 
   /* The marketing site is out of scope. This route stands in for it so the nav has
-     somewhere to sit and the prototype has an obvious starting point. */
+     somewhere to sit and the prototype has an obvious starting point.
+
+     Two ways in, because there are two journeys: the purchaser configures a gift
+     on the public site, and the recipient claims one inside the signed-in
+     platform. Sign-up is out of scope, so "Signup" stands in for it. */
   function renderLanding() {
     return `
       <section class="stand-in">
         <h1 class="stand-in__note" tabindex="-1">
-          <span>Consider this as a Landing page,</span>
-          <span>the core prototype starts as you</span>
-          <span>click <em>“${e(GIFT_CTA)}”</em></span>
+          <span>Consider this as a Landing page.</span>
+          <span>To send a gift, click <em>“${e(GIFT_CTA)}”</em>.</span>
+          <span>To claim one, click <em>“${e(SIGNUP_CTA)}”</em>,</span>
+          <span>which takes you inside the platform.</span>
         </h1>
       </section>`;
   }
@@ -1828,7 +2065,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
               <p class="claim-code-card__value numeric" data-code>${e(order.code)}</p>
               <div class="claim-code-card__actions">
                 <button class="button button--secondary" type="button" data-action="copy-code">Copy code</button>
-                <a class="button button--quiet" href="#/claim">Open the claim page</a>
+                <a class="button button--quiet" href="#/app/claim">Open the claim page</a>
               </div>
               <p class="caption">Single use. Anyone holding it can claim it, and it stops working the
                 moment it is claimed. It has no expiry date.</p>
@@ -1903,7 +2140,16 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   }
 
   /* ==================================================================
-     Claim a Gift - the recipient's journey
+     Claim a Gift - SUPERSEDED signed-out journey
+
+     This is the original website-styled claim page, which found the gift and
+     then asked for an email to sign in with. Claiming now happens inside the
+     signed-in platform - see renderAppClaim - so `#/claim` forwards there and
+     nothing renders this any more.
+
+     It is left in place, unreferenced, only until the team confirms that no
+     signed-out claim surface is wanted. Nothing links to it; deleting it and
+     its handlers is a tidy-up, not a behaviour change.
      ================================================================== */
 
   function renderClaim() {
@@ -2005,6 +2251,302 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       </div>`;
   }
 
+  /* ==================================================================
+     Signed-in platform - Your credits, and Claim your Gift
+
+     Every screen below is built from the All Mentors dashboard in
+     live/mentee-direct-onboarding/prototype - its panels, fields, buttons,
+     callouts, success badge and credit chip - within the rules of
+     shared/design/platform-design-schema.md. Nothing here reuses a component
+     from the gifting journey, and the gifting journey reuses nothing from
+     here.
+
+     Icons are inline SVG on the schema's own icon rule (stroke, round caps
+     and joins) rather than the dashboard's Material Symbols webfont: this
+     prototype must render with no network, and a missing icon font would
+     print the glyph names as text.
+     ================================================================== */
+
+  function conversationsFor(credits) {
+    return `${Math.ceil(credits / CREDIT_COST_MAX)}–${credits} conversations`;
+  }
+
+  const COIN_ICON = `
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <ellipse cx="12" cy="6.2" rx="8" ry="3.2"/>
+      <path d="M4 6.2v11.6c0 1.77 3.58 3.2 8 3.2s8-1.43 8-3.2V6.2"/>
+      <path d="M4 12c0 1.77 3.58 3.2 8 3.2s8-1.43 8-3.2"/>
+    </svg>`;
+
+  /* The dashboard's credit chip: the platform's existing way of stating an
+     amount of credits, reused rather than re-invented. */
+  function creditChip(credits) {
+    return `
+      <p class="plat-credit-chip">
+        ${COIN_ICON}
+        <b>${e(credits)}</b>
+        <span>${credits === 1 ? "credit" : "credits"}</span>
+      </p>`;
+  }
+
+  function renderAppHome() {
+    const balance = readBalance(SESSION.email);
+    const wallet = readWallet(SESSION.email);
+
+    return `
+      <div class="plat-col--wide">
+        <section class="plat-card" aria-labelledby="balance-title">
+          <h2 class="plat-card__title" id="balance-title">Available balance</h2>
+          <div class="plat-balance">
+            ${creditChip(balance)}
+            <span class="plat-balance__note">${balance > 0
+              ? `Enough for ${e(conversationsFor(balance))}. A conversation costs 1 to 3 credits, always shown before you book.`
+              : "A conversation costs 1 to 3 credits, always shown before you book."}</span>
+          </div>
+        </section>
+
+        <section class="plat-card" aria-labelledby="wallet-title">
+          <h2 class="plat-card__title" id="wallet-title">Where these came from</h2>
+          ${wallet.length === 0
+            ? `<p class="plat-empty">Nothing claimed yet. If someone has sent you a gift,
+                 <a href="#/app/claim">claim it with your code</a>.</p>`
+            : `<ul class="plat-list">
+                 ${wallet.map((item) => {
+                   const until = validityEnd(item.claimedAt, item.validityLabel);
+                   return `
+                     <li>
+                       <span class="plat-list__name">${e(item.giftName)} gift · ${e(item.credits)} credits</span>
+                       <span class="plat-list__meta">Claimed ${e(formatDate(new Date(item.claimedAt)))}${
+                         until ? ` · valid until ${e(formatDate(until))}` : ` · valid ${e(item.validityLabel)}`}</span>
+                     </li>`;
+                 }).join("")}
+               </ul>`}
+        </section>
+
+        <p class="plat-fine">Balances and claimed gifts in this prototype are held in this browser.
+          <em>Simulated — no account or server is involved.</em></p>
+      </div>`;
+  }
+
+  /* ---------------------------------------------------- claim your gift -- */
+
+  /* One woven cord, drawn the way the Rakhi gift design draws it - a heavier
+     stroke with a lighter one shadowing it. Mirrored by CSS for the other side
+     of the success badge. */
+  const OK_CORD = `
+    <svg class="plat-ok__cord" width="58" height="20" viewBox="0 0 58 20" fill="none"
+         stroke="currentColor" stroke-linecap="round" aria-hidden="true">
+      <path d="M2 9C14 3 26 15 38 9c7-3.5 12 1.5 18 0" stroke-width="1.7" opacity=".85"/>
+      <path d="M2 12.5C14 6.5 26 18.5 38 12.5c7-3.5 12 1.5 18 0" stroke-width="1" opacity=".45"/>
+    </svg>`;
+
+  /* The resting content of the slot under the field. Shared, because the input
+     handler puts it back the moment a problem stops applying. */
+  const CLAIM_HINT = `<span class="plat-fhint" id="appClaimCode-hint">Twelve characters, in the
+    shape MU-XXXX-XXXX. Capitals, dashes and stray spaces are all handled for you.</span>`;
+
+  const NOTE_GLYPH = `
+    <svg class="plat-note__icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+         aria-hidden="true">
+      <circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.2"/><path d="M12 16.4h.01"/>
+    </svg>`;
+
+  /* One component for every claim outcome that is not a success, on the
+     dashboard's callout geometry. The heading names what happened, the body
+     says what to do about it, and the tint is a cue the message never depends
+     on - schema 5 and 9. */
+  function claimNote(problem, detail) {
+    const COPY = {
+      empty: {
+        severe: false,
+        title: "Enter your claim code",
+        body: "The code is printed on the gift you were sent."
+      },
+      /* An unknown code and a malformed one are answered identically, so the
+         page cannot be used to work out which codes exist. */
+      invalid: {
+        severe: true,
+        title: "We couldn't validate that code",
+        body: "Check it against the gift it came on. Codes never contain the letters I, L, O or U, or the digits 0 or 1."
+      },
+      /* Names no one: not who claimed it, and not when. */
+      "already-claimed": {
+        severe: true,
+        title: "This gift has already been claimed",
+        body: "A claim code works once. If you think this is wrong, the person who sent it can check their order with support."
+      },
+      expired: {
+        severe: true,
+        title: "This gift can no longer be claimed",
+        body: `It passed its claim date${detail ? ` on <strong>${e(detail)}</strong>` : ""}. The person who sent it can check their order with support.`
+      }
+    };
+    const copy = COPY[problem];
+    if (!copy) return "";
+    return `
+      <div class="plat-note ${copy.severe ? "plat-note--problem" : ""}" role="alert">
+        ${NOTE_GLYPH}
+        <div>
+          <p class="plat-note__title">${copy.title}</p>
+          <p class="plat-note__body">${copy.body}</p>
+        </div>
+      </div>`;
+  }
+
+  function renderAppClaim() {
+    const c = state.appClaim;
+    if (c.gift) return renderAppClaimSuccess(c.gift);
+
+    const busy = c.status === "checking";
+    const detail = c.problem === "expired" && c.expiredOn ? formatDate(new Date(c.expiredOn)) : "";
+
+    return `
+      <div class="plat-col">
+        <a class="plat-back" href="#/app">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+               stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.5 2.5 4.5 7l5 4.5"/>
+          </svg>
+          Your credits
+        </a>
+
+        <p class="plat-lede">Enter the code from your gift and its credits are added to this account —
+          ${e(SESSION.email)}. Nothing else is needed.</p>
+
+        <section class="plat-card">
+          <form id="app-claim-form" novalidate ${busy ? 'aria-busy="true"' : ""}>
+            <label class="plat-flabel" for="appClaimCode">Claim code</label>
+            <div class="plat-field plat-field--code" data-disabled="${busy ? "true" : "false"}">
+              <input id="appClaimCode" data-field="appClaimCode" type="text" inputmode="text"
+                     autocomplete="off" autocapitalize="characters" spellcheck="false"
+                     maxlength="20" value="${e(c.input)}" placeholder="MU-XXXX-XXXX"
+                     ${busy ? "disabled" : ""}
+                     aria-invalid="${c.problem ? "true" : "false"}"
+                     aria-describedby="${c.problem ? "app-claim-note" : "appClaimCode-hint"}">
+            </div>
+
+            ${/* One supporting block under the field, never two. A note answers
+                  the same question the hint was answering and answers it about
+                  the code actually typed, so it takes the hint's place rather
+                  than stacking on top of it - which keeps the hierarchy clean
+                  and roughly halves how far the button moves. */ ""}
+            <div class="plat-fieldnote" id="app-claim-note">${
+              c.problem ? claimNote(c.problem, detail) : CLAIM_HINT}</div>
+
+            <div class="plat-actions">
+              <button class="plat-btn plat-btn--primary plat-btn--full" type="submit"
+                      data-claim-submit ${busy ? "disabled" : ""}>
+                ${busy ? '<span class="plat-spinner" aria-hidden="true"></span>Checking your code' : "Claim this gift"}
+              </button>
+            </div>
+          </form>
+
+          ${prototypeCodeReference()}
+        </section>
+      </div>`;
+  }
+
+  function renderAppClaimSuccess(g) {
+    const balance = readBalance(SESSION.email);
+    const until = validityEnd(g.claimedAt, g.validityLabel);
+
+    return `
+      <div class="plat-col">
+        <section class="plat-card plat-ok">
+          ${/* The rakhi again, at the size the moment deserves: two woven cords
+                running into a central knot, with the success badge as the knot.
+                Same motif and same single colour as the header action, so the
+                occasion is referenced twice in one language rather than twice
+                in two. The cords are decoration and are hidden from assistive
+                technology; the badge and the wording carry the meaning. */ ""}
+          <div class="plat-ok__crest">
+            ${OK_CORD}
+            <div class="plat-ok__badge" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor"
+                   stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 16.5 13.5 22 24 11"/>
+              </svg>
+            </div>
+            ${OK_CORD}
+          </div>
+
+          <h1 class="plat-ok__title" tabindex="-1">Gift claimed</h1>
+          <p class="plat-ok__sub">${e(g.credits)} credits are in
+            <strong>${e(SESSION.name)}</strong>'s account and ready to use now.</p>
+
+          ${creditChip(g.credits)}
+
+          <dl class="plat-rows">
+            <div>
+              <dt>Gift</dt>
+              <dd>${e(g.giftName)} · ${e(g.range)}</dd>
+            </div>
+            <div>
+              <dt>Added to</dt>
+              <dd>${e(SESSION.email)}</dd>
+            </div>
+            <div>
+              <dt>Balance now</dt>
+              <dd>${e(balance)} credits
+                <span>Enough for ${e(conversationsFor(balance))}. A conversation costs 1 to 3 credits,
+                  always shown before you book.</span></dd>
+            </div>
+            <div>
+              <dt>Valid until</dt>
+              ${/* The clock starts on the day of claiming - the rule this build
+                    already states on every gift design and on the confirmation. */ ""}
+              <dd>${until ? e(formatDate(until)) : e(g.validityLabel)}
+                <span>${e(g.validityLabel)}, counted from today — the day you claimed it.</span></dd>
+            </div>
+          </dl>
+
+          <div class="plat-actions">
+            <a class="plat-btn plat-btn--primary" href="#/app" data-inert-nav>Find a mentor</a>
+            <a class="plat-btn plat-btn--ghost" href="#/app">Your credits</a>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  /* Developer-facing, shut by default, and following the same `details`
+     convention the confirmation page already uses for its engineering
+     reference. The claim surface a stakeholder walks through carries no test
+     instructions unless they open this. */
+  function prototypeCodeReference() {
+    const rows = PROTOTYPE_CODES.map((f) => {
+      const code = prototypeCode(f.payload);
+      const record = readLedger()[code];
+      const live = !record ? "missing"
+        : record.status === "claimed" ? "claimed"
+        : codeExpired(record) ? "expired"
+        : "unclaimed";
+      return `<tr><td>${e(code)}</td><td>${e(live)}</td><td>${e(f.note)}</td></tr>`;
+    }).join("");
+
+    const invalidRows = PROTOTYPE_INVALID
+      .map((f) => `<tr><td>${e(f.code)}</td><td>invalid</td><td>${e(f.note)}</td></tr>`).join("");
+
+    return `
+      <details class="plat-dev">
+        <summary>Prototype reference: claim codes for testing</summary>
+        <div class="plat-dev__scroll">
+          <table>
+            <caption>Seeded into this browser on load. A code claimed here stays claimed, so the
+              single-use rule holds across reloads. Reset restores only these five.</caption>
+            <thead><tr><th>Code</th><th>State now</th><th>What it demonstrates</th></tr></thead>
+            <tbody>${rows}${invalidRows}</tbody>
+          </table>
+        </div>
+        <div class="plat-actions">
+          <button class="plat-btn plat-btn--ghost" type="button" data-action="reset-prototype-codes">
+            Reset prototype codes
+          </button>
+        </div>
+      </details>`;
+  }
+
   /* ------------------------------------------------------------ routing -- */
 
   function currentRoute() {
@@ -2062,26 +2604,74 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     "personalise": renderEditor,
     "checkout": renderCheckout,
     "gift/confirmed": renderConfirmed,
-    "claim": renderClaim
+    "app": renderAppHome,
+    "app/claim": renderAppClaim
   };
 
   let lastRoute = null;
 
   function render() {
-    const route = currentRoute();
+    let route = currentRoute();
+
+    /* A printed address is resolved here, synchronously, rather than by
+       rendering the old route and then navigating: there is no flash of the
+       wrong shell, and no second history entry for Back to bounce off.
+       `replaceState` fires neither hashchange nor popstate, so this cannot
+       loop. */
+    if (ROUTE_ALIASES[route]) {
+      route = ROUTE_ALIASES[route];
+      try { window.history.replaceState({ giftNav: navIndex }, "", `#/${route}`); }
+      catch (_error) { /* History unavailable - the alias still renders below. */ }
+    }
+
+    const platform = PLATFORM_ROUTES.includes(route);
+
+    if (route !== lastRoute) {
+      /* A check still in flight is abandoned when the page is left, so it can
+         never resolve - and quietly spend a code - against a screen that is no
+         longer there. */
+      if (timers.claim) { window.clearTimeout(timers.claim); timers.claim = null; }
+      /* Arriving at the claim page always starts clean. A finished claim is
+         not a screen to come back to: the credits are on the credits page, and
+         the code that produced them is spent. */
+      if (route === "app/claim") state.appClaim = { ...initialState().appClaim };
+    }
+
+    /* One shell or the other, never both: the marketing site and the
+       signed-in dashboard are different design systems. #app is moved between
+       them rather than duplicated, so there is still one mount point and every
+       existing `app.querySelector` keeps working on either surface. */
+    document.body.dataset.surface = platform ? "platform" : "site";
+    platShell.hidden = !platform;
+    const home = platform ? platView : pageMain;
+    if (app.parentElement !== home) home.appendChild(app);
+
     app.innerHTML = (RENDERERS[route] || renderLanding)();
     document.title = `${ROUTE_TITLES[route] || "Gift a Career"} · MentorUnion`;
     markPreviewInert();
     fitPrintPreview();
 
+    /* The dashboard's topbar carries the page title, so it is set here rather
+       than drawn by the page. */
+    if (platform) platTitle.textContent = ROUTE_TITLES[route];
+
     document.querySelectorAll("[data-nav]").forEach((link) => {
       link.dataset.current = String(link.dataset.nav === "gift"
         && ["gift", "personalise", "checkout", "gift/confirmed"].includes(route));
     });
+    document.querySelectorAll("[data-app-nav]").forEach((link) => {
+      const current = link.dataset.appNav === route;
+      link.dataset.current = String(current);
+      if (current) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
 
     if (route !== lastRoute) {
       window.scrollTo({ top: 0, behavior: "auto" });
-      app.querySelector("[tabindex='-1']")?.focus({ preventScroll: true });
+      /* On the dashboard the page title lives in the shared topbar, so that is
+         what receives focus on a route change. */
+      const target = platform ? platTitle : app.querySelector("[tabindex='-1']");
+      target?.focus({ preventScroll: true });
       lastRoute = route;
     }
     closeMenu();
@@ -2342,6 +2932,21 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     /* Tapping the page outside an open menu closes it. */
     if (navInner.dataset.menu === "open" && !event.target.closest(".nav-inner")) closeMenu();
 
+    /* The persistent action is a link, so pressing it while already on the
+       claim page changes no hash and fires no navigation. Left alone, it would
+       do visibly nothing to someone sitting on a finished claim with a second
+       gift to redeem. It returns the page to a clean form instead. */
+    if (event.target.closest('[data-app-nav="app/claim"]') && currentRoute() === "app/claim") {
+      event.preventDefault();
+      const c = state.appClaim;
+      if (c.gift || c.problem || c.input) {
+        state.appClaim = { ...initialState().appClaim };
+        render();
+      }
+      window.setTimeout(() => app.querySelector("#appClaimCode")?.focus(), 0);
+      return;
+    }
+
     const trigger = event.target.closest("[data-action]");
     if (!trigger) return;
 
@@ -2504,6 +3109,19 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
         render();
         break;
 
+      /* Developer control inside the collapsed reference block. Restores the
+         five fixtures to their documented states and leaves every genuinely
+         issued code, and every balance, exactly where it is. */
+      case "reset-prototype-codes": {
+        seedPrototypeCodes({ force: true });
+        state.appClaim = { ...initialState().appClaim };
+        render();
+        const details = app.querySelector(".plat-dev");
+        if (details) details.open = true;
+        toast("Prototype claim codes reset.");
+        break;
+      }
+
       default: break;
     }
   });
@@ -2585,6 +3203,33 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       return;
     }
 
+    if (name === "appClaimCode") {
+      /* Uppercase in place, caret held, and nothing else. Reformatting between
+         keystrokes fights the typist, and a code pasted off a card has to
+         survive whatever shape it arrives in - separators, spaces and the MU
+         prefix are all reconciled at submit, not here. */
+      const upper = target.value.toUpperCase();
+      if (upper !== target.value) {
+        const at = target.selectionStart;
+        target.value = upper;
+        target.setSelectionRange(at, at);
+      }
+      state.appClaim.input = upper;
+      /* An answered problem stops applying the moment the code changes, but a
+         new one is never raised mid-typing. */
+      if (state.appClaim.problem) {
+        state.appClaim.problem = "";
+        state.appClaim.expiredOn = "";
+        target.setAttribute("aria-invalid", "false");
+        target.setAttribute("aria-describedby", "appClaimCode-hint");
+        /* The hint returns to the slot the note was occupying, so clearing a
+           problem restores the resting layout rather than leaving a gap. */
+        const slot = app.querySelector("#app-claim-note");
+        if (slot) slot.innerHTML = CLAIM_HINT;
+      }
+      return;
+    }
+
     if (name in state.form) state.form[name] = target.value;
     else if (name === "scheduleDate") state.delivery.date = target.value;
 
@@ -2610,7 +3255,11 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
 
   document.addEventListener("focusout", (event) => {
     const name = event.target.dataset?.field;
-    if (!name || name === "scheduleDate" || name === "claimCode" || name === "claimAccount") return;
+    /* Claim codes are answered on submit, never on blur: leaving the field is
+       not a claim, and a blur-time verdict would clear the alert the submit
+       just raised. */
+    if (!name || name === "scheduleDate" || name === "claimCode" || name === "claimAccount"
+        || name === "appClaimCode") return;
     const error = validateField(name, event.target.value);
     if (error) state.errors[name] = error; else delete state.errors[name];
     event.target.setAttribute("aria-invalid", error ? "true" : "false");
@@ -2619,7 +3268,8 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && navInner.dataset.menu === "open") {
+    if (event.key !== "Escape") return;
+    if (navInner.dataset.menu === "open") {
       closeMenu();
       menuToggle.focus();
     }
@@ -2680,7 +3330,81 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     announce(`${record.credits} credits added to your account.`);
   }
 
+  /* ------------------------------------------ claiming inside the app --- */
+
+  /* Two guards, both needed. `checking` stops a second Enter or a double-click
+     while the first submission is in flight; `gift` stops a finished claim
+     being submitted again at all. Neither depends on the button's disabled
+     attribute, which is a presentation detail. */
+  function appClaimSubmit() {
+    const c = state.appClaim;
+    if (c.status === "checking" || c.gift) return;
+
+    /* Nothing typed is answered immediately: there is no lookup to simulate,
+       and a spinner for an empty field is theatre. */
+    if (!claimPayload(c.input)) {
+      c.problem = "empty";
+      c.expiredOn = "";
+      render();
+      window.setTimeout(() => app.querySelector("#appClaimCode")?.focus(), 0);
+      return;
+    }
+
+    /* The checking state is applied in place rather than re-rendered, so focus
+       stays on the button the user just pressed. */
+    c.status = "checking";
+    c.problem = "";
+    c.expiredOn = "";
+    const form = app.querySelector("#app-claim-form");
+    const button = app.querySelector("[data-claim-submit]");
+    const input = app.querySelector("#appClaimCode");
+    if (form) form.setAttribute("aria-busy", "true");
+    if (input) input.disabled = true;
+    if (button) {
+      button.disabled = true;
+      button.innerHTML = '<span class="plat-spinner" aria-hidden="true"></span>Checking your code';
+    }
+    announce("Checking your claim code.");
+
+    /* SIMULATED latency. Long enough for the pending state to be a real part
+       of the experience, short enough not to be a wait. */
+    timers.claim = window.setTimeout(() => {
+      const result = resolveClaim(c.input, SESSION.email);
+      c.status = "idle";
+
+      if (result.outcome === "redeemed") {
+        c.gift = result.gift;
+        c.problem = "";
+        render();
+        /* The form - and the button focus was sitting on - has been replaced
+           wholesale, so focus has to be placed deliberately rather than left
+           to fall back to the document. The heading states the outcome. */
+        window.setTimeout(() => app.querySelector(".plat-ok__title")?.focus({ preventScroll: true }), 0);
+        announce(`${result.gift.credits} credits added to your account. Your balance is ${result.balance} credits.`);
+        return;
+      }
+
+      c.problem = result.outcome;
+      c.expiredOn = result.expiredOn || "";
+      /* The typed value is kept: the user may only need to correct a
+         character, and the alert is rendered beside it rather than replacing
+         it. Focus returns to the field so the correction can just be typed. */
+      render();
+      window.setTimeout(() => {
+        const field = app.querySelector("#appClaimCode");
+        if (!field) return;
+        field.focus();
+        field.setSelectionRange(field.value.length, field.value.length);
+      }, 0);
+    }, 650);
+  }
+
   document.addEventListener("submit", (event) => {
+    if (event.target.id === "app-claim-form") {
+      event.preventDefault();
+      appClaimSubmit();
+      return;
+    }
     if (event.target.id === "claim-form") {
       event.preventDefault();
       state.claim.errors = {};
@@ -2703,5 +3427,8 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   });
 
   closeMenu();
+  /* SIMULATED. Puts the documented fixtures into the store before the first
+     paint, so every claim state is reachable without buying a gift first. */
+  seedPrototypeCodes();
   render();
 })();
