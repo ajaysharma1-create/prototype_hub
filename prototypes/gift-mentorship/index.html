@@ -73,7 +73,7 @@
             </svg>
           </span>
         </button>
-        <button class="plat-rail__ico" type="button" data-inert-nav aria-label="Mentors">
+        <a class="plat-rail__ico" href="#/app" data-app-nav="app" aria-label="All mentors">
           <span class="plat-rail__tile">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -81,8 +81,8 @@
               <path d="M16.4 5.2a3.4 3.4 0 0 1 0 5.6M18 14.4A6.4 6.4 0 0 1 21.4 20"/>
             </svg>
           </span>
-        </button>
-        <a class="plat-rail__ico" href="#/app" data-app-nav="app" aria-label="Your credits">
+        </a>
+        <a class="plat-rail__ico" href="#/app/credits" data-app-nav="app/credits" aria-label="Your credits">
           <span class="plat-rail__tile">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -104,7 +104,20 @@
 
       <div class="plat-main">
         <div class="plat-topbar">
-          <h1 class="plat-topbar__title" id="plat-page-title" tabindex="-1">Your credits</h1>
+          <h1 class="plat-topbar__title" id="plat-page-title" tabindex="-1">All Mentors</h1>
+
+          <div class="plat-topbar__actions">
+          <!-- Search belongs to the mentor listing, so CSS shows it only on that
+               route. It is chrome, not a built control: like every other
+               out-of-scope destination in this build it says so when pressed,
+               rather than sitting there as a dead field. -->
+          <button class="plat-search" type="button" data-inert-nav>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.9-4.9"/>
+            </svg>
+            <span>Search mentors, industries, domains and more…</span>
+          </button>
 
           <!-- The surface's single amber action, at the right-hand end of the
                dashboard topbar. Nothing else here carries fill.
@@ -129,6 +142,7 @@
             </svg>
             Claim your Gift
           </a>
+          </div>
         </div>
 
         <div class="plat-view" id="plat-view"></div>

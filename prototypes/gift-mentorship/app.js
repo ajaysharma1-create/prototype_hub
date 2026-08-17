@@ -279,8 +279,37 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     { code: "MU-TEST-BADX", note: "Check character does not match; never reaches a lookup." }
   ];
 
+  /* The mentor listing, transcribed from the All Mentors screen in
+     live/mentee-direct-onboarding/prototype. Same eight mentors, same agendas,
+     same fields - this is that dashboard's data, not a new catalogue. */
+  const AGENDAS = ["Resume Prep", "Mock Interview", "Career Roadmap", "Building Startup",
+                   "Grow Your Brand", "Case / Guesstimates", "Pitchdeck Review"];
+
+  const MENTOR_SUBFILTERS = ["All", "Cover Letter", "Resume Review", "SOP & Assignment",
+                             "LinkedIn Profile", "Professional Projects"];
+
+  const MENTOR_SORTS = [["best", "Best match (recommended)"], ["rating", "Highest rated"],
+                        ["experience", "Experience (high to low)"]];
+
+  /* The collapsed facets the dashboard shows but does not implement. Kept for
+     fidelity and answered honestly when pressed, like every other out-of-scope
+     destination in this build. */
+  const MENTOR_FACETS = ["Functional Domain", "Expertise", "Industry", "Company / Brand",
+                         "Experience Level", "Rating", "Availability"];
+
+  const MENTORS = [
+    { name: "Vikram Nair", role: "Director, Product · ex-Microsoft, ex-Swiggy", exp: "9+ yrs", calls: "140+ calls", rating: "4.9", domains: ["Tech & Product", "Data Science & AI"], agendas: ["Career Roadmap", "Mock Interview", "Resume Prep"], credits: 2 },
+    { name: "Sara Iyer", role: "Partner · ex-McKinsey", exp: "12+ yrs", calls: "210+ calls", rating: "5.0", domains: ["Consulting & Strategy"], agendas: ["Case / Guesstimates", "Career Roadmap"], credits: 3 },
+    { name: "Rohan Das", role: "CXO · ex-Microsoft", exp: "15+ yrs", calls: "95+ calls", rating: "4.8", domains: ["Communication & Leadership", "Tech & Product"], agendas: ["Career Roadmap", "Grow Your Brand"], credits: 2 },
+    { name: "Neha Kapoor", role: "VP Marketing · ex-Unilever", exp: "11+ yrs", calls: "130+ calls", rating: "4.9", domains: ["Sales, Brand & Marketing"], agendas: ["Grow Your Brand", "Mock Interview"], credits: 2 },
+    { name: "Arjun Verma", role: "Founder · YC-backed", exp: "7+ yrs", calls: "80+ calls", rating: "4.7", domains: ["Entrepreneurship & Startups"], agendas: ["Building Startup", "Pitchdeck Review"], credits: 2 },
+    { name: "Priya Menon", role: "Sr Data Scientist · ex-Google", exp: "8+ yrs", calls: "110+ calls", rating: "5.0", domains: ["Data Science & AI", "Tech & Product"], agendas: ["Mock Interview", "Resume Prep"], credits: 2 },
+    { name: "Karan Shah", role: "Principal PM · ex-Amazon", exp: "10+ yrs", calls: "120+ calls", rating: "4.8", domains: ["Tech & Product", "Chief of Staff & Founder's Office"], agendas: ["Resume Prep", "Mock Interview", "Career Roadmap"], credits: 2 },
+    { name: "Ananya Rao", role: "Director Strategy · ex-Bain", exp: "13+ yrs", calls: "160+ calls", rating: "4.9", domains: ["Consulting & Strategy", "PEVC, Banking & Investments"], agendas: ["Case / Guesstimates", "Career Roadmap"], credits: 3 }
+  ];
+
   const ROUTES = ["", "gift", "personalise", "checkout", "gift/confirmed", "claim",
-                  "app", "app/claim"];
+                  "app", "app/credits", "app/claim"];
   const ROUTE_TITLES = {
     "": GIFT_CTA,
     "gift": "Create your gift",
@@ -288,13 +317,14 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     "checkout": "Checkout",
     "gift/confirmed": "Gift confirmed",
     "claim": "Claim a gift",
-    "app": "Your credits",
+    "app": "All Mentors",
+    "app/credits": "Your credits",
     "app/claim": CLAIM_CTA
   };
 
   /* Routes rendered inside the signed-in platform shell rather than the
      marketing one. The two shells are mutually exclusive. */
-  const PLATFORM_ROUTES = ["app", "app/claim"];
+  const PLATFORM_ROUTES = ["app", "app/credits", "app/claim"];
 
   /* Addresses that are already in print and must keep working, forwarded to
      where the journey now lives. `mentorunion.com/claim` is on every gift card
@@ -363,7 +393,11 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       claim: { input: "", stage: "entry", code: "", account: "", claimedCredits: 0, errors: {} },
       /* The signed-in claim page. `problem` is the last resolved failure and
          `gift` the facts of a completed redemption; only one is ever set. */
-      appClaim: { input: "", status: "idle", problem: "", expiredOn: "", gift: null }
+      appClaim: { input: "", status: "idle", problem: "", expiredOn: "", gift: null },
+      /* Mentor listing state. `agenda` and `sort` really do reorder the list;
+         `sub` is the dashboard's secondary chip row, which is presentational
+         there and presentational here. */
+      mentors: { agenda: AGENDAS[0], sub: MENTOR_SUBFILTERS[0], sort: "best" }
     };
   }
 
@@ -2290,6 +2324,92 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       </p>`;
   }
 
+  /* -------------------------------------------------- browse mentors ---- */
+
+  /* The All Mentors screen from live/mentee-direct-onboarding/prototype: agenda
+     tabs, a sort/facet rail and a card grid. Its own structure, its own data
+     and its own component metrics; the one thing added is the Claim your Gift
+     action, which lives in the shared topbar above it rather than in the page.
+
+     Agenda and sort genuinely reorder the list. The chip row and the collapsed
+     facets are presentational on the dashboard too - they are reproduced for
+     fidelity and say so when pressed rather than pretending to filter. */
+  function renderAppMentors() {
+    const m = state.mentors;
+    const matching = MENTORS.filter((x) => x.agendas.includes(m.agenda));
+    const list = (matching.length ? matching : MENTORS).slice();
+
+    if (m.sort === "rating") list.sort((a, b) => Number(b.rating) - Number(a.rating));
+    else if (m.sort === "experience") list.sort((a, b) => parseInt(b.exp, 10) - parseInt(a.exp, 10));
+    else list.sort((a, b) => Number(b.rating) - Number(a.rating) || parseInt(b.exp, 10) - parseInt(a.exp, 10));
+
+    return `
+      <div class="plat-browse">
+        <div class="plat-agendas" role="group" aria-label="Session agenda">
+          ${AGENDAS.map((a) => `
+            <button class="plat-agenda" type="button" data-action="set-agenda" data-value="${e(a)}"
+                    aria-pressed="${a === m.agenda}">${e(a)}</button>`).join("")}
+        </div>
+
+        <div class="plat-subchips" role="group" aria-label="Sub-agenda">
+          ${MENTOR_SUBFILTERS.map((s) => `
+            <button class="plat-subchip" type="button" data-action="set-subfilter" data-value="${e(s)}"
+                    aria-pressed="${s === m.sub}">${e(s)}</button>`).join("")}
+        </div>
+
+        <div class="plat-amlayout">
+          <aside class="plat-filters" aria-label="Sort and filter">
+            <div class="plat-fcard">
+              <p class="plat-fh">Sort by</p>
+              <div role="radiogroup" aria-label="Sort by">
+                ${MENTOR_SORTS.map(([id, label]) => `
+                  <button class="plat-opt" type="button" role="radio" aria-checked="${id === m.sort}"
+                          data-action="set-mentor-sort" data-value="${id}">
+                    <span class="plat-rd" aria-hidden="true"></span>${e(label)}
+                  </button>`).join("")}
+              </div>
+              ${MENTOR_FACETS.map((f) => `
+                <button class="plat-grp" type="button" data-inert-nav>
+                  ${e(f)}
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 9.5 6 6 6-6"/>
+                  </svg>
+                </button>`).join("")}
+            </div>
+          </aside>
+
+          <div class="plat-mcards">
+            ${list.map((x) => `
+              <article class="plat-mcard">
+                <div class="plat-mcard__ph" aria-hidden="true">
+                  <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"/>
+                  </svg>
+                  <span class="plat-mcard__rt">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.7l5.8-.8Z"/>
+                    </svg>${e(x.rating)}
+                  </span>
+                </div>
+                <div class="plat-mcard__body">
+                  <h2 class="plat-mname">${e(x.name)}</h2>
+                  <p class="plat-mrole">${e(x.role)}</p>
+                  <p class="plat-mmeta">${e(x.exp)} · ${e(x.calls)}</p>
+                  <p class="plat-mtags">
+                    <span>${e(x.domains[0])}</span><span>${e(m.agenda)}</span>
+                  </p>
+                  <button class="plat-btn plat-btn--ghost plat-btn--full" type="button" data-inert-nav>
+                    Book — ${e(x.credits)} credits
+                  </button>
+                </div>
+              </article>`).join("")}
+          </div>
+        </div>
+      </div>`;
+  }
+
   function renderAppHome() {
     const balance = readBalance(SESSION.email);
     const wallet = readWallet(SESSION.email);
@@ -2404,12 +2524,13 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
 
     return `
       <div class="plat-col">
+        ${/* Back goes to the platform's home, which is the mentor listing. */ ""}
         <a class="plat-back" href="#/app">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9.5 2.5 4.5 7l5 4.5"/>
           </svg>
-          Your credits
+          All mentors
         </a>
 
         <p class="plat-lede">Enter the code from your gift and its credits are added to this account —
@@ -2503,8 +2624,10 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
           </dl>
 
           <div class="plat-actions">
-            <a class="plat-btn plat-btn--primary" href="#/app" data-inert-nav>Find a mentor</a>
-            <a class="plat-btn plat-btn--ghost" href="#/app">Your credits</a>
+            ${/* Both actions now land somewhere real: the mentor listing the
+                  credits are for, and the page that itemises them. */ ""}
+            <a class="plat-btn plat-btn--primary" href="#/app">Find a mentor</a>
+            <a class="plat-btn plat-btn--ghost" href="#/app/credits">Your credits</a>
           </div>
         </section>
       </div>`;
@@ -2604,7 +2727,8 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     "personalise": renderEditor,
     "checkout": renderCheckout,
     "gift/confirmed": renderConfirmed,
-    "app": renderAppHome,
+    "app": renderAppMentors,
+    "app/credits": renderAppHome,
     "app/claim": renderAppClaim
   };
 
@@ -2642,6 +2766,9 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
        them rather than duplicated, so there is still one mount point and every
        existing `app.querySelector` keeps working on either surface. */
     document.body.dataset.surface = platform ? "platform" : "site";
+    /* Lets the shared topbar carry chrome that belongs to one route only -
+       the mentor search - without the shell being rebuilt per page. */
+    document.body.dataset.route = route;
     platShell.hidden = !platform;
     const home = platform ? platView : pageMain;
     if (app.parentElement !== home) home.appendChild(app);
@@ -3108,6 +3235,20 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
         state.claim = { ...initialState().claim, account: state.claim.account };
         render();
         break;
+
+      /* The listing re-renders, so focus is put back on the control that was
+         pressed - otherwise a keyboard user is dropped to the top of the page
+         every time they change an agenda. */
+      case "set-agenda":
+      case "set-subfilter":
+      case "set-mentor-sort": {
+        const key = { "set-agenda": "agenda", "set-subfilter": "sub", "set-mentor-sort": "sort" }[trigger.dataset.action];
+        state.mentors[key] = trigger.dataset.value;
+        const back = `[data-action="${trigger.dataset.action}"][data-value="${CSS.escape(trigger.dataset.value)}"]`;
+        render();
+        window.setTimeout(() => app.querySelector(back)?.focus({ preventScroll: true }), 0);
+        break;
+      }
 
       /* Developer control inside the collapsed reference block. Restores the
          five fixtures to their documented states and leaves every genuinely
