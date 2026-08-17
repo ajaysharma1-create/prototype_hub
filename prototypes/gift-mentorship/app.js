@@ -365,7 +365,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   const platView = document.querySelector("#plat-view");
   const platTitle = document.querySelector("#plat-page-title");
 
-  const timers = { payment: null, toast: null, claim: null };
+  const timers = { payment: null, toast: null, claim: null, giftEmail: null };
 
   /* --------------------------------------------------------------- state -- */
 
@@ -389,7 +389,13 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       committed: false,
       payment: { method: "upi", status: "idle", failure: "" },
       previewOpen: true,
+      /* Which comic panel is showing, so a re-render of the gifting form does
+         not snap the strip back to the first one. */
+      comicScene: 0,
       order: null,
+      /* SIMULATED delivery switch, exposed on the confirmation page so the
+         retry and give-up paths can be walked without a mail service. */
+      forceEmailFailure: false,
       claim: { input: "", stage: "entry", code: "", account: "", claimedCredits: 0, errors: {} },
       /* The signed-in claim page. `problem` is the last resolved failure and
          `gift` the facts of a completed redemption; only one is ever set. */
@@ -1012,6 +1018,443 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       </section>`;
   }
 
+  /* ====================================================== comic strip ====
+     A six-panel Rakhi story above the gifting form. It is an aside, not a
+     banner: it renders inside the page's own container, so its edges are the
+     form's edges, and it is sized so the form is still the thing you came for.
+
+     The panels are illustrations, not captioned boxes. Each scene is one
+     full-bleed drawing with speech bubbles sitting over it; nothing announces
+     "Scene 3" and nobody is labelled SISTER above their line. Who is speaking
+     is carried by which character the bubble's tail points at, and by the two
+     bubble colours - with the name repeated for screen readers only.
+
+     Bubbles are HTML positioned over the art rather than text inside the SVG,
+     because text set in an SVG cannot reflow: a longer line would clip or
+     shrink. As HTML it wraps, and the bubble grows with it.
+
+     Continuity is what makes six drawings one moment: the same two people in
+     the same clothes, the same hallway, the suitcase that arrives in panel one
+     and is still on the floor in panel two, the rakhi that is tied in panel
+     three and stays on his wrist for the rest of the strip, and the card that
+     is hidden behind her back in four before it is revealed in five. */
+
+  /* One warm domestic palette for the whole strip, so the eye reads it as a
+     single afternoon. The only cool, saturated thing in six panels is the
+     MentorUnion card - which is exactly why it lands when it appears. */
+  const CK = {
+    wall: "#F3E2C7", wallDeep: "#E7CDA6", floor: "#C98A5C", floorDark: "#A96B44",
+    ink: "#42211F", line: "#6B392F",
+    door: "#8A4A33", doorDark: "#6E3826",
+    marigold: "#E8A22B", gold: "#F4CE72", maroon: "#8E3130",
+    skin: "#E9BB8E", skinShade: "#D19A69",
+    hair: "#2E1B18",
+    sister: "#D9762F", sisterDeep: "#B85F22",
+    brother: "#43506B", brotherDeep: "#33405A",
+    reveal: "#39B6D8", revealDeep: "#1F8CAB", card: "#FBF4E6"
+  };
+
+  /* --- faces -------------------------------------------------------------
+     Six expressions, drawn on the same head so the two characters stay the
+     same people throughout. Eyes are dots and brows are short strokes: at this
+     size that reads more clearly than anatomy, and it keeps the drawing calm
+     enough to sit next to a product form. */
+  function ckFace(expr) {
+    const eye = (x, r = 2) => `<circle cx="${x}" cy="-2" r="${r}" fill="${CK.ink}"/>`;
+    const F = {
+      calling: `${eye(-6)}${eye(6)}
+        <path d="M-9.5 -7.5q3.5 -2 6.5 -1M3 -8.5q3 -1 6.5 1" stroke="${CK.ink}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M-5 5.5q5 4.5 10 0" stroke="${CK.ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
+      grin: `${eye(-6)}${eye(6)}
+        <path d="M-10 -8q3.5 -2.5 7 -1M3 -9q3.5 -1.5 7 1" stroke="${CK.ink}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M-7 4q7 8 14 0Z" fill="${CK.ink}"/>`,
+      tease: `${eye(-6)}${eye(6)}
+        <path d="M-10 -9.5q3.5 -1 7 0.5M3 -7.5q3.5 -1.5 7 0" stroke="${CK.ink}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M-5 5.5q5 3.5 10 -1.5" stroke="${CK.ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
+      warm: `
+        <path d="M-9 -2.5q3 -3 6 0M3 -2.5q3 -3 6 0" stroke="${CK.ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M-5 5q5 4.5 10 0" stroke="${CK.ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
+      surprise: `${eye(-6, 2.6)}${eye(6, 2.6)}
+        <path d="M-10 -9.5q3.5 -3 7 -1M3 -10.5q3.5 -2 7 1" stroke="${CK.ink}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="0" cy="6.5" rx="3.4" ry="4.2" fill="${CK.ink}"/>`,
+      beam: `
+        <path d="M-9.5 -1q3 -4 6.5 0M3 -1q3.5 -4 6.5 0" stroke="${CK.ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M-8 3.5q8 9 16 0Z" fill="${CK.ink}"/>
+        <path d="M-11 2.5q2.5 2 4.5 0M6.5 2.5q2.5 2 4.5 0" stroke="${CK.sisterDeep}" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".45"/>`
+    };
+    return F[expr] || F.warm;
+  }
+
+  /* Long hair, saffron kurta. `arm` swaps the gesture without redrawing her. */
+  function ckSister({ x, y = 0, expr = "warm", arm = "down", flip = false, scale = 1 }) {
+    const arms = {
+      down: `<path d="M-19 -46c-5 8-6 18-5 27M19 -46c5 8 6 18 5 27" stroke="${CK.sister}" stroke-width="9" fill="none" stroke-linecap="round"/>`,
+      wave: `<path d="M-19 -46c-5 8-6 18-5 27" stroke="${CK.sister}" stroke-width="9" fill="none" stroke-linecap="round"/>
+             <path d="M19 -47c9-4 15-13 15-23" stroke="${CK.sister}" stroke-width="9" fill="none" stroke-linecap="round"/>
+             <circle cx="34" cy="-71" r="5.5" fill="${CK.skin}"/>`,
+      offer: `<path d="M-19 -46c-5 8-6 18-5 27" stroke="${CK.sister}" stroke-width="9" fill="none" stroke-linecap="round"/>
+              <path d="M19 -46c10 1 18 4 25 8" stroke="${CK.sister}" stroke-width="9" fill="none" stroke-linecap="round"/>
+              <circle cx="46" cy="-37" r="5.5" fill="${CK.skin}"/>`,
+      tying: `<path d="M-19 -46c-4 9 2 17 10 21" stroke="${CK.sister}" stroke-width="9" fill="none" stroke-linecap="round"/>
+              <path d="M19 -46c2 10-3 17-9 21" stroke="${CK.sister}" stroke-width="9" fill="none" stroke-linecap="round"/>`,
+      /* One hand out for the box, the other tucked behind her - the card is
+         already there, three panels before anyone sees it. */
+      hiding: `<path d="M19 -46c10 2 17 6 22 11" stroke="${CK.sister}" stroke-width="9" fill="none" stroke-linecap="round"/>
+               <circle cx="43" cy="-33" r="5.5" fill="${CK.skin}"/>
+               <path d="M-19 -46c-9 5-13 13-11 21" stroke="${CK.sisterDeep}" stroke-width="9" fill="none" stroke-linecap="round"/>`
+    };
+    return `
+      <g transform="translate(${x} ${y})${flip ? " scale(-1 1)" : ""}${scale !== 1 ? ` scale(${scale})` : ""}">
+        <ellipse cx="0" cy="2" rx="26" ry="5" fill="${CK.ink}" opacity=".13"/>
+        <path d="M-20 0c0-30 3-48 5-56h30c2 8 5 26 5 56Z" fill="${CK.sister}"/>
+        <path d="M-15 -56h30c1 5 2 12 3 20h-36c1-8 2-15 3-20Z" fill="${CK.sisterDeep}" opacity=".55"/>
+        ${arms[arm] || arms.down}
+        <path d="M-8 -60c0-6 16-6 16 0Z" fill="${CK.skin}"/>
+        <g transform="translate(0 -78)">
+          <path d="M-19 6c-2-16 5-26 19-26s21 10 19 26c-1 9-4 13-5 20h-6c1-9 2-12 2-19h-20c0 7 1 10 2 19h-6c-1-7-4-11-5-20Z" fill="${CK.hair}"/>
+          <circle cx="0" cy="0" r="16" fill="${CK.skin}"/>
+          <path d="M-16 -3c-1-13 6-19 16-19s17 6 16 19c-3-7-9-10-16-10s-13 3-16 10Z" fill="${CK.hair}"/>
+          ${ckFace(expr)}
+          <circle cx="-16.5" cy="4" r="2.6" fill="${CK.gold}"/>
+          <circle cx="16.5" cy="4" r="2.6" fill="${CK.gold}"/>
+        </g>
+      </g>`;
+  }
+
+  /* Short hair, slate kurta. Muted on purpose: nothing he wears should compete
+     with the card when it arrives. */
+  function ckBrother({ x, y = 0, expr = "warm", arm = "down", flip = false, scale = 1, rakhi = false }) {
+    const arms = {
+      down: `<path d="M-18 -45c-5 8-6 17-5 26M18 -45c5 8 6 17 5 26" stroke="${CK.brother}" stroke-width="9" fill="none" stroke-linecap="round"/>`,
+      open: `<path d="M-18 -46c-10-2-17-8-20-16M18 -46c10-2 17-8 20-16" stroke="${CK.brother}" stroke-width="9" fill="none" stroke-linecap="round"/>
+             <circle cx="-40" cy="-64" r="5.5" fill="${CK.skin}"/><circle cx="40" cy="-64" r="5.5" fill="${CK.skin}"/>`,
+      /* Wrist forward, so the rakhi has somewhere to be tied. */
+      wrist: `<path d="M-18 -45c-5 8-6 17-5 26" stroke="${CK.brother}" stroke-width="9" fill="none" stroke-linecap="round"/>
+              <path d="M18 -46c-9 4-16 7-24 8" stroke="${CK.brother}" stroke-width="9" fill="none" stroke-linecap="round"/>
+              <circle cx="-27" cy="-38" r="5.5" fill="${CK.skin}"/>`,
+      giving: `<path d="M18 -45c5 8 6 17 5 26" stroke="${CK.brother}" stroke-width="9" fill="none" stroke-linecap="round"/>
+               <path d="M-18 -46c-10 2-17 6-22 11" stroke="${CK.brother}" stroke-width="9" fill="none" stroke-linecap="round"/>
+               <circle cx="-42" cy="-33" r="5.5" fill="${CK.skin}"/>`,
+      /* Hands up, palms out: the universal "wait, what?" */
+      startled: `<path d="M-18 -46c-11 1-18-4-21-12M18 -46c11 1 18-4 21-12" stroke="${CK.brother}" stroke-width="9" fill="none" stroke-linecap="round"/>
+                 <circle cx="-41" cy="-60" r="6" fill="${CK.skin}"/><circle cx="41" cy="-60" r="6" fill="${CK.skin}"/>`
+    };
+    /* Whichever hand the pose puts forward is where the rakhi has to be, or it
+       ends up floating on his hip. */
+    const wristAt = { wrist: "-25 -39", giving: "-40 -34", startled: "39 -57", open: "38 -61", down: "22 -22" };
+    const band = rakhi
+      ? `<g transform="translate(${wristAt[arm] || wristAt.down})">
+           <path d="M-5.5 0q5.5 -4 11 0" stroke="${CK.maroon}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+           <circle r="3.2" fill="${CK.maroon}"/><circle r="1.5" fill="${CK.gold}"/>
+         </g>` : "";
+    return `
+      <g transform="translate(${x} ${y})${flip ? " scale(-1 1)" : ""}${scale !== 1 ? ` scale(${scale})` : ""}">
+        <ellipse cx="0" cy="2" rx="25" ry="5" fill="${CK.ink}" opacity=".13"/>
+        <path d="M-19 0c0-28 2-46 4-54h30c2 8 4 26 4 54Z" fill="${CK.brother}"/>
+        <path d="M-15 -54h30c1 5 2 11 3 18h-36c1-7 2-13 3-18Z" fill="${CK.brotherDeep}" opacity=".6"/>
+        ${arms[arm] || arms.down}
+        ${band}
+        <path d="M-8 -58c0-6 16-6 16 0Z" fill="${CK.skin}"/>
+        <g transform="translate(0 -76)">
+          <circle cx="0" cy="0" r="16" fill="${CK.skin}"/>
+          <path d="M-16 -2c-1-14 6-20 16-20s17 6 16 20c-2-8-6-11-10-9-5 2-13 2-16-1-2-2-4 3-6 10Z" fill="${CK.hair}"/>
+          ${ckFace(expr)}
+        </g>
+      </g>`;
+  }
+
+  /* --- props, carried scene to scene ------------------------------------ */
+  const ckSuitcase = (x, y, s = 1) => `
+    <g transform="translate(${x} ${y}) scale(${s})">
+      <rect x="-21" y="-27" width="42" height="27" rx="4" fill="${CK.maroon}"/>
+      <rect x="-21" y="-18" width="42" height="4" fill="${CK.gold}" opacity=".85"/>
+      <path d="M-7 -27v-5a7 7 0 0 1 14 0v5" fill="none" stroke="${CK.ink}" stroke-width="2.6"/>
+      <circle cx="-12" cy="-8" r="3.4" fill="${CK.gold}" opacity=".8"/>
+      <rect x="4" y="-12" width="11" height="7" rx="1.5" fill="${CK.wall}" opacity=".55"/>
+    </g>`;
+
+  const ckGift = (x, y, s = 1, rot = 0) => `
+    <g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})">
+      <rect x="-15" y="-13" width="30" height="26" rx="3" fill="${CK.maroon}"/>
+      <rect x="-15" y="-3" width="30" height="5" fill="${CK.gold}"/>
+      <rect x="-2.5" y="-13" width="5" height="26" fill="${CK.gold}"/>
+      <path d="M-2 -13c-6-7-13-4-11 1M2 -13c6-7 13-4 11 1" fill="none" stroke="${CK.gold}" stroke-width="3" stroke-linecap="round"/>
+    </g>`;
+
+  /* The hero object. `glow` is only switched on for the reveal. */
+  const ckCard = (x, y, s = 1, rot = -6, glow = false) => `
+    <g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})">
+      ${glow ? `<circle r="62" fill="${CK.reveal}" opacity=".16"/><circle r="42" fill="${CK.reveal}" opacity=".18"/>` : ""}
+      <rect x="-31" y="-20" width="62" height="40" rx="4" fill="${CK.card}" stroke="${CK.revealDeep}" stroke-width="1.6"/>
+      <rect x="-31" y="-20" width="62" height="9" rx="4" fill="${CK.reveal}"/>
+      <rect x="-31" y="-15" width="62" height="4" fill="${CK.reveal}"/>
+      <circle cx="-19" cy="4" r="6.5" fill="none" stroke="${CK.revealDeep}" stroke-width="2"/>
+      <path d="M-22 4l2.4 2.6 4.4-5" fill="none" stroke="${CK.revealDeep}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="-7" y="0" width="30" height="3" rx="1.5" fill="${CK.line}" opacity=".45"/>
+      <rect x="-7" y="7" width="19" height="3" rx="1.5" fill="${CK.line}" opacity=".28"/>
+    </g>`;
+
+  /* The room. One hallway, lit the same way in every panel. */
+  const ckRoom = ({ toran = true } = {}) => `
+    <rect width="480" height="160" fill="${CK.wall}"/>
+    <path d="M0 132h480v28H0Z" fill="${CK.floor}"/>
+    <path d="M0 132h480v4H0Z" fill="${CK.floorDark}" opacity=".5"/>
+    <circle cx="404" cy="20" r="72" fill="${CK.gold}" opacity=".22"/>
+    <circle cx="404" cy="20" r="44" fill="${CK.gold}" opacity=".18"/>
+    ${toran ? `
+      <g opacity=".95">
+        <path d="M0 8q120 22 240 22t240-22" fill="none" stroke="${CK.maroon}" stroke-width="2.4"/>
+        ${Array.from({ length: 13 }, (_, i) => {
+          const t = i / 12;
+          const cx = t * 480;
+          const cy = 8 + Math.sin(Math.PI * t) * 22;
+          return `<circle cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" r="${i % 2 ? 4.5 : 6}" fill="${i % 2 ? CK.gold : CK.marigold}"/>`;
+        }).join("")}
+      </g>` : ""}`;
+
+  const ckDoor = (open) => open
+    ? `<g>
+         <rect x="40" y="34" width="92" height="98" rx="3" fill="${CK.doorDark}" opacity=".35"/>
+         <path d="M132 34l46-13v124l-46-13Z" fill="${CK.door}"/>
+         <path d="M132 34l46-13v124l-46-13Z" fill="${CK.ink}" opacity=".12"/>
+         <circle cx="141" cy="86" r="3.2" fill="${CK.gold}"/>
+       </g>`
+    : `<g>
+         <rect x="40" y="34" width="92" height="98" rx="3" fill="${CK.door}"/>
+         <rect x="50" y="44" width="72" height="36" rx="2" fill="${CK.doorDark}" opacity=".55"/>
+         <rect x="50" y="88" width="72" height="34" rx="2" fill="${CK.doorDark}" opacity=".55"/>
+         <circle cx="122" cy="86" r="3.4" fill="${CK.gold}"/>
+       </g>`;
+
+  /* --- the six panels ----------------------------------------------------
+     Bubble coordinates are percentages of the drawing, so they travel with it
+     when it scales. `tail` names the corner the tail leaves from, which is how
+     the bubble points at whoever is speaking. */
+  const COMIC_SCENES = [
+    {
+      id: 1,
+      bg: CK.wall,
+      alt: "A decorated front door, closed. Outside it a young woman stands with her suitcase, one hand raised from the doorbell, calling out.",
+      art: `
+        ${ckRoom()}
+        ${ckDoor(false)}
+        <g transform="translate(150 86)">
+          <circle r="9" fill="${CK.wallDeep}" stroke="${CK.line}" stroke-width="2"/>
+          <circle r="3.6" fill="${CK.marigold}"/>
+          <g fill="none" stroke="${CK.marigold}" stroke-width="2.6" stroke-linecap="round" opacity=".85">
+            <path d="M15 -12q7 12 0 24"/><path d="M25 -20q13 20 0 40"/>
+          </g>
+        </g>
+        <text x="186" y="66" transform="rotate(-7 186 66)" font-family="'Montserrat',sans-serif"
+              font-size="17" font-weight="800" fill="${CK.maroon}" letter-spacing="0.5">TING TONG!</text>
+        ${ckSuitcase(292, 132)}
+        ${ckSister({ x: 368, y: 132, expr: "calling", arm: "wave" })}`,
+      bubbles: [
+        { who: "Sister", text: "Guess who made it home for Rakhi?", x: 47, y: 20, w: 194, tail: "br" }
+      ]
+    },
+    {
+      id: 2,
+      bg: CK.wall,
+      alt: "The door is flung open. Her brother bursts out with his arms wide, grinning. Her suitcase is still on the floor between them.",
+      art: `
+        ${ckRoom()}
+        ${ckDoor(true)}
+        <g fill="none" stroke="${CK.line}" stroke-width="3" stroke-linecap="round" opacity=".5">
+          <path d="M192 56q13 5 24 0"/><path d="M188 78q15 6 28 0"/><path d="M192 100q13 5 24 0"/>
+        </g>
+        ${ckBrother({ x: 250, y: 132, expr: "grin", arm: "open" })}
+        ${ckSuitcase(330, 132, 0.8)}
+        ${ckSister({ x: 402, y: 132, expr: "warm", arm: "down", flip: true })}`,
+      bubbles: [
+        { who: "Brother", text: "Finally!", x: 40, y: 20, w: 130, tail: "bl" }
+      ]
+    },
+    {
+      id: 3,
+      /* A close-up, cropped at the shoulders. Changing the crop here is what
+         stops six two-shots in a row from reading as one flat scene. */
+      bg: CK.wallDeep,
+      alt: "Close on their hands. She is tying a red and gold rakhi around his wrist, and both of them are smiling.",
+      /* A real close-up, not the two-shot shrunk down. Drawing the forearms
+         directly - rather than reusing the standing figures and hoping their
+         arms meet - is the only way the hands actually hold the thread. The
+         heads sit at the top edge, cropped by the frame, which is the comic
+         device that says "we have moved in closer" without a caption. */
+      art: `
+        <rect width="480" height="160" fill="${CK.wallDeep}"/>
+        <circle cx="240" cy="86" r="120" fill="${CK.wall}"/>
+        <circle cx="240" cy="86" r="120" fill="${CK.gold}" opacity=".14"/>
+
+        ${/* her head and shoulder, cropped by the left edge */ ""}
+        <g transform="translate(96 62)">
+          <path d="M-40 98c0-30 14-46 40-46s40 16 40 46Z" fill="${CK.sister}"/>
+          <g transform="translate(0 -8)">
+            <path d="M-25 8c-3-21 7-34 25-34s28 13 25 34c-2 12-5 17-6 26h-8c1-12 3-16 3-25h-28c0 9 2 13 3 25h-8c-1-9-4-14-6-26Z" fill="${CK.hair}"/>
+            <circle r="21" fill="${CK.skin}"/>
+            <path d="M-21 -4c-1-17 8-25 21-25s22 8 21 25c-4-9-12-13-21-13s-17 4-21 13Z" fill="${CK.hair}"/>
+            <g transform="scale(1.3)">${ckFace("tease")}</g>
+            <circle cx="-21" cy="6" r="3.4" fill="${CK.gold}"/>
+          </g>
+        </g>
+
+        ${/* his head and shoulder, cropped by the right edge */ ""}
+        <g transform="translate(384 62)">
+          <path d="M-40 98c0-30 14-46 40-46s40 16 40 46Z" fill="${CK.brother}"/>
+          <g transform="translate(0 -8)">
+            <circle r="21" fill="${CK.skin}"/>
+            <path d="M-21 -3c-1-18 8-26 21-26s22 8 21 26c-3-11-8-14-13-12-7 3-17 3-21-1-3-3-6 4-8 13Z" fill="${CK.hair}"/>
+            <g transform="scale(1.3)">${ckFace("warm")}</g>
+          </g>
+        </g>
+
+        ${/* his forearm from the right, wrist turned up in the middle */ ""}
+        <path d="M366 150c-22-6-46-18-70-24" stroke="${CK.brother}" stroke-width="26" fill="none" stroke-linecap="round"/>
+        <path d="M300 128c-16-4-28-4-38 0" stroke="${CK.skin}" stroke-width="23" fill="none" stroke-linecap="round"/>
+
+        ${/* her hands coming in from the left, fingers at the knot */ ""}
+        <path d="M120 152c26-6 44-16 62-24" stroke="${CK.sister}" stroke-width="24" fill="none" stroke-linecap="round"/>
+        <path d="M176 130c14-6 24-8 32-8" stroke="${CK.skin}" stroke-width="21" fill="none" stroke-linecap="round"/>
+        <path d="M206 120c8-1 14 1 18 4" stroke="${CK.skinShade}" stroke-width="9" fill="none" stroke-linecap="round"/>
+
+        ${/* the rakhi itself, tied where the two hands meet */ ""}
+        <g transform="translate(252 122)">
+          <path d="M-26 6q26 -20 52 -2" fill="none" stroke="${CK.maroon}" stroke-width="6" stroke-linecap="round"/>
+          <path d="M-26 13q26 -20 52 -2" fill="none" stroke="${CK.gold}" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+          <g transform="translate(0 -6)">
+            ${Array.from({ length: 8 }, (_, i) => `<ellipse rx="5.5" ry="12" fill="${CK.marigold}" opacity=".9" transform="rotate(${i * 22.5})"/>`).join("")}
+            <circle r="8.5" fill="${CK.maroon}"/><circle r="3.6" fill="${CK.gold}"/>
+          </g>
+        </g>`,
+      bubbles: [
+        { who: "Sister", text: "Happy Rakhi, idiot.", x: 20, y: 16, w: 168, tail: "tl" },
+        { who: "Brother", text: "Happy Rakhi.", x: 61, y: 58, w: 148, tail: "tr" }
+      ]
+    },
+    {
+      id: 4,
+      bg: CK.wall,
+      alt: "He holds out a wrapped gift box. She reaches for it with one hand, keeping her other hand hidden behind her back.",
+      art: `
+        ${ckRoom()}
+        ${ckBrother({ x: 170, y: 138, expr: "grin", arm: "giving", flip: true, rakhi: true })}
+        ${ckGift(233, 106, 0.9, -8)}
+        ${ckSister({ x: 312, y: 138, expr: "warm", arm: "hiding", flip: true })}
+        <g opacity=".5" fill="none" stroke="${CK.marigold}" stroke-width="2.4" stroke-linecap="round">
+          <path d="M268 74q9 -7 18 -2"/><path d="M272 62q11 -9 22 -3"/>
+        </g>`,
+      bubbles: [
+        { who: "Brother", text: "Here's your official Rakhi tax.", x: 3, y: 14, w: 186, tail: "bl" },
+        { who: "Sister", text: "Aww, thanks. But wait… I got you something too.", x: 55, y: 60, w: 200, tail: "tr" }
+      ]
+    },
+    {
+      id: 5,
+      /* The reveal. Closer, quieter background, and the only cool colour in the
+         whole strip lands here. */
+      bg: CK.wallDeep,
+      alt: "She holds out a MentorUnion gift card, which glows against the warm room. He steps back with his hands up, astonished.",
+      art: `
+        <rect width="480" height="160" fill="${CK.wallDeep}"/>
+        <path d="M0 134h480v26H0Z" fill="${CK.floorDark}"/>
+        <circle cx="240" cy="84" r="116" fill="${CK.wall}" opacity=".9"/>
+        ${Array.from({ length: 10 }, (_, i) => {
+          const a = (i / 10) * Math.PI * 2;
+          return `<circle cx="${(240 + Math.cos(a) * 104).toFixed(0)}" cy="${(84 + Math.sin(a) * 62).toFixed(0)}" r="2.4" fill="${CK.reveal}" opacity=".5"/>`;
+        }).join("")}
+        ${ckBrother({ x: 104, y: 140, expr: "surprise", arm: "startled", scale: 1.02, rakhi: true })}
+        ${ckSister({ x: 380, y: 140, expr: "tease", arm: "offer", flip: true, scale: 1.02 })}
+        ${ckCard(244, 84, 1.12, -7, true)}`,
+      bubbles: [
+        { who: "Brother", text: "Wait… for me? Isn't it meant to be the other way around?", x: 2, y: 8, w: 196, tail: "bl" },
+        { who: "Sister", text: "You've been stressing about breaking into that top MNC for months…", x: 52, y: 58, w: 204, tail: "tr" }
+      ]
+    },
+    {
+      id: 6,
+      /* The payoff is still the two of them; the career part is a small
+         vignette behind, not a product explainer. */
+      bg: CK.wall,
+      alt: "The two of them together, still holding the card. Behind them a small office tower is lit up, with a mentor figure and a dotted path leading to it.",
+      art: `
+        ${ckRoom({ toran: false })}
+        <g opacity=".42">
+          <rect x="318" y="34" width="64" height="98" rx="3" fill="${CK.brother}"/>
+          <rect x="394" y="58" width="44" height="74" rx="3" fill="${CK.brotherDeep}"/>
+          ${Array.from({ length: 12 }, (_, i) =>
+            `<rect x="${326 + (i % 3) * 18}" y="${44 + Math.floor(i / 3) * 20}" width="11" height="11" rx="1.5"
+                   fill="${i === 4 ? CK.gold : CK.wall}" opacity="${i === 4 ? 1 : 0.5}"/>`).join("")}
+          <g transform="translate(416 122) scale(0.34)">
+            ${ckBrother({ x: 0, y: 0, expr: "warm", arm: "down" })}
+          </g>
+        </g>
+        <g fill="${CK.reveal}" opacity=".6">
+          ${Array.from({ length: 7 }, (_, i) =>
+            `<circle cx="${228 + i * 13}" cy="${96 - Math.sin((i / 6) * Math.PI) * 34}" r="${2.8 - i * 0.14}"/>`).join("")}
+        </g>
+        ${ckSister({ x: 112, y: 138, expr: "beam", arm: "offer" })}
+        ${ckBrother({ x: 226, y: 138, expr: "beam", arm: "down", flip: true, rakhi: true })}
+        ${ckCard(170, 92, 0.78, -8)}`,
+      bubbles: [
+        { who: "Sister", text: "Now you can get 1:1 guidance from someone already working there, and land your dream job.", x: 3, y: 8, w: 214, tail: "bl" },
+        { who: "Brother", text: "Best Rakhi ever. Thank you, Didi!", x: 56, y: 64, w: 186, tail: "tl" }
+      ]
+    }
+  ];
+
+  /* Rendered once with the page. Moving between panels scrolls the track
+     directly rather than going through render(), so the form below never
+     rebuilds and nothing the purchaser has typed is disturbed. */
+  function renderComic() {
+    const arrow = (dir, d) => `
+      <button class="comic__arrow comic__arrow--${dir}" type="button" data-comic-step="${dir === "prev" ? -1 : 1}"
+              aria-label="${dir === "prev" ? "Previous" : "Next"} moment">
+        <svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="${d}"/>
+        </svg>
+      </button>`;
+
+    return `
+      <section class="comic" aria-label="A short Rakhi story, told in six panels" data-comic>
+        <div class="comic__stage">
+          <div class="comic__track" data-comic-track tabindex="0" role="group"
+               aria-label="Rakhi story, ${COMIC_SCENES.length} panels">
+            ${COMIC_SCENES.map((s, i) => `
+              <article class="comic__panel" id="comic-panel-${s.id}" role="tabpanel"
+                       aria-label="Panel ${i + 1} of ${COMIC_SCENES.length}">
+                <div class="comic__art" style="--ck-pad:${s.bg}">
+                  <svg viewBox="0 0 480 160" role="img" aria-label="${e(s.alt)}"
+                       preserveAspectRatio="xMidYMax meet">${s.art}</svg>
+                </div>
+                <div class="comic__script">
+                  ${s.bubbles.map((bub) => `
+                    <p class="comic__bubble" data-who="${e(bub.who.toLowerCase())}" data-tail="${e(bub.tail)}"
+                       style="--x:${bub.x}%;--y:${bub.y}%;--w:${bub.w}px">
+                      <span class="sr-only">${e(bub.who)}:</span>${e(bub.text)}
+                    </p>`).join("")}
+                </div>
+              </article>`).join("")}
+          </div>
+
+          ${arrow("prev", "M9 2.5 4 7l5 4.5")}
+          ${arrow("next", "M5 2.5 10 7l-5 4.5")}
+        </div>
+
+        ${/* The progress indicator is a rakhi thread: six beads on a cord, the
+              one you are on tied off in gold. */ ""}
+        <div class="comic__thread">
+          <span class="comic__cord" aria-hidden="true"></span>
+          <div class="comic__beads" role="tablist" aria-label="Story panels">
+            ${COMIC_SCENES.map((s, i) => `
+              <button class="comic__bead" type="button" role="tab" data-comic-go="${i}"
+                      aria-selected="${i === 0}" aria-controls="comic-panel-${s.id}"
+                      aria-label="Panel ${i + 1} of ${COMIC_SCENES.length}"></button>`).join("")}
+          </div>
+        </div>
+      </section>`;
+  }
+
   /* ======================================================================
      Unified gifting configuration - one page, no visible step tracker
      ====================================================================== */
@@ -1063,6 +1506,10 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
 
     return `
       <div class="container container--wide">
+        ${/* Inside the page container, so the strip's left and right edges are
+              the gifting form's own. It is above the heading and pushes it
+              down; it does not overlay or bleed. */ ""}
+        ${renderComic()}
         <header class="config-head">
           <p class="eyebrow">GIFT A CAREER</p>
           <h1 class="heading-1" tabindex="-1">Give someone a clearer next step</h1>
@@ -1588,7 +2035,10 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
           }</blockquote>` : ""}
           <p class="email-closing" data-em="closing">${e(t.closing(d))}</p>
           ${codeBlock(d.code)}
-          <p class="email-cta">Claim your gift</p>
+          ${/* A real anchor, not a styled paragraph: in an inbox this has to be
+                clickable. The preview is inert, so it does nothing there. */ ""}
+          <a class="email-cta" href="https://${CLAIM_URL}${d.code ? `/${d.code}` : ""}"
+             target="_blank" rel="noopener">Claim your gift</a>
           ${/* The footnote is about the code, so it appears with the code. */ ""}
           ${d.code ? `<p class="email-foot" data-em="foot">Anyone with this code can claim it, once. Keep it to yourself until you have.</p>` : ""}
         </div>
@@ -1859,20 +2309,29 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
      structure is real, the delivery is not. See §"what is real and what is not"
      in whatsapp-template-spec.md.
 
-     Every template shares one positional contract, and every body uses the five
-     in ascending order of appearance, because Meta's validator requires
+     The header is an IMAGE, not text: the gift card is meant to be the first
+     thing the recipient sees, and an image header is the only place the Cloud
+     API will put media on a template message. That moved the recipient's name
+     out of the header and into the body, so the body now carries six
+     parameters in ascending order of appearance - Meta's validator requires
      placeholders to be sequential and a body may neither open nor close on one:
 
-       body {{1}}  sender's first name
-       body {{2}}  conversations range, e.g. "4-10 conversations"
-       body {{3}}  the purchaser's note, already quoted, or its stand-in
-       body {{4}}  claim code
-       body {{5}}  validity window, e.g. "4 months"
-       header {{1}}  recipient's first name   (components number independently)
+       header       the gift-card image, by link
+       body {{1}}  recipient's first name
+       body {{2}}  sender's first name
+       body {{3}}  conversations range, e.g. "4-10 conversations"
+       body {{4}}  the purchaser's note, already quoted, or its stand-in
+       body {{5}}  claim code
+       body {{6}}  validity window, e.g. "4 months"
        button {{1}}  claim code, as the URL's dynamic suffix
 
-     Header is capped at 60 characters, footer at 60 with no variables, and a URL
-     button's label at 25. Those limits are held below rather than assumed. */
+     The claim link lives in the URL button and never in the body. That is what
+     keeps WhatsApp from rendering a link preview above the message and pushing
+     the gift card out of first position - a button is structured, an inline URL
+     is not.
+
+     Footer is capped at 60 characters with no variables, and a URL button's
+     label at 25. Those limits are held below rather than assumed. */
 
   const WA_API_VERSION = "v23.0";
   const WA_LANGUAGE = "en";
@@ -1880,54 +2339,58 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   const WA_BUTTON_LABEL = "Claim your gift";
   const WA_BUTTON_URL = "https://mentorunion.com/claim/{{1}}";
 
+  /* DOES NOT EXIST YET. The image header needs a publicly reachable PNG of the
+     card that was actually bought, rendered per order. This prototype draws the
+     card in the browser and has no server to render or host one, so this is the
+     address the integration has to be able to produce - not a file anyone can
+     fetch today. See the report's open items. */
+  const WA_CARD_MEDIA = (order) => `https://cdn.mentorunion.com/gift-cards/${order.code}.png`;
+
   /* A template cannot skip a placeholder: every one it declares must be supplied
      on every send. When no note was written, {{3}} still has to carry something,
      and it has to read as a paragraph in its own right rather than as an empty
      quotation. */
   const WA_NO_NOTE = "They did not leave a note, but they chose this one for you.";
 
+  /* WhatsApp is a conversation, not an inbox, so these read as a person
+     talking rather than a receipt. Short lines, no platform vocabulary beyond
+     the code the recipient has to type. */
   const WHATSAPP_TEMPLATES = {
     signature: {
       name: "gift_ready_signature",
-      header: "A gift for {{1}}",
-      body: "Someone has been thinking about what comes next for you. {{1}} has gifted you {{2}} with MentorUnion, "
-        + "which is time with mentors you pick yourself.\n\n{{3}}\n\nYour claim code is {{4}}. There is no rush: the "
-        + "gift waits until you claim it, and the {{5}} only start counting from that day."
+      body: "{{1}}, {{2}} sent you something for what comes next: {{3}} with MentorUnion, with mentors you pick "
+        + "yourself.\n\n{{4}}\n\nYour code is {{5}}. No rush at all - the gift waits until you claim it, and the "
+        + "{{6}} only start from that day."
     },
     milestone: {
       name: "gift_ready_milestone",
-      header: "Congratulations, {{1}}",
-      body: "You did it. {{1}} has sent you {{2}} with MentorUnion, time with people who have already made the move "
-        + "you are making.\n\n{{3}}\n\nYour claim code is {{4}}. Claim whenever you are ready; the {{5}} start from "
+      body: "You did it, {{1}}. {{2}} sent you {{3}} with MentorUnion - time with people who have already made the "
+        + "move you are making.\n\n{{4}}\n\nYour code is {{5}}. Claim it whenever you are ready; the {{6}} start from "
         + "that day, not today."
     },
     birthday: {
       name: "gift_ready_birthday",
-      header: "Happy birthday, {{1}}",
-      body: "Not a thing to find space for, just time with people who have been where you are going. {{1}} has gifted "
-        + "you {{2}} with MentorUnion.\n\n{{3}}\n\nYour claim code is {{4}}. Claim them when you like; the {{5}} start "
-        + "from that day."
+      body: "Happy birthday, {{1}}. Not another thing to find space for - {{2}} sent you {{3}} with MentorUnion, with "
+        + "people who have been where you are going.\n\n{{4}}\n\nYour code is {{5}}. Claim it when you like; the {{6}} "
+        + "start from that day."
     },
     chapter: {
       name: "gift_ready_chapter",
-      header: "A new chapter, {{1}}",
-      body: "Something for the turn you are making. {{1}} has sent you {{2}} with MentorUnion, with mentors who have "
-        + "made the same one.\n\n{{3}}\n\nYour claim code is {{4}}. Nothing expires while the gift sits unclaimed, and "
-        + "the {{5}} start the day you claim it."
+      body: "{{1}}, {{2}} sent you something for the turn you are making: {{3}} with MentorUnion, with mentors who "
+        + "have made the same one.\n\n{{4}}\n\nYour code is {{5}}. Nothing expires while it sits unclaimed, and the "
+        + "{{6}} start the day you claim it."
     },
     rakhi: {
       name: "gift_ready_rakhi",
-      header: "Happy Raksha Bandhan, {{1}}",
-      body: "The kind of looking out for you that lasts a good deal longer than a day. {{1}} has sent you {{2}} with "
-        + "MentorUnion, with mentors of your choosing.\n\n{{3}}\n\nYour claim code is {{4}}. Claim them whenever you "
-        + "like; the {{5}} start from that day."
+      body: "Happy Raksha Bandhan, {{1}}. {{2}} sent you {{3}} with MentorUnion - the kind of looking out for you "
+        + "that lasts a good deal longer than a day.\n\n{{4}}\n\nYour code is {{5}}. Claim it whenever you like; the "
+        + "{{6}} start from that day."
     },
     note: {
       name: "gift_ready_note",
-      header: "A note for {{1}}",
-      body: "This came with more than a note. {{1}} has sent you {{2}} with mentors you choose yourself, and "
-        + "wrote:\n\n{{3}}\n\nYour claim code is {{4}}. A conversation costs 1 to 3 credits, always shown before you "
-        + "book, and the {{5}} start the day you claim them."
+      body: "{{1}}, this came with more than a note. {{2}} sent you {{3}} with mentors you choose yourself, and "
+        + "wrote:\n\n{{4}}\n\nYour code is {{5}}. A conversation costs 1 to 3 credits, always shown before you book, "
+        + "and the {{6}} start the day you claim them."
     }
   };
 
@@ -1942,10 +2405,11 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     return WHATSAPP_TEMPLATES[order.designId] || WHATSAPP_TEMPLATES.signature;
   }
 
-  /* The five body parameters, in the order the contract above declares them. */
+  /* The six body parameters, in the order the contract above declares them. */
   function waBodyParams(order) {
     const note = waParam(order.message);
     return [
+      waParam(recipientLabel(order.recipientName)),
       waParam(order.senderName),
       waParam(order.range),
       note ? `"${note}"` : WA_NO_NOTE,
@@ -1968,7 +2432,9 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
         name: t.name,
         language: { code: WA_LANGUAGE },
         components: [
-          { type: "header", parameters: [{ type: "text", text: waParam(recipientLabel(order.recipientName)) }] },
+          /* The gift card, first, as the message's own media rather than as a
+             link the client has to unfurl. */
+          { type: "header", parameters: [{ type: "image", image: { link: WA_CARD_MEDIA(order) } }] },
           { type: "body", parameters: waBodyParams(order).map((text) => ({ type: "text", text })) },
           { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: order.code }] }
         ]
@@ -1993,27 +2459,38 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     const t = waTemplate(order);
     const body = waBodyParams(order);
     return {
-      header: t.header.replace("{{1}}", recipientLabel(order.recipientName)),
-      body: t.body.replace(/\{\{([1-5])\}\}/g, (_m, n) => body[Number(n) - 1]),
+      media: WA_CARD_MEDIA(order),
+      body: t.body.replace(/\{\{([1-6])\}\}/g, (_m, n) => body[Number(n) - 1]),
       footer: WA_FOOTER,
       buttonLabel: WA_BUTTON_LABEL,
       buttonUrl: WA_BUTTON_URL.replace("{{1}}", order.code)
     };
   }
 
-  /* The finished gift as plain text: the same facts the card and the email carry,
-     in the form a message app will take. Only ever built from a paid order, so
-     the code is always real by the time this runs. */
+  /* The finished gift as plain text, for the click-to-chat share.
+
+     Deliberately carries NO URL. WhatsApp unfurls the first link it finds and
+     puts the preview above the message, which is exactly what was displacing
+     the gift card. On the Cloud API path the claim link lives in a URL button
+     and never appears in the body; here there is no button to put it in, so it
+     is left out entirely and the recipient is told where to type the code
+     instead. The code is the thing that actually redeems the gift - the link is
+     only a shortcut to the same page. */
   function giftShareText(order) {
     const m = waRendered(order);
-    return `${m.header}\n\n${m.body}\n\n${m.buttonLabel}: ${m.buttonUrl}\n\n${m.footer}`;
+    return `${m.body}\n\nOpen MentorUnion and enter it under ${CLAIM_CTA}.\n\n${m.footer}`;
   }
 
-  /* PROTOTYPE BEHAVIOUR, not an integration. wa.me is WhatsApp's own share link:
-     it opens WhatsApp with the message composed and, if a number was given, the
-     conversation already chosen. The purchaser still presses send. Nothing here
-     sends a WhatsApp message on MentorUnion's behalf, and no Cloud API request is
-     issued; waRequest() describes the call, it does not make it. */
+  /* PROTOTYPE BEHAVIOUR, not an integration. wa.me is WhatsApp's own
+     click-to-chat link: it opens WhatsApp with the message composed and, when a
+     number was collected, the conversation already chosen. The purchaser still
+     presses send.
+
+     It cannot attach media. There is no parameter for it and no way to add one
+     - the gift card cannot ride along on this path, which is why the card stays
+     primary inside MentorUnion and the Cloud API template carries it as an
+     image header instead. Nothing here sends a WhatsApp message on
+     MentorUnion's behalf; waRequest() describes the call, it does not make it. */
   function whatsappShareHref(order) {
     return `https://wa.me/${order.recipientPhoneE164 || ""}?text=${encodeURIComponent(giftShareText(order))}`;
   }
@@ -2023,6 +2500,194 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     const subject = `${order.senderName} sent you a MentorUnion gift`;
     return `mailto:${encodeURIComponent(order.recipientEmail)}`
       + `?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(giftShareText(order))}`;
+  }
+
+  /* ============================================================== email ==
+     Three messages, all SIMULATED: nothing is composed, queued or sent, and
+     there is no mail service behind any of this. What is real is the content
+     and the rules about who receives which one.
+
+       purchaser  <- receipt, after a successful payment, always
+       purchaser  <- delivery failed, only after the retries are exhausted
+       recipient  <- the gift itself, only when email delivery was chosen
+
+     The recipient's message is the gift card. It is built by emailCard() and is
+     not restated here; only its envelope is. The purchaser's messages are text,
+     because a receipt is not a gift. */
+
+  /* Only ever shown to the purchaser, who typed these details in the first
+     place. The recipient never sees the amount paid, and the purchaser never
+     sees the recipient's claim activity. */
+  function purchaserReceiptEmail(order) {
+    const rows = [
+      ["Gift", `${order.giftName} · ${order.range}`],
+      ["Design", order.designName],
+      ["For", order.recipientName || "Not named"],
+      ["Delivery", deliverySummary(order.delivery)],
+      ["Amount paid", money(order.total)],
+      ["Order", order.reference]
+    ];
+    if (order.delivery.email && order.recipientEmail) rows.splice(4, 0, ["Sent to", order.recipientEmail]);
+
+    return {
+      to: order.purchaserEmail,
+      subject: order.recipientName
+        ? `Your gift for ${order.recipientName} is paid for`
+        : "Your MentorUnion gift is paid for",
+      preheader: `${order.giftName} · ${money(order.total)} · order ${order.reference}`,
+      heading: "Your gift is paid for",
+      lead: order.recipientName
+        ? `${order.recipientName}'s gift is ready. Here is what you bought and how it reaches them.`
+        : "Your gift is ready. Here is what you bought and how it reaches them.",
+      rows,
+      next: purchaserNextSteps(order),
+      /* The code is on the purchaser's own confirmation screen already; it is
+         repeated here because on the WhatsApp and printed routes they are the
+         one who has to pass it on. */
+      code: order.code,
+      fine: "Gift purchases are non-refundable."
+    };
+  }
+
+  function purchaserNextSteps(order) {
+    const out = [];
+    if (order.delivery.email) {
+      out.push(order.delivery.when === "later" && order.delivery.date
+        ? `We email the gift to ${order.recipientEmail || "them"} on ${scheduleSummary(order.delivery)}.`
+        : `We email the gift to ${order.recipientEmail || "them"} now.`);
+    }
+    if (order.delivery.whatsapp) {
+      out.push(order.recipientPhone
+        ? `Your WhatsApp message to ${order.recipientPhone} is written and waiting for you to send.`
+        : "Your WhatsApp message is written and waiting for you to send.");
+    }
+    if (order.delivery.printable) out.push("Your printable card is ready to download whenever you want it.");
+    out.push(`They claim it in their own time. The ${order.validityLabel} of booking time start the day they claim, not today.`);
+    return out;
+  }
+
+  /* Sent to the purchaser, and only to the purchaser, once the recipient email
+     has failed every attempt it is allowed. It names the gift well enough for
+     them to know which one, and offers the routes this product already has. */
+  function deliveryFailureEmail(order) {
+    const who = order.recipientEmail || order.recipientName || "your recipient";
+    return {
+      to: order.purchaserEmail,
+      subject: order.recipientName
+        ? `We couldn't deliver ${order.recipientName}'s gift`
+        : "We couldn't deliver your gift email",
+      preheader: `Order ${order.reference} · the gift is safe and the code still works`,
+      heading: "The gift email didn't get through",
+      lead: `We tried ${EMAIL_MAX_ATTEMPTS} times to email ${who} and could not deliver it. `
+        + "Nothing was lost: the gift is paid for and the claim code below still works.",
+      rows: [
+        ["Gift", `${order.giftName} · ${order.range}`],
+        ["For", order.recipientName || "Not named"],
+        ["Address we tried", order.recipientEmail || "No address was given"],
+        ["Order", order.reference]
+      ],
+      next: [
+        "Send them the claim code yourself - it is the whole gift, and it works from any account.",
+        "Your printable card is still available on the confirmation page.",
+        "If the address was wrong, pass the code on however suits you; there is nothing to re-buy."
+      ],
+      code: order.code,
+      fine: "You are receiving this because you bought the gift."
+    };
+  }
+
+  /* Both purchaser emails share a shape, so they render the same way. */
+  function emailPreview(m) {
+    const rows = m.rows.map(([k, v]) => `  ${k}: ${v}`).join("\n");
+    const next = m.next.map((line) => `  - ${line}`).join("\n");
+    return `To: ${m.to}\nSubject: ${m.subject}\nPreheader: ${m.preheader}\n\n`
+      + `${m.heading}\n\n${m.lead}\n\n${rows}\n\n  Claim code: ${m.code}\n\nWhat happens next\n${next}\n\n${m.fine}`;
+  }
+
+  function envelopePreview(m) {
+    return `To: ${m.to}\nSubject: ${m.subject}\nPreheader: ${m.preheader}\n\n`
+      + "Body: the gift card, rendered by emailCard() - the same component the purchaser previewed.";
+  }
+
+  /* The recipient's envelope. The message body is the gift card itself. */
+  function recipientEmailMeta(order) {
+    const t = DESIGNS[order.designId] || DESIGNS.signature;
+    return {
+      to: order.recipientEmail,
+      subject: t.subject({ name: recipientLabel(order.recipientName), sender: order.senderName }),
+      preheader: `${order.range} with mentors you choose · your code is ${order.code}`
+    };
+  }
+
+  /* ------------------------------------------- simulated email delivery --
+     A bounded attempt model, so the prototype can show the difference between
+     "not delivered yet", "still trying" and "gave up". The claim code is minted
+     once, by completeOrder, and nothing in here can mint another - a retry
+     re-sends the same gift or it does nothing. */
+
+  const EMAIL_MAX_ATTEMPTS = 3;
+  const EMAIL_RETRY_DELAY = 1800;
+
+  function initialEmailDelivery(order) {
+    if (!order.delivery.email) return { required: false, status: "not-required", attempts: 0 };
+    if (order.delivery.when === "later" && order.delivery.date) {
+      return { required: true, status: "scheduled", attempts: 0 };
+    }
+    return { required: true, status: "pending", attempts: 0 };
+  }
+
+  /* SIMULATED. `forceFailure` is the developer switch on the confirmation page;
+     without it every attempt succeeds. */
+  function attemptGiftEmail() {
+    const order = state.order;
+    if (!order) return;
+    const d = order.emailDelivery;
+    if (!d.required) return;
+    /* Already delivered, or already given up: a second call is a no-op rather
+       than a second gift. */
+    if (d.status === "sent" || d.status === "failed") return;
+    if (d.status === "sending") return;
+    if (d.attempts >= EMAIL_MAX_ATTEMPTS) return;
+
+    d.attempts += 1;
+    d.status = "sending";
+    render();
+
+    timers.giftEmail = window.setTimeout(() => {
+      const failed = state.forceEmailFailure;
+      if (!failed) {
+        d.status = "sent";
+        d.sentAt = new Date().toISOString();
+        render();
+        announce(`Gift emailed to ${order.recipientEmail || "the recipient"}.`);
+        return;
+      }
+      if (d.attempts < EMAIL_MAX_ATTEMPTS) {
+        d.status = "retrying";
+        render();
+        timers.giftEmail = window.setTimeout(attemptGiftEmail, EMAIL_RETRY_DELAY);
+        return;
+      }
+      /* Out of attempts. The purchaser is told by email, and by email only -
+         no other channel is used to report a delivery problem. */
+      d.status = "failed";
+      d.failedAt = new Date().toISOString();
+      render();
+      announce("We could not deliver the gift email. You have been sent a message about it.");
+    }, 900);
+  }
+
+  function emailStatusLabel(order) {
+    const d = order.emailDelivery;
+    switch (d.status) {
+      case "scheduled": return `Scheduled for ${scheduleSummary(order.delivery)}`;
+      case "pending": return "Queued";
+      case "sending": return `Sending${d.attempts > 1 ? ` · attempt ${d.attempts} of ${EMAIL_MAX_ATTEMPTS}` : ""}`;
+      case "retrying": return `Delivery failed · retrying (${d.attempts} of ${EMAIL_MAX_ATTEMPTS})`;
+      case "sent": return "Delivered";
+      case "failed": return `Not delivered after ${EMAIL_MAX_ATTEMPTS} attempts`;
+      default: return "";
+    }
   }
 
   function shareCard({ href, action, icon, name, note, state: badge = "" }) {
@@ -2111,13 +2776,17 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
               <h2 class="heading-5" id="confirm-summary">What happens next</h2>
               <ol class="next-list">
                 ${order.delivery.email ? `
-                  <li>
-                    <strong>${scheduled ? `Email scheduled for ${e(scheduleSummary(order.delivery))}` : "Email on its way"}</strong>
+                  <li data-email-status="${e(order.emailDelivery.status)}">
+                    <strong>Email · ${e(emailStatusLabel(order))}</strong>
                     ${/* Without an address the sentence has no subject, so it
                           says who receives it in the general. */ ""}
-                    <span>${scheduled
-                      ? `Nothing has been sent yet. ${e(order.recipientEmail || recipientLabel(order.recipientName))} receives the ${e(order.designName)} design at the time you picked.`
-                      : `${e(order.recipientEmail || recipientLabel(order.recipientName))} receives the ${e(order.designName)} design within a few minutes.`}</span>
+                    <span>${order.emailDelivery.status === "failed"
+                      ? `We tried ${EMAIL_MAX_ATTEMPTS} times and could not reach ${e(order.recipientEmail || recipientLabel(order.recipientName))}. We've emailed you about it. The gift is paid for and the code below still works.`
+                      : order.emailDelivery.status === "retrying"
+                        ? `That attempt didn't get through, so we're trying ${e(order.recipientEmail || recipientLabel(order.recipientName))} again.`
+                        : scheduled
+                          ? `Nothing has been sent yet. ${e(order.recipientEmail || recipientLabel(order.recipientName))} receives the ${e(order.designName)} design at the time you picked.`
+                          : `${e(order.recipientEmail || recipientLabel(order.recipientName))} receives the ${e(order.designName)} design, with the card as the message itself.`}</span>
                   </li>` : ""}
                 ${order.delivery.whatsapp ? `
                   <li>
@@ -2150,12 +2819,50 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
                   walking the flow. It exists only here, after payment, because
                   the payload cannot be built before a code exists. */ ""}
             <details class="dev-note">
-              <summary>Engineering reference: the WhatsApp request this would issue</summary>
-              <p class="dev-note__lede">Template <code>${e(waTemplate(order).name)}</code>, chosen by the gift design.
-                Nothing is sent by this prototype; this is the request the integration would make.</p>
-              <pre class="dev-note__code"><code>${e(JSON.stringify(waRequest(order), null, 2))}</code></pre>
-              <p class="dev-note__lede">Rendered for the recipient:</p>
-              <pre class="dev-note__code"><code>${e(giftShareText(order))}</code></pre>
+              <summary>Engineering reference: the messages this order would send</summary>
+
+              <p class="dev-note__lede"><strong>Purchaser receipt — email, always.</strong> Sent on a successful
+                payment. The only message the purchaser gets unless delivery fails.</p>
+              <pre class="dev-note__code"><code>${e(emailPreview(purchaserReceiptEmail(order)))}</code></pre>
+
+              ${order.delivery.email ? `
+                <p class="dev-note__lede"><strong>Recipient gift — email.</strong> The body is the gift card itself,
+                  rendered by the same code that draws the preview; only the envelope is text.</p>
+                <pre class="dev-note__code"><code>${e(envelopePreview(recipientEmailMeta(order)))}</code></pre>` : ""}
+
+              ${order.delivery.whatsapp ? `
+                <p class="dev-note__lede"><strong>Recipient gift — WhatsApp Cloud API.</strong> Template
+                  <code>${e(waTemplate(order).name)}</code>, chosen by the gift design. The card is the image header
+                  and the claim link is a URL button, so no link preview displaces it. Nothing is sent by this
+                  prototype; this is the request the integration would make.</p>
+                <pre class="dev-note__code"><code>${e(JSON.stringify(waRequest(order), null, 2))}</code></pre>
+                <p class="dev-note__lede">What the click-to-chat share actually opens with. No URL, because WhatsApp
+                  would unfurl it above the message; and no image, because a <code>wa.me</code> link cannot carry
+                  one.</p>
+                <pre class="dev-note__code"><code>${e(giftShareText(order))}</code></pre>` : ""}
+
+              ${order.delivery.printable && !order.delivery.email && !order.delivery.whatsapp ? `
+                <p class="dev-note__lede"><strong>Printable card only.</strong> No recipient message is generated for
+                  this route - the card is the delivery.</p>` : ""}
+
+              ${order.emailDelivery.required ? `
+                <p class="dev-note__lede"><strong>Delivery failure notice — email to the purchaser.</strong> Sent only
+                  after ${EMAIL_MAX_ATTEMPTS} failed attempts, and only to the purchaser.</p>
+                <pre class="dev-note__code"><code>${e(emailPreview(deliveryFailureEmail(order)))}</code></pre>
+                <p class="dev-note__lede">Simulate the failure path. Retries re-send this same order and cannot mint a
+                  second code.</p>
+                <div class="dev-note__actions">
+                  <button class="button button--secondary" type="button" data-action="toggle-email-failure">
+                    ${state.forceEmailFailure ? "Stop failing delivery" : "Make delivery fail"}
+                  </button>
+                  ${/* Locked only while an attempt is actually in flight. A
+                        delivered gift can still be sent again - that is a real
+                        thing to want - and a failed one can be tried again. */ ""}
+                  <button class="button button--quiet" type="button" data-action="retry-gift-email"
+                          ${["sending", "retrying"].includes(order.emailDelivery.status) ? "disabled" : ""}>
+                    ${order.emailDelivery.status === "sent" ? "Send again" : "Retry now"}
+                  </button>
+                </div>` : ""}
             </details>
           </div>
 
@@ -2673,8 +3380,23 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
   /* ------------------------------------------------------------ routing -- */
 
   function currentRoute() {
-    const raw = window.location.hash.replace(/^#\/?/, "").replace(/\/$/, "");
-    return ROUTES.includes(raw) ? raw : "";
+    const raw = rawRoute();
+    if (ROUTES.includes(raw)) return raw;
+    /* `claim/<code>` is the address the gift card, the email button and the
+       WhatsApp button all point at. It resolves to the claim page like a bare
+       `claim` does; the code it carries is picked up in render(). */
+    return /^claim\/[^/]+$/.test(raw) ? "claim" : "";
+  }
+
+  function rawRoute() {
+    return window.location.hash.replace(/^#\/?/, "").replace(/\/$/, "");
+  }
+
+  /* The code out of a `claim/<code>` address, if there is one. Normalised the
+     same way a typed code is, so a link and a keystroke reach the same lookup. */
+  function routeClaimCode() {
+    const found = /^claim\/([^/]+)$/.exec(rawRoute());
+    return found ? displayCode(found[1]) : "";
   }
 
   function redirect(route) { window.setTimeout(() => navigate(route), 0); return ""; }
@@ -2743,9 +3465,17 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
        `replaceState` fires neither hashchange nor popstate, so this cannot
        loop. */
     if (ROUTE_ALIASES[route]) {
+      /* A code in the address is carried across to the claim field, so the
+         button on the card, the email and the WhatsApp message all land on a
+         page that already knows which gift is being claimed. */
+      const linked = routeClaimCode();
       route = ROUTE_ALIASES[route];
       try { window.history.replaceState({ giftNav: navIndex }, "", `#/${route}`); }
       catch (_error) { /* History unavailable - the alias still renders below. */ }
+      if (linked) {
+        state.appClaim = { ...initialState().appClaim, input: linked };
+        lastRoute = route;
+      }
     }
 
     const platform = PLATFORM_ROUTES.includes(route);
@@ -2777,6 +3507,7 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
     document.title = `${ROUTE_TITLES[route] || "Gift a Career"} · MentorUnion`;
     markPreviewInert();
     fitPrintPreview();
+    restoreComic();
 
     /* The dashboard's topbar carries the page title, so it is set here rather
        than drawn by the page. */
@@ -2992,7 +3723,11 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       message: state.form.message,
       delivery: { ...state.delivery }
     };
+    /* The one and only place a code is minted. Delivery, including every retry
+       below, re-sends this same order; nothing downstream can issue a second
+       code or a second gift. */
     order.code = issueCode(order);
+    order.emailDelivery = initialEmailDelivery(order);
     state.order = order;
     state.payment.status = "idle";
     navigate("gift/confirmed");
@@ -3004,11 +3739,94 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       /* eslint-disable-next-line no-console */
       console.info("[SIMULATED] WhatsApp Cloud API request that would be issued now:", waRequest(order));
     }
+    /* eslint-disable-next-line no-console */
+    console.info("[SIMULATED] Purchaser receipt that would be emailed now:", purchaserReceiptEmail(order));
 
-    /* SIMULATED delivery: no email is composed, queued or sent. */
+    /* SIMULATED. Immediate email delivery starts on the success path and
+       nowhere else. A scheduled gift waits, and PDF-only or WhatsApp-only gifts
+       send no email at all. */
+    if (order.emailDelivery.status === "pending") window.setTimeout(attemptGiftEmail, 300);
+
     announce(order.delivery.email && order.delivery.when === "later"
       ? "Payment successful. Your gift is scheduled and the claim code is ready."
       : "Payment successful. Your gift is ready and the claim code has been created.");
+  }
+
+  /* --------------------------------------------------------- comic strip -- */
+
+  /* The track is the source of truth for which panel is showing: the dots read
+     its scroll position rather than a separate index, so a swipe, a trackpad
+     nudge, an arrow press and a dot press can never disagree. No auto-advance -
+     the strip is an aside and only moves when someone moves it. */
+  function comicTrack() { return app.querySelector("[data-comic-track]"); }
+
+  function comicIndex(track) {
+    const panel = track.querySelector(".comic__panel");
+    if (!panel) return 0;
+    const step = panel.getBoundingClientRect().width + comicGap(track);
+    return step > 0 ? Math.round(track.scrollLeft / step) : 0;
+  }
+
+  function comicGap(track) {
+    const gap = parseFloat(getComputedStyle(track).columnGap);
+    return Number.isNaN(gap) ? 0 : gap;
+  }
+
+  function comicGo(index, { smooth = true } = {}) {
+    const track = comicTrack();
+    if (!track) return;
+    const panel = track.querySelector(".comic__panel");
+    if (!panel) return;
+    const max = COMIC_SCENES.length - 1;
+    const to = Math.min(Math.max(index, 0), max);
+    state.comicScene = to;
+    track.scrollTo({
+      left: to * (panel.getBoundingClientRect().width + comicGap(track)),
+      behavior: smooth && !prefersReducedMotion() ? "smooth" : "auto"
+    });
+    syncComicDots(to);
+  }
+
+  function syncComicDots(index) {
+    app.querySelectorAll("[data-comic-go]").forEach((dot) => {
+      dot.setAttribute("aria-selected", String(Number(dot.dataset.comicGo) === index));
+    });
+    const first = index === 0;
+    const last = index === COMIC_SCENES.length - 1;
+    app.querySelectorAll("[data-comic-step]").forEach((btn) => {
+      const back = Number(btn.dataset.comicStep) < 0;
+      btn.disabled = back ? first : last;
+    });
+  }
+
+  function prefersReducedMotion() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  /* renderConfig rebuilds on every design or gift change, which would otherwise
+     snap the strip back to panel one mid-read. The panel is remembered and
+     restored without animation. */
+  function restoreComic() {
+    const track = comicTrack();
+    if (!track) return;
+    if (state.comicScene) comicGo(state.comicScene, { smooth: false });
+    else syncComicDots(0);
+    if (track.dataset.bound === "true") return;
+    track.dataset.bound = "true";
+    let raf = 0;
+    track.addEventListener("scroll", () => {
+      window.cancelAnimationFrame(raf);
+      raf = window.requestAnimationFrame(() => {
+        const i = comicIndex(track);
+        state.comicScene = i;
+        syncComicDots(i);
+      });
+    }, { passive: true });
+    track.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+      event.preventDefault();
+      comicGo(comicIndex(track) + (event.key === "ArrowRight" ? 1 : -1));
+    });
   }
 
   /* ------------------------------------------------------ announcements -- */
@@ -3073,6 +3891,17 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
       window.setTimeout(() => app.querySelector("#appClaimCode")?.focus(), 0);
       return;
     }
+
+    /* The comic moves the track directly rather than going through render(),
+       so nothing typed into the gifting form below it is rebuilt. */
+    const comicStep = event.target.closest("[data-comic-step]");
+    if (comicStep) {
+      const track = comicTrack();
+      if (track) comicGo(comicIndex(track) + Number(comicStep.dataset.comicStep));
+      return;
+    }
+    const comicDot = event.target.closest("[data-comic-go]");
+    if (comicDot) { comicGo(Number(comicDot.dataset.comicGo)); return; }
 
     const trigger = event.target.closest("[data-action]");
     if (!trigger) return;
@@ -3223,6 +4052,25 @@ Venezuela 58|Vietnam 84|Wallis and Futuna 681|Western Sahara 212|Yemen 967|Zambi
         resetGift();
         navigate("gift");
         break;
+
+      /* SIMULATED delivery controls, inside the collapsed engineering block. */
+      case "toggle-email-failure":
+        state.forceEmailFailure = !state.forceEmailFailure;
+        render();
+        app.querySelector(".dev-note")?.setAttribute("open", "");
+        break;
+
+      case "retry-gift-email": {
+        const d = state.order?.emailDelivery;
+        if (!d) break;
+        /* Sending again, whether after success or after giving up, starts the
+           allowance over. It re-sends this same order either way: the code was
+           minted once at payment and nothing here can mint another. */
+        if (d.status === "failed" || d.status === "sent") { d.attempts = 0; d.status = "pending"; }
+        attemptGiftEmail();
+        app.querySelector(".dev-note")?.setAttribute("open", "");
+        break;
+      }
 
       case "claim-confirm": claimConfirm(); break;
 

@@ -478,6 +478,230 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 
 
 /* ============================================================== */
+/*  Rakhi comic strip                                             */
+/*                                                                */
+/*  An illustrated aside above the gifting form, inside the page's */
+/*  own container so its edges are the form's edges. Everything    */
+/*  here is scoped to .comic; the strip has its own warm Rakhi     */
+/*  palette and lends none of it to the page around it.            */
+/* ============================================================== */
+
+.comic {
+  /* The strip's own palette. Declared here and nowhere else, so it cannot
+     reach the gifting form, the previews or the cards. */
+  --ck-frame: #2A1C16;
+  --ck-bubble: #FBF3E4;
+  --ck-bubble-alt: #F3DEBA;
+  --ck-bubble-ink: #3A211C;
+  --ck-gold: #F4CE72;
+  --ck-marigold: #E8A22B;
+
+  margin-block: var(--mu-space-5) var(--mu-space-6);
+  border: 1px solid var(--mu-color-border-subtle);
+  border-radius: var(--mu-radius-card);
+  background: var(--mu-color-surface);
+  overflow: hidden;
+}
+
+/* --- stage: the drawing, and the controls that sit on it ---------------- */
+
+.comic__stage { position: relative; }
+
+.comic__track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+}
+.comic__track::-webkit-scrollbar { display: none; }
+.comic__track:focus-visible { outline-offset: -3px; }
+
+.comic__panel {
+  scroll-snap-align: start;
+  position: relative;
+  min-width: 0;
+}
+
+/* The drawing is the panel. A fixed ratio keeps the strip from growing into a
+   banner, and `slice` lets the artwork crop rather than letterbox. */
+/* A 3:1 comic-strip crop, matching the drawings viewBox exactly so nothing is
+   cropped, and capped in width so a 1200px container does not turn a strip
+   into a 400px-tall poster above the form. */
+.comic__stage { max-width: 62rem; margin-inline: auto; }
+.comic__art {
+  position: relative;
+  aspect-ratio: 3 / 1;
+  /* The scene's own wall colour, so a taller frame reads as more room above
+     the drawing rather than as a dark band behind it. */
+  background: var(--ck-pad, var(--ck-frame));
+}
+.comic__art svg { width: 100%; height: 100%; display: block; }
+
+/* --- speech bubbles ------------------------------------------------------
+   HTML, positioned over the drawing, so the words wrap instead of clipping.
+   Which character is speaking is carried by the tail and the fill; the name is
+   present for screen readers and is not drawn. */
+
+.comic__bubble {
+  position: absolute;
+  inset-block-start: var(--y);
+  inset-inline-start: var(--x);
+  max-width: min(var(--w), 46%);
+  margin: 0;
+  padding: 9px 13px;
+  border-radius: 14px;
+  background: var(--ck-bubble);
+  color: var(--ck-bubble-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: pretty;
+  box-shadow: 0 6px 16px rgb(30 14 10 / 0.28);
+}
+.comic__bubble[data-who="brother"] { background: var(--ck-bubble-alt); }
+
+/* The tail leaves from the named corner and points down or up at whoever is
+   talking. Drawn with a rotated square so it inherits the bubble's fill. */
+.comic__bubble::after {
+  content: "";
+  position: absolute;
+  width: 13px; height: 13px;
+  background: inherit;
+  transform: rotate(45deg);
+}
+.comic__bubble[data-tail="bl"]::after { inset-block-end: -5px; inset-inline-start: 18px; }
+.comic__bubble[data-tail="br"]::after { inset-block-end: -5px; inset-inline-end: 18px; }
+.comic__bubble[data-tail="tl"]::after { inset-block-start: -5px; inset-inline-start: 18px; }
+.comic__bubble[data-tail="tr"]::after { inset-block-start: -5px; inset-inline-end: 18px; }
+
+/* --- arrows, sitting on the artwork ------------------------------------- */
+
+.comic__arrow {
+  position: absolute;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  display: grid; place-items: center;
+  width: var(--mu-control-height-sm); height: var(--mu-control-height-sm);
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 50%;
+  background: rgb(28 16 12 / 0.55);
+  color: #FBF3E4;
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+  transition: background-color var(--mu-duration-fast) var(--mu-ease-out),
+              opacity var(--mu-duration-fast) var(--mu-ease-out);
+}
+.comic__arrow--prev { inset-inline-start: var(--mu-space-2); }
+.comic__arrow--next { inset-inline-end: var(--mu-space-2); }
+.comic__arrow:hover:not(:disabled) { background: rgb(28 16 12 / 0.78); }
+.comic__arrow:disabled { opacity: 0.28; cursor: default; }
+
+/* --- the thread: six beads on a cord ------------------------------------ */
+
+.comic__thread {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding-block: 2px var(--mu-space-1);
+  background: var(--mu-color-surface);
+}
+.comic__cord {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline: 22%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ck-marigold) 18%, var(--ck-marigold) 82%, transparent);
+  opacity: 0.35;
+}
+.comic__beads { position: relative; display: flex; align-items: center; }
+
+/* A 7px bead inside a 44px target: the hit area is the button, the bead is
+   what is drawn. */
+.comic__bead {
+  width: 26px; height: var(--mu-control-height-sm);
+  display: grid; place-items: center;
+  border: none; background: none; cursor: pointer;
+}
+.comic__bead::before {
+  content: "";
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--mu-color-border-strong);
+  transition: background-color var(--mu-duration-fast) var(--mu-ease-out),
+              transform var(--mu-duration-fast) var(--mu-ease-out),
+              box-shadow var(--mu-duration-fast) var(--mu-ease-out);
+}
+.comic__bead:hover::before { background: var(--mu-color-text-muted); }
+.comic__bead[aria-selected="true"]::before {
+  background: var(--ck-gold);
+  transform: scale(1.5);
+  box-shadow: 0 0 0 3px rgb(232 162 43 / 0.2);
+}
+
+/* --- responsive ----------------------------------------------------------
+   Not a scaled-down desktop. Below the form's own two-column breakpoint the
+   drawing keeps a taller crop so the characters stay readable, and the
+   bubbles come out of the artwork and stack underneath it, where they have
+   the full width to wrap into. They keep their shape and their tails, so the
+   panel still reads as a comic rather than as a caption. */
+
+@media (max-width: 64rem) {
+  .comic__art { aspect-ratio: 3 / 1; }
+  .comic__bubble { font-size: 0.78125rem; max-width: min(var(--w), 52%); }
+}
+
+@media (max-width: 52rem) {
+  .comic__panel { display: grid; }
+  .comic__art { aspect-ratio: 12 / 5; }
+  .comic__script {
+    display: grid;
+    gap: 14px;
+    padding: 18px var(--mu-space-4) var(--mu-space-3);
+    background: var(--mu-color-surface);
+  }
+  .comic__bubble {
+    /* relative, not static: the tail is absolutely positioned, and a static
+       bubble would hand it to the panel and float it over the artwork. */
+    position: relative;
+    inset: auto;
+    max-width: none;
+    justify-self: start;
+    font-size: 0.8125rem;
+    box-shadow: none;
+  }
+  .comic__bubble[data-who="brother"] { justify-self: end; }
+  /* Above the first bubble the tail points back at the drawing. */
+  .comic__bubble::after { inset-block: -5px auto; inset-inline: 20px auto; }
+  .comic__bubble[data-who="brother"]::after { inset-inline: auto 20px; }
+  .comic__bubble ~ .comic__bubble::after { display: none; }
+  .comic__arrow { inset-block-start: calc(50% - 30px); }
+}
+
+@media (max-width: 30rem) {
+  .comic { margin-block: var(--mu-space-4); }
+  .comic__art { aspect-ratio: 2 / 1; }
+  .comic__script { padding: 16px var(--mu-space-3) var(--mu-space-2); gap: 12px; }
+  .comic__bubble { font-size: 0.78125rem; }
+
+}
+
+/* Scroll-snap animates by default; honour a reduced-motion preference by
+   letting comicGo() jump instead - see app.js. */
+@media (prefers-reduced-motion: reduce) {
+  .comic__track { scroll-behavior: auto; }
+}
+
+@media (forced-colors: active) {
+  .comic__bubble { border: 1px solid CanvasText; }
+  .comic__arrow, .comic__bead { border: 1px solid ButtonText; }
+  .comic__bead[aria-selected="true"] { border: 2px solid Highlight; }
+}
+
+
+/* ============================================================== */
 /*  Unified gifting configuration page                            */
 /* ============================================================== */
 
@@ -1132,6 +1356,16 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   color: var(--em-button-fg);
   font-size: 0.75rem;
   font-weight: 700;
+  /* It is an anchor now, so it must not pick up the document's link colour or
+     underline - it is a button in an email, drawn by the card's own tokens. */
+  text-decoration: none;
+}
+
+.dev-note__actions {
+  padding: var(--mu-space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mu-space-2);
 }
 
 .email-foot {
