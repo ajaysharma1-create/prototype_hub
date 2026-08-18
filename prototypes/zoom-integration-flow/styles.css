@@ -24,6 +24,8 @@
   --screen-top:clamp(20px,3vw,32px);
   --card-pad:clamp(18px,3.2vw,28px);
   --card-gap:clamp(18px,2.2vw,24px);
+  --compact-card-pad:clamp(16px,2.4vw,24px);
+  --compact-card-gap:clamp(14px,1.8vw,18px);
   --card-narrow:640px;
   --dock-clear:76px;
   --control-h:44px;
@@ -147,18 +149,23 @@ h1,h2,h3,p{margin-top:0}
 .level-bars i{width:4px;height:5px;border-radius:2px;background:var(--accent-300);animation:level .8s ease-in-out infinite}
 .level-bars i:nth-child(2){animation-delay:.1s}.level-bars i:nth-child(3){animation-delay:.2s}.level-bars i:nth-child(4){animation-delay:.3s}
 @keyframes level{50%{height:18px}}
-.prejoin-card{padding:var(--card-pad);display:flex;flex-direction:column;gap:var(--card-gap)}
-.prejoin-heading{padding-bottom:16px;border-bottom:1px solid var(--border-hairline)}
-.identity{display:flex;flex-direction:column;gap:4px;min-width:0}
+.prejoin-card{padding:var(--compact-card-pad);display:flex;flex-direction:column;gap:var(--compact-card-gap)}
+.prejoin-heading{padding-bottom:12px;border-bottom:1px solid var(--border-hairline)}
+.identity{display:flex;align-items:baseline;gap:4px 12px;flex-wrap:wrap;min-width:0}
 .identity-label,.field-label{color:var(--text-muted);font-size:var(--fs-2xs);line-height:var(--lh-2xs);font-weight:var(--fw-medium)}
 .identity-value{color:var(--text-primary);font-size:var(--fs-md);line-height:var(--lh-md);font-weight:var(--fw-medium);overflow-wrap:anywhere}
 /* No column gap, so the hairline between rows reads as one continuous rule. */
 .details{margin:0;display:grid;grid-template-columns:clamp(88px,26%,112px) minmax(0,1fr)}
-.details dt,.details dd{margin:0;padding:9px 0;border-top:1px solid var(--border-hairline);font-size:var(--fs-xs);line-height:var(--lh-xs)}
+.details dt,.details dd{margin:0;padding:7px 0;border-top:1px solid var(--border-hairline);font-size:var(--fs-xs);line-height:var(--lh-xs)}
 .details dt{padding-right:16px;color:var(--text-muted)}
 .details dd{color:var(--text-secondary);overflow-wrap:anywhere}
 .details dt:first-of-type,.details dt:first-of-type+dd{border-top:none;padding-top:0}
-.device-grid{display:grid;gap:12px}
+.detail-stack{display:flex;gap:2px 12px;flex-wrap:wrap}
+.detail-stack span:last-child{color:var(--text-muted)}
+.prejoin-card .stack-sm{gap:6px}
+.prejoin-card .tips{gap:6px}
+.prejoin-card>.notice{padding:12px 14px}
+.device-grid{display:grid;gap:10px}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 select,input[type="text"],textarea{width:100%;border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface-input);color:var(--text-primary);transition:border-color var(--motion-fast),box-shadow var(--motion-fast),background var(--motion-fast)}
 select:hover,input[type="text"]:hover,textarea:hover{border-color:var(--border-strong)}
@@ -228,20 +235,21 @@ select:disabled{color:var(--text-disabled);cursor:not-allowed}
 .active-controls .btn:last-child{border-color:var(--red-300);color:var(--red-200)}
 
 /* ---------- feedback --------------------------------------------------- */
-.feedback-layout{width:min(var(--shell),100%);margin-inline:auto;display:grid;grid-template-columns:minmax(0,820px);justify-content:center;gap:var(--card-gap);align-items:start}
+.feedback-layout{width:min(var(--shell),100%);margin-inline:auto;display:grid;grid-template-columns:minmax(0,860px);justify-content:center;gap:var(--compact-card-gap);align-items:start}
 .feedback-layout>*{min-width:0}
 .feedback-brand{display:grid;place-items:center}
-.feedback-brand img{width:min(160px,60%);height:auto}
-.feedback-card{min-width:0;padding:var(--card-pad);display:flex;flex-direction:column;gap:var(--card-gap)}
+.feedback-brand img{width:min(144px,52%);height:auto}
+.feedback-card{min-width:0;padding:var(--compact-card-pad);display:flex;flex-direction:column;gap:var(--compact-card-gap)}
 .feedback-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px 16px;flex-wrap:wrap}
 .feedback-head>div{flex:1 1 260px;min-width:0}
+.feedback-head .subtitle{margin-top:4px}
 .step-chip{flex:none;padding:5px 9px;border:1px solid var(--accent-400);border-radius:var(--radius-2);background:var(--accent-500);color:var(--accent-200);font-size:var(--fs-2xs);line-height:var(--lh-2xs);font-weight:var(--fw-medium);white-space:nowrap}
-.scale-help{margin:0 0 18px;padding:12px 14px;display:flex;justify-content:space-between;gap:2px 16px;flex-wrap:wrap;border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface-page);color:var(--text-muted);font-size:var(--fs-2xs);line-height:var(--lh-2xs)}
+.scale-help{margin:0 0 12px;padding:9px 12px;display:flex;justify-content:space-between;gap:2px 16px;flex-wrap:wrap;border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface-page);color:var(--text-muted);font-size:var(--fs-2xs);line-height:var(--lh-2xs)}
 .question-list{display:flex;flex-direction:column;min-width:0}
-.question{min-width:0;margin:0;padding:18px 0;border:0;border-top:1px solid var(--border-hairline)}
+.question{min-width:0;margin:0;padding:14px 0;border:0;border-top:1px solid var(--border-hairline)}
 .question:first-child{padding-top:0;border-top:none}
 .question legend{max-width:68ch;padding:0;color:var(--text-primary);font-size:var(--fs-sm);line-height:var(--lh-sm);font-weight:var(--fw-medium)}
-.rating{margin-top:12px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(6px,1.1vw,8px)}
+.rating{margin-top:8px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(6px,1.1vw,8px)}
 .rating-option{position:relative;min-width:0}
 .rating-option input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
 .rating-option label{min-height:var(--control-h);padding:4px;display:flex;align-items:center;justify-content:center;gap:clamp(4px,1.3vw,7px);border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface-page);color:var(--text-tertiary);font-size:var(--fs-sm);cursor:pointer;transition:background var(--motion-fast),border-color var(--motion-fast),color var(--motion-fast)}
@@ -253,11 +261,11 @@ select:disabled{color:var(--text-disabled);cursor:not-allowed}
 .anchors{margin-top:6px;display:flex;justify-content:space-between;gap:12px;color:var(--text-muted);font-size:var(--fs-2xs);line-height:var(--lh-2xs)}
 .anchors span{min-width:0}
 .anchors span:last-child{text-align:right}
-/* Sits in the question list so its rule keeps the same 18px rhythm. */
-.comment-field{padding-top:18px;border-top:1px solid var(--border-hairline)}
+/* Sits in the question list so its rule keeps the same compact rhythm. */
+.comment-field{padding-top:14px;border-top:1px solid var(--border-hairline)}
 .label-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .optional{flex:none;color:var(--text-muted);font-size:var(--fs-2xs);font-weight:var(--fw-regular)}
-textarea{min-height:112px;margin-top:8px;padding:12px;resize:vertical;font-size:var(--fs-sm);line-height:var(--lh-sm)}
+textarea{min-height:88px;margin-top:6px;padding:10px 12px;resize:vertical;font-size:var(--fs-sm);line-height:var(--lh-sm)}
 
 /* ---------- dialog ----------------------------------------------------- */
 /* The dialog element becomes the viewport-sized centring frame, so the card
@@ -315,15 +323,23 @@ dialog::backdrop{background:rgba(8,8,8,.78)}
 /* ---------- two-column compositions ------------------------------------ */
 /* Thresholds are set where the second column can appear without the primary
    column ending up narrower than it was in the stacked layout. */
+@media (min-width:760px){
+  .statement-question{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.95fr);align-items:center;gap:16px}
+  .statement-question .rating{margin-top:0}
+  .experience-question-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}
+  .experience-question-list>.question:nth-child(2){padding-top:0;border-top:none}
+  .experience-question-list>.comment-field{grid-column:1/-1}
+}
+
 @media (min-width:1180px){
   .prejoin-layout{grid-template-columns:minmax(0,1.2fr) minmax(360px,.8fr);justify-content:stretch}
   .prejoin-stage{position:sticky;top:var(--gutter)}
 }
 
 @media (min-width:1200px){
-  .feedback-layout{grid-template-columns:280px minmax(0,820px);column-gap:48px}
+  .feedback-layout{grid-template-columns:260px minmax(0,860px);column-gap:40px}
   .feedback-brand{position:sticky;top:var(--gutter);min-height:min(calc(100dvh - 2 * var(--screen-top)),640px)}
-  .feedback-brand img{width:min(240px,100%)}
+  .feedback-brand img{width:min(220px,100%)}
 }
 
 /* ---------- mobile composition ----------------------------------------- */

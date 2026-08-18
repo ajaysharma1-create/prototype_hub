@@ -18,7 +18,6 @@
     session_date: 'Tuesday, 18 August 2026',
     scheduled_time: '6:30 PM',
     timezone: 'IST (GMT+5:30)',
-    access_time: '6:25 PM',
     join_deadline: '6:37 PM',
     mentee_join_time: '6:26 PM',
     mentor_join_time: '6:27 PM',
@@ -275,10 +274,8 @@
       '<div class="prejoin-heading"><h1 class="title small" id="device-title">Ready for your session?</h1><p class="subtitle">Session with ' + esc(counterpart) + '</p></div>' +
       '<div class="identity"><span class="identity-label">Joining as</span><span class="identity-value">' + esc(joiningAs) + '</span></div>' +
       '<div class="stack-sm"><h2 class="section-title">Session details</h2><dl class="details">' +
-      '<dt>Agenda</dt><dd>' + esc(S.session_agenda) + '</dd><dt>Date</dt><dd>' + esc(S.session_date) + '</dd>' +
-      '<dt>Time</dt><dd>' + esc(S.scheduled_time) + '</dd><dt>Timezone</dt><dd>' + esc(S.timezone) + '</dd>' +
-      '<dt>Duration</dt><dd>30 minutes</dd>' +
-      (mentee ? '<dt>Access</dt><dd>Open from ' + esc(S.access_time) + ', five minutes before start</dd>' : '') +
+      '<dt>Agenda</dt><dd>' + esc(S.session_agenda) + '</dd>' +
+      '<dt>Date and time</dt><dd class="detail-stack"><span>' + esc(S.session_date) + ' · ' + esc(S.scheduled_time) + '</span><span>' + esc(S.timezone) + ' · 30 minutes</span></dd>' +
       '</dl></div>' +
       '<div class="stack-sm"><h2 class="section-title">Devices</h2><div class="device-grid">' +
       deviceSelect('camera', 'Camera') + deviceSelect('microphone', 'Microphone') + deviceSelect('speaker', 'Speaker') + '</div>' +
@@ -409,18 +406,19 @@
 
   function ratingScale(form, questionId, legend, low, high) {
     var selected = state.feedback[form].ratings[questionId];
+    var questionClass = questionId.indexOf('statement-') === 0 ? 'question statement-question' : 'question';
     var options = '';
     for (var number = 1; number <= 5; number += 1) {
       var id = form + '-' + questionId + '-' + number;
       options += '<div class="rating-option"><input id="' + id + '" type="radio" name="' + form + '-' + questionId + '" value="' + number + '" data-rating data-form="' + form + '" data-question="' + questionId + '"' + (selected === number ? ' checked' : '') + '><label for="' + id + '">' + number + '</label></div>';
     }
-    return '<fieldset class="question"><legend>' + esc(legend) + '</legend><div class="rating">' + options + '</div>' +
+    return '<fieldset class="' + questionClass + '"><legend>' + esc(legend) + '</legend><div class="rating">' + options + '</div>' +
       (low ? '<div class="anchors"><span>' + esc(low) + '</span><span>' + esc(high) + '</span></div>' : '') + '</fieldset>';
   }
 
   function commentField(form, id, label) {
     return '<div class="comment-field"><div class="label-row"><label class="section-title" for="' + id + '">' + esc(label) + '</label><span class="optional">Optional</span></div>' +
-      '<textarea id="' + id + '" rows="4" data-feedback-comment data-form="' + form + '">' + esc(state.feedback[form].comment) + '</textarea></div>';
+      '<textarea id="' + id + '" rows="3" data-feedback-comment data-form="' + form + '">' + esc(state.feedback[form].comment) + '</textarea></div>';
   }
 
   function feedbackFooter(form, primaryLabel) {
@@ -468,7 +466,7 @@
 
     return feedbackFrame('<form class="feedback-card card" data-feedback-form="' + form + '" aria-labelledby="feedback-title">' +
       '<div class="feedback-head"><div><h1 class="title small" id="feedback-title">' + esc(title) + '</h1><p class="subtitle">' + esc(intro) + '</p></div><span class="step-chip">Step 1 of 2</span></div>' +
-      '<div class="question-list">' + questions + commentField(form, form + '-comment', comment) + '</div>' + feedbackFooter(form, 'Continue') + '</form>');
+      '<div class="question-list reflection-question-list">' + questions + commentField(form, form + '-comment', comment) + '</div>' + feedbackFooter(form, 'Continue') + '</form>');
   }
 
   function experienceScreen() {
@@ -479,8 +477,8 @@
       ratingScale(form, 'support', 'How well did the platform support the conversation overall?', 'Not well at all', 'Extremely well');
     return feedbackFrame('<form class="feedback-card card" data-feedback-form="c13" aria-labelledby="feedback-title">' +
       '<div class="feedback-head"><div><h1 class="title small" id="feedback-title">One last check-in</h1>' +
-      '<p class="subtitle">A few quick ratings will help make future sessions feel smoother and more reliable. Think only about joining and using the session space.</p></div><span class="step-chip">Step 2 of 2</span></div>' +
-      '<div class="question-list">' + questions +
+      '<p class="subtitle">Think only about joining and using the session space.</p></div><span class="step-chip">Step 2 of 2</span></div>' +
+      '<div class="question-list experience-question-list">' + questions +
       commentField(form, 'c13-comment', 'Anything we could make smoother next time?') + '</div>' + feedbackFooter(form, 'Finish') + '</form>');
   }
 
