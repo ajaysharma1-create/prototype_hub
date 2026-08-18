@@ -43,6 +43,16 @@ prototype-hub/
     │   └── assets/
     │       ├── fonts/
     │       └── logos/
+    ├── zoom-integration-flow/
+    │   ├── index.html
+    │   ├── app.js
+    │   ├── styles.css
+    │   ├── assets/
+    │   │   └── logo-on-dark.svg
+    │   └── design-system/
+    │       ├── styles.css
+    │       ├── components/
+    │       └── tokens/
     ├── mentee-direct-onboarding/
     │   ├── onboarding-app.html
     │   ├── mentorunion-schema.css
@@ -134,6 +144,10 @@ Before publishing a change, confirm:
 Prototype interactions may intentionally simulate product actions. Any inert policy, contact, authentication, or purchase control must be documented as a prototype limitation rather than represented as a live service.
 
 ### Current prototype limitations
+
+#### Zoom Integration Flow
+
+`zoom-integration-flow/index.html` is a front-end review prototype. Zoom connectivity, attendance persistence, credit and payout updates, support handoff, and dashboard navigation are simulated; no production Zoom or MentorUnion backend is called. The case index, in-session bridge, and prototype-control dock expose deterministic documented states for review. Participant names and session times are sample data. MentorUnion typography uses optional Google-hosted font requests with system fallbacks.
 
 #### Gift a Career
 

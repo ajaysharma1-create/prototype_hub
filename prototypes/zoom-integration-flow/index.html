@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow">
+<title>Zoom session flow · MentorUnion prototype</title>
+<link rel="stylesheet" href="design-system/styles.css">
+<link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+
+<header class="appbar" id="appbar" hidden>
+  <div class="appbar-inner">
+    <a class="appbar-logo" href="#/" aria-label="Return to Zoom integration case screens">
+      <img src="assets/logo-on-dark.svg"
+           width="219" height="59" alt="Mentor Union">
+    </a>
+    <span class="appbar-divider" aria-hidden="true"></span>
+    <p class="appbar-context" id="appbar-context"></p>
+    <div class="appbar-user">
+      <span id="appbar-user"></span>
+      <span class="appbar-avatar" id="appbar-avatar" aria-hidden="true"></span>
+    </div>
+  </div>
+</header>
+
+<main class="page" id="main" tabindex="-1">
+  <div id="view"></div>
+</main>
+
+<p id="live" class="sr" role="status" aria-live="polite"></p>
+
+<aside class="dock" id="dock" aria-label="Prototype controls" hidden>
+  <div class="head">
+    <span class="lbl">Prototype controls</span>
+    <button type="button" id="dock-toggle" aria-expanded="true" aria-controls="dock-body">Hide</button>
+  </div>
+  <div class="body" id="dock-body"></div>
+</aside>
+
+<dialog id="dialog"></dialog>
+</body>
+</html>

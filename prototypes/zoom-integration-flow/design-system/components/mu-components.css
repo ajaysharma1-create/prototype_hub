@@ -1,0 +1,49 @@
+/* Interaction states for Mentor Union primitives. Components set structure inline; states live here. */
+.mu-btn{display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-weight:var(--fw-medium);cursor:pointer;border:1px solid transparent;box-sizing:border-box;transition:background var(--motion-fast) var(--ease-standard),border-color var(--motion-fast) var(--ease-standard),color var(--motion-fast) var(--ease-standard),transform var(--motion-fast) var(--ease-standard)}
+.mu-btn:active:not(:disabled){transform:translateY(0.5px)}
+.mu-btn:focus-visible{outline:none;box-shadow:var(--ring-focus)}
+.mu-btn:disabled{cursor:not-allowed}
+.mu-btn--sm{height:26px;border-radius:var(--radius-2);padding:4px 8px;gap:4px;font-size:var(--fs-2xs);line-height:1.5}
+.mu-btn--md{height:44px;border-radius:var(--radius-4);padding:12px;gap:8px;font-size:var(--fs-sm);line-height:1.5}
+.mu-btn--lg{height:56px;border-radius:var(--radius-5);padding:16px;gap:8px;font-size:var(--fs-md);line-height:1.5}
+.mu-btn--primary{background:var(--accent-300);border-color:var(--accent-300);color:var(--text-on-accent)}
+.mu-btn--primary:hover:not(:disabled){background:var(--accent-200);border-color:var(--accent-200)}
+.mu-btn--primary:active:not(:disabled){background:var(--accent-400);border-color:var(--accent-400)}
+.mu-btn--primary:disabled{background:var(--mu-700);border-color:var(--mu-700);color:var(--mu-500)}
+.mu-btn--secondary{background:var(--accent-500);border-color:var(--accent-400);color:var(--accent-200)}
+.mu-btn--secondary:hover:not(:disabled){background:#54401d;border-color:var(--accent-300)}
+.mu-btn--secondary:disabled{background:var(--mu-900);border-color:var(--mu-800);color:var(--mu-600)}
+.mu-btn--tertiary-outlined{background:transparent;border-color:var(--mu-800);color:var(--text-primary)}
+.mu-btn--tertiary-outlined:hover:not(:disabled){background:var(--mu-900);border-color:var(--mu-700)}
+.mu-btn--tertiary-outlined:disabled{border-color:var(--mu-800);color:var(--mu-600)}
+.mu-btn--tertiary-filled{background:var(--mu-900);border-color:var(--mu-900);color:var(--text-primary)}
+.mu-btn--tertiary-filled:hover:not(:disabled){background:var(--mu-800);border-color:var(--mu-800)}
+.mu-btn--tertiary-filled:disabled{color:var(--mu-600)}
+.mu-btn--ghost{background:transparent;border-color:transparent;color:var(--text-tertiary)}
+.mu-btn--ghost:hover:not(:disabled){background:var(--mu-900);color:var(--text-primary)}
+.mu-btn--link{background:transparent;border-color:transparent;color:var(--text-link);height:auto;padding:0}
+.mu-btn--link:hover:not(:disabled){text-decoration:underline;text-underline-offset:2px}
+.mu-btn--destructive{background:var(--red-200);border-color:var(--red-200);color:var(--mu-000)}
+.mu-btn--destructive:hover:not(:disabled){background:#b12323;border-color:#b12323}
+.mu-btn--destructive.mu-btn--tertiary-outlined{background:transparent;border-color:var(--red-300);color:var(--red-200)}
+
+.mu-iconbtn{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;box-sizing:border-box;border:1px solid transparent;transition:background var(--motion-fast) var(--ease-standard),border-color var(--motion-fast) var(--ease-standard),color var(--motion-fast) var(--ease-standard)}
+.mu-iconbtn:focus-visible{outline:none;box-shadow:var(--ring-focus)}
+.mu-iconbtn:disabled{cursor:not-allowed;color:var(--mu-600)}
+
+.mu-input{width:100%;box-sizing:border-box;background:var(--surface-input);border:1px solid var(--border-subtle);border-radius:var(--radius-4);color:var(--text-primary);font-family:var(--font-sans);transition:border-color var(--motion-fast) var(--ease-standard),box-shadow var(--motion-fast) var(--ease-standard)}
+.mu-input::placeholder{color:var(--text-muted)}
+.mu-input:hover:not(:disabled){border-color:var(--border-strong)}
+.mu-input:focus{outline:none;border-color:var(--accent-300);box-shadow:var(--ring-focus)}
+.mu-input:disabled{color:var(--text-disabled);background:var(--mu-black)}
+.mu-field--error .mu-input,.mu-input[aria-invalid="true"]{border-color:var(--border-error)}
+.mu-field--error .mu-input:focus{box-shadow:var(--shadow-error-glow)}
+
+.mu-row{transition:background var(--motion-fast) var(--ease-standard)}
+.mu-row:hover{background:var(--surface-hover)}
+.mu-focusable:focus-visible{outline:none;box-shadow:var(--ring-focus)}
+.mu-tag-x{cursor:pointer;opacity:.6;transition:opacity var(--motion-fast) var(--ease-standard)}
+.mu-tag-x:hover{opacity:1}
+.mu-tooltip-wrap{position:relative;display:inline-flex}
+.mu-tooltip-wrap>[data-mu-tooltip]{opacity:0;pointer-events:none;transition:opacity var(--motion-fast) var(--ease-standard)}
+.mu-tooltip-wrap:hover>[data-mu-tooltip]{opacity:1}

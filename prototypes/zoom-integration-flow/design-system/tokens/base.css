@@ -1,0 +1,8 @@
+/* Minimal resets + link defaults so consumers never see browser-blue links. */
+:root{color-scheme:dark}
+body{margin:0;background:var(--surface-page);color:var(--text-primary);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+*{text-wrap:pretty}
+a{color:var(--text-link);text-decoration:none;transition:color var(--motion-fast) var(--ease-standard)}
+a:hover{color:var(--accent-hover);text-decoration:underline;text-underline-offset:2px}
+a:active{color:var(--accent-pressed)}
+::selection{background:var(--accent-300);color:var(--mu-black)}

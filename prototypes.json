@@ -1,6 +1,23 @@
 {
-  "updatedAt": "2026-08-17",
+  "updatedAt": "2026-08-18",
   "prototypes": [
+    {
+      "id": "zoom-integration-flow",
+      "name": "Zoom Integration Flow",
+      "project": "Zoom Integration",
+      "description": "Ten-case Zoom mentoring-session flow covering preparation, device checks, waiting, attendance outcomes, joining expiry, early exit, and role-specific feedback.",
+      "type": "Product flow",
+      "status": "approved",
+      "version": "",
+      "updatedAt": "2026-08-18",
+      "preview": "assets/previews/zoom-integration-flow.png",
+      "previewAlt": "MentorUnion Zoom integration prototype case index showing access to ten documented session cases.",
+      "prototypePath": "prototypes/zoom-integration-flow/index.html",
+      "sourcePath": "",
+      "approvedBy": "Product Manager",
+      "approvalReference": "Direct PM instruction to publish the Zoom integration flow prototype - 2026-08-18",
+      "device": "Responsive web"
+    },
     {
       "id": "gift-mentorship",
       "name": "Gift a Career",

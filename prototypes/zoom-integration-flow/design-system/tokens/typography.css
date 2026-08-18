@@ -1,0 +1,30 @@
+/* Type scale transcribed from the Figma file's real usage (Inter 18pt).
+   Sizes are literal — 13px and 8px are real values in the source, not rounding errors. */
+:root{
+--fs-4xs:8px;--lh-4xs:12px;
+--fs-3xs:10px;--lh-3xs:14px;
+--fs-2xs:12px;--lh-2xs:16px;
+--fs-xs:13px;--lh-xs:18px;
+--fs-sm:14px;--lh-sm:20px;
+--fs-md:16px;--lh-md:24px;
+--fs-lg:18px;--lh-lg:28px;
+--fs-xl:24px;--lh-xl:32px;
+--fs-2xl:32px;--lh-2xl:40px;
+--fs-display:60px;--lh-display:100%;
+--fw-regular:400; /* @kind font */
+--fw-medium:500; /* @kind font */
+--fw-semibold:600; /* @kind font */
+--fw-bold:700; /* @kind font */
+--tracking-tight:-0.01em;--tracking-normal:0;--tracking-caps:0.06em;
+}
+.mu-display{font:var(--fw-bold) var(--fs-display)/var(--lh-display) var(--font-display);letter-spacing:var(--tracking-tight)}
+.mu-h1{font:var(--fw-semibold) var(--fs-2xl)/var(--lh-2xl) var(--font-sans);letter-spacing:var(--tracking-tight)}
+.mu-h2{font:var(--fw-semibold) var(--fs-xl)/var(--lh-xl) var(--font-sans);letter-spacing:var(--tracking-tight)}
+.mu-h3{font:var(--fw-semibold) var(--fs-lg)/var(--lh-lg) var(--font-sans)}
+.mu-body-lg{font:var(--fw-regular) var(--fs-md)/var(--lh-md) var(--font-sans)}
+.mu-body{font:var(--fw-regular) var(--fs-sm)/var(--lh-sm) var(--font-sans)}
+.mu-body-sm{font:var(--fw-regular) var(--fs-xs)/var(--lh-xs) var(--font-sans)}
+.mu-caption{font:var(--fw-regular) var(--fs-2xs)/var(--lh-2xs) var(--font-sans)}
+.mu-micro{font:var(--fw-regular) var(--fs-3xs)/var(--lh-3xs) var(--font-sans)}
+.mu-overline{font:var(--fw-semibold) var(--fs-2xs)/100% var(--font-doc);text-transform:uppercase;letter-spacing:var(--tracking-caps)}
+.mu-quote{font:italic var(--fw-semibold) 56px/1.2 var(--font-quote)}

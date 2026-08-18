@@ -1,0 +1,13 @@
+/* Stroke widths and the one elevation the file defines (E0), plus the toggle-knob lift. */
+:root{
+--stroke-0:1px;--stroke-1:1.5px;--stroke-2:2px;--stroke-3:4px;
+--shadow-e0:8px 8px 32px 1px rgba(8,8,8,0.12);
+--shadow-knob:0px 1px 3px 0px rgba(16,24,40,0.1),0px 1px 2px 0px rgba(16,24,40,0.06);
+--shadow-error-glow:0 0 0 4px rgba(234,77,77,0.3);
+--ring-focus:0 0 0 3px rgba(240,185,98,0.28);
+--motion-fast:120ms; /* @kind other */
+--motion-base:180ms; /* @kind other */
+--motion-slow:260ms; /* @kind other */
+--ease-standard:cubic-bezier(0.2,0,0,1); /* @kind other */
+--ease-out:cubic-bezier(0.16,1,0.3,1); /* @kind other */
+}
