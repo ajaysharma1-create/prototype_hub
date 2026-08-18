@@ -5,7 +5,7 @@
       "id": "zoom-integration-flow",
       "name": "Zoom Integration Flow",
       "project": "Zoom Integration",
-      "description": "Ten-case Zoom mentoring-session flow covering preparation, device checks, waiting, attendance outcomes, joining expiry, early exit, and role-specific feedback.",
+      "description": "Thirteen-case Zoom mentoring-session flow covering preparation, device checks, waiting transitions, attendance outcomes, joining expiry, early exit, acknowledgements, and role-specific feedback.",
       "type": "Product flow",
       "status": "approved",
       "version": "",

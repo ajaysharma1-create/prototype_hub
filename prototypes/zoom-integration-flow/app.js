@@ -1,5 +1,5 @@
 /* ========================================================================== 
-   Zoom integration flow — latest approved ten-case prototype
+   Zoom integration flow — latest approved thirteen-case prototype
 
    Product content and behaviour: Case-wise ASCII Screen Designs.md
    Visual tokens and components: Mentor Union Design Schema
@@ -26,7 +26,8 @@
     support_deadline: '20 August 2026, 6:30 PM',
     time_until_start_seconds: 277,
     waiting_pre_seconds: 100,
-    waiting_deadline_seconds: 297
+    waiting_deadline_seconds: 297,
+    transition_seconds: 10
   };
 
   var DEVICE_BASE = {
@@ -60,9 +61,10 @@
       chatDraft: '',
       messages: [],
       feedbackRole: 'mentee',
-      feedback: { c08: blankFeedback(), c09: blankFeedback(), c10: blankFeedback() },
+      feedback: { c11: blankFeedback(), c12: blankFeedback(), c13: blankFeedback() },
       bridgeRole: 'mentee',
       participantRole: 'mentee',
+      waitingMissing: 'mentor',
       earlyExitPrompt: true,
       endLabel: '',
       endMessage: ''
@@ -127,23 +129,27 @@
     '/c01/welcome': { caseId: '01', role: 'mentee', label: 'Case 01 · Screen 1 — Mentee welcome', bar: false },
     '/c01/device': { caseId: '01', role: 'mentee', label: 'Case 01 · Screen 2 — Mentee device check', bar: true },
     '/c02/waiting': { caseId: '02', role: 'mentee', label: 'Case 02 · Screen 1 — Waiting for the mentor', bar: true },
-    '/c03/outcome': { caseId: '03', role: 'mentee', label: 'Case 03 · Screen 1 — Mentee no-start outcome', bar: true },
-    '/c04/welcome': { caseId: '04', role: 'mentor', label: 'Case 04 · Screen 1 — Mentor welcome', bar: false },
-    '/c04/device': { caseId: '04', role: 'mentor', label: 'Case 04 · Screen 2 — Mentor device check', bar: true },
-    '/c05/outcome': { caseId: '05', role: 'mentor', label: 'Case 05 · Screen 1 — Mentee did not join', bar: true },
-    '/c06/expired': { caseId: '06', role: 'both', label: 'Case 06 · Screen 1 — Meeting over and attendance recorded', bar: true },
-    '/c07/session': { caseId: '07', role: 'both', label: 'Case 07 · Screen 1 — Confirm early exit', bar: true },
-    '/c08/reflection': { caseId: '08', role: 'mentee', label: 'Case 08 · Screen 1 — Mentee session reflection', bar: false },
-    '/c09/reflection': { caseId: '09', role: 'mentor', label: 'Case 09 · Screen 1 — Mentor session reflection', bar: false },
-    '/c10/experience': { caseId: '10', role: 'both', label: 'Case 10 · Screen 1 — MentorUnion and Zoom experience', bar: false },
+    '/c03/waiting-complete': { caseId: '03', role: 'both', label: 'Case 03 · Screen 1 — Waiting-complete transition', bar: true },
+    '/c04/outcome': { caseId: '04', role: 'mentee', label: 'Case 04 · Screen 1 — Mentee no-start outcome', bar: true },
+    '/c05/welcome': { caseId: '05', role: 'mentor', label: 'Case 05 · Screen 1 — Mentor welcome', bar: false },
+    '/c05/device': { caseId: '05', role: 'mentor', label: 'Case 05 · Screen 2 — Mentor device check', bar: true },
+    '/c06/outcome': { caseId: '06', role: 'mentor', label: 'Case 06 · Screen 1 — Mentee did not join', bar: true },
+    '/c07/expired': { caseId: '07', role: 'both', label: 'Case 07 · Screen 1 — Meeting over and attendance recorded', bar: true },
+    '/c08/session': { caseId: '08', role: 'both', label: 'Case 08 · Screen 1 — Confirm early exit', bar: true },
+    '/c09/acknowledgement': { caseId: '09', role: 'mentee', label: 'Case 09 · Screen 1 — Thank you to the mentee', bar: true },
+    '/c10/acknowledgement': { caseId: '10', role: 'mentor', label: 'Case 10 · Screen 1 — Thank you to the mentor', bar: true },
+    '/c11/reflection': { caseId: '11', role: 'mentee', label: 'Case 11 · Screen 1 — Mentee session reflection', bar: false },
+    '/c12/reflection': { caseId: '12', role: 'mentor', label: 'Case 12 · Screen 1 — Mentor session reflection', bar: false },
+    '/c13/experience': { caseId: '13', role: 'both', label: 'Case 13 · Screen 1 — MentorUnion and Zoom experience', bar: false },
     '/bridge': { harness: true, label: 'Prototype bridge — in-session' },
     '/end': { harness: true, label: 'Prototype — flow complete' }
   };
 
   var CASE_START = {
-    '01': '/c01/welcome', '02': '/c02/waiting', '03': '/c03/outcome', '04': '/c04/welcome',
-    '05': '/c05/outcome', '06': '/c06/expired', '07': '/c07/session', '08': '/c08/reflection',
-    '09': '/c09/reflection', '10': '/c10/experience'
+    '01': '/c01/welcome', '02': '/c02/waiting', '03': '/c03/waiting-complete', '04': '/c04/outcome',
+    '05': '/c05/welcome', '06': '/c06/outcome', '07': '/c07/expired', '08': '/c08/session',
+    '09': '/c09/acknowledgement', '10': '/c10/acknowledgement', '11': '/c11/reflection',
+    '12': '/c12/reflection', '13': '/c13/experience'
   };
 
   function route() {
@@ -163,6 +169,10 @@
     if (variant === 'mentor' || variant === 'mentee') {
       state.participantRole = variant;
       state.bridgeRole = variant;
+    }
+    if (variant === 'mentor-missing' || variant === 'mentee-missing') {
+      state.waitingMissing = variant === 'mentor-missing' ? 'mentor' : 'mentee';
+      state.participantRole = state.waitingMissing === 'mentor' ? 'mentee' : 'mentor';
     }
     currentCase = ROUTES[next].caseId || null;
     if (route() === next) {
@@ -212,7 +222,7 @@
       '<div class="stack-sm"><h2 class="section-title">' + esc(listTitle) + '</h2>' +
       '<ol class="guide">' + items.map(function (item) { return '<li>' + esc(item) + '</li>'; }).join('') + '</ol></div>' +
       '<p class="body-copy">' + esc(closing) + '</p>' +
-      '<button class="btn primary full" type="button" data-action="go" data-route="' + (mentee ? '/c01/device' : '/c04/device') + '">Continue to device check</button>' +
+      '<button class="btn primary full" type="button" data-action="go" data-route="' + (mentee ? '/c01/device' : '/c05/device') + '">Continue to device check</button>' +
       '</section></div>';
   }
 
@@ -314,6 +324,34 @@
       '</div></div>';
   }
 
+  function transitionCountdown(label) {
+    var seconds = timerState ? timerState.seconds : S.transition_seconds;
+    return '<div class="transition-status" role="status"><span>' + esc(label) + ' <strong id="cd-num" data-format="seconds">' + seconds + '</strong> seconds...</span></div>';
+  }
+
+  function waitingCompleteScreen() {
+    var missingMentor = state.waitingMissing === 'mentor';
+    var otherParticipant = missingMentor ? S.mentor_name : S.mentee_name;
+    return '<div class="screen outcome-wrap"><section class="outcome-card card transition-card" aria-labelledby="waiting-complete-title">' +
+      '<div class="outcome-heading"><span class="outcome-icon">' + icon('clock') + '</span><h1 class="title small" id="waiting-complete-title">The waiting time is over</h1>' +
+      '<p class="subtitle">' + esc(otherParticipant) + ' did not join before ' + esc(S.join_deadline) + '.</p>' +
+      '<p class="body-copy">The joining window has now closed.</p></div>' +
+      '<p class="body-copy transition-copy">We will show the attendance status on the next screen.</p>' +
+      transitionCountdown('Continuing in') + '</section></div>';
+  }
+
+  function acknowledgementScreen(role) {
+    var mentee = role === 'mentee';
+    var counterpart = mentee ? S.mentor_name : S.mentee_name;
+    var heading = mentee ? 'Thank you for joining the session' : 'Thank you for hosting the session';
+    var closing = mentee ? 'Take a moment to reflect on how the conversation went.' : 'We appreciate the time and guidance you shared.';
+    return '<div class="screen outcome-wrap"><section class="outcome-card card transition-card" aria-labelledby="acknowledgement-title">' +
+      '<div class="outcome-heading"><span class="outcome-icon">' + icon('check') + '</span><h1 class="title small" id="acknowledgement-title">' + esc(heading) + '</h1>' +
+      '<p class="subtitle">Your session with ' + esc(counterpart) + ' is complete.</p>' +
+      '<p class="body-copy">' + esc(closing) + '</p></div>' +
+      transitionCountdown('Your session reflection will open in') + '</section></div>';
+  }
+
   function menteeOutcomeScreen() {
     return '<div class="screen outcome-wrap"><section class="outcome-card card" aria-labelledby="outcome-title">' +
       '<div class="outcome-heading"><span class="outcome-icon">' + icon('session') + '</span><h1 class="title small" id="outcome-title">The session could not start</h1>' +
@@ -324,7 +362,7 @@
       '</ul></div>' +
       '<div class="stack-sm"><h2 class="section-title">Session status</h2><div class="status-box"><strong>Verification in progress</strong></div></div>' +
       '<div class="actions"><button class="btn tertiary" type="button" data-action="report">Report a problem</button><span class="spacer"></span>' +
-      '<button class="btn primary" type="button" data-action="dashboard" data-label="Case 03">Go to dashboard</button></div>' +
+      '<button class="btn primary" type="button" data-action="dashboard" data-label="Case 04">Go to dashboard</button></div>' +
       '<p class="fineprint">Report an attendance or technical issue by ' + esc(S.support_deadline) + '.</p>' +
       '</section></div>';
   }
@@ -336,7 +374,7 @@
       '<div class="stack-sm"><h2 class="section-title">Recorded outcome</h2><div class="status-box"><strong>Mentee did not join</strong><span>Status: Outcome being confirmed</span></div></div>' +
       '<div class="stack-sm"><h2 class="section-title">What happens next</h2><ul class="bullet-list"><li>Your payout result will appear after the outcome is confirmed.</li><li>Report a platform, attendance, or timing issue if one occurred.</li></ul></div>' +
       '<div class="actions"><button class="btn tertiary" type="button" data-action="report">Report a problem</button><span class="spacer"></span>' +
-      '<button class="btn primary" type="button" data-action="dashboard" data-label="Case 05">Go to dashboard</button></div>' +
+      '<button class="btn primary" type="button" data-action="dashboard" data-label="Case 06">Go to dashboard</button></div>' +
       '<p class="fineprint">Report an attendance or technical issue by ' + esc(S.support_deadline) + '.</p>' +
       '</section></div>';
   }
@@ -351,7 +389,7 @@
       '<div><dt>Attendance</dt><dd>No-show recorded</dd></div></dl></div>' +
       '<p class="body-copy">If this does not look right, you can report it by ' + esc(S.support_deadline) + '.</p>' +
       '<div class="actions"><button class="btn tertiary" type="button" data-action="report">Report this</button><span class="spacer"></span>' +
-      '<button class="btn primary" type="button" data-action="dashboard" data-label="Case 06">Continue</button></div>' +
+      '<button class="btn primary" type="button" data-action="dashboard" data-label="Case 07">Continue</button></div>' +
       '</section></div>';
   }
 
@@ -399,7 +437,7 @@
 
   function reflectionScreen(role) {
     var mentee = role === 'mentee';
-    var form = mentee ? 'c08' : 'c09';
+    var form = mentee ? 'c11' : 'c12';
     var title = mentee ? 'Looking back on your session' : 'Looking back on the session';
     var intro = mentee
       ? 'Thinking about the conversation itself, share what supported you and what could have made the session more useful.'
@@ -434,34 +472,37 @@
   }
 
   function experienceScreen() {
-    var form = 'c10';
+    var form = 'c13';
     var questions = ratingScale(form, 'join', 'How easy was it to join the session?', 'Very difficult', 'Very easy') +
       ratingScale(form, 'controls', 'How easy were the session controls to use?', 'Very difficult', 'Very easy') +
       ratingScale(form, 'reliability', 'How reliable was the call experience?', 'Very unreliable', 'Very reliable') +
       ratingScale(form, 'support', 'How well did the platform support the conversation overall?', 'Not well at all', 'Extremely well');
-    return feedbackFrame('<form class="feedback-card card" data-feedback-form="c10" aria-labelledby="feedback-title">' +
+    return feedbackFrame('<form class="feedback-card card" data-feedback-form="c13" aria-labelledby="feedback-title">' +
       '<div class="feedback-head"><div><h1 class="title small" id="feedback-title">One last check-in</h1>' +
       '<p class="subtitle">A few quick ratings will help make future sessions feel smoother and more reliable. Think only about joining and using the session space.</p></div><span class="step-chip">Step 2 of 2</span></div>' +
       '<div class="question-list">' + questions +
-      commentField(form, 'c10-comment', 'Anything we could make smoother next time?') + '</div>' + feedbackFooter(form, 'Finish') + '</form>');
+      commentField(form, 'c13-comment', 'Anything we could make smoother next time?') + '</div>' + feedbackFooter(form, 'Finish') + '</form>');
   }
 
   var CASES = [
     { id: '01', role: 'Mentee', name: 'Mentee prepares and enters the session', trigger: 'At or after T-5, the mentee selects the enabled session link.', links: [['Screen 1 — Welcome', '/c01/welcome'], ['Screen 2 — Device check', '/c01/device']] },
     { id: '02', role: 'Mentee', name: 'Mentee waits for the mentor', trigger: 'The mentee entered successfully and the mentor is not yet present.', links: [['After scheduled start', '/c02/waiting', 'after'], ['Before scheduled start', '/c02/waiting', 'pre']] },
-    { id: '03', role: 'Mentee', name: 'Mentor does not join the mentee', trigger: 'The join deadline passes before the mentor enters.', links: [['Screen 1 — No-start outcome', '/c03/outcome']] },
-    { id: '04', role: 'Mentor', name: 'Mentor prepares and enters the session', trigger: 'The mentor opens the session experience before entering the room.', links: [['Screen 1 — Welcome', '/c04/welcome'], ['Screen 2 — Device check', '/c04/device']] },
-    { id: '05', role: 'Mentor', name: 'Mentee does not join the mentor', trigger: 'The mentor remained available and no mentee room entry was recorded.', links: [['Screen 1 — Mentee did not join', '/c05/outcome']] },
-    { id: '06', role: 'Both', name: 'Joining window has closed', trigger: 'The participant has not entered the room and opens or uses the meeting link at or after the join deadline.', links: [['Mentee view — Meeting over', '/c06/expired', 'mentee'], ['Mentor view — Meeting over', '/c06/expired', 'mentor']] },
-    { id: '07', role: 'Both', name: 'Participant leaves an active session early', trigger: 'During an active session, the participant selects Leave session before the scheduled end.', links: [['Mentee view — Confirm early exit', '/c07/session', 'mentee'], ['Mentor view — Confirm early exit', '/c07/session', 'mentor']] },
-    { id: '08', role: 'Mentee', name: 'Mentee reflection after a completed session', trigger: 'The backend confirms that the mentoring session was completed.', links: [['Screen 1 — Session reflection', '/c08/reflection']] },
-    { id: '09', role: 'Mentor', name: 'Mentor reflection after a completed session', trigger: 'The backend confirms that the mentoring session was completed.', links: [['Screen 1 — Session reflection', '/c09/reflection']] },
-    { id: '10', role: 'Both', name: 'Experience check-in after a completed session', trigger: 'The participant continues or skips their role-specific reflection.', links: [['Screen 1 — Experience check-in', '/c10/experience']] }
+    { id: '03', role: 'Both', name: 'Waiting time is over', trigger: 'The join deadline passes while one participant remains waiting and the other has not entered.', links: [['Mentor did not join', '/c03/waiting-complete', 'mentor-missing'], ['Mentee did not join', '/c03/waiting-complete', 'mentee-missing']] },
+    { id: '04', role: 'Mentee', name: 'Mentor does not join the mentee', trigger: 'The waiting-complete transition ends and the mentor did not enter.', links: [['Screen 1 — No-start outcome', '/c04/outcome']] },
+    { id: '05', role: 'Mentor', name: 'Mentor prepares and enters the session', trigger: 'The mentor opens the session experience before entering the room.', links: [['Screen 1 — Welcome', '/c05/welcome'], ['Screen 2 — Device check', '/c05/device']] },
+    { id: '06', role: 'Mentor', name: 'Mentee does not join the mentor', trigger: 'The waiting-complete transition ends and no mentee room entry was recorded.', links: [['Screen 1 — Mentee did not join', '/c06/outcome']] },
+    { id: '07', role: 'Both', name: 'Joining window has closed', trigger: 'The participant has not entered the room and opens or uses the meeting link at or after the join deadline.', links: [['Mentee view — Meeting over', '/c07/expired', 'mentee'], ['Mentor view — Meeting over', '/c07/expired', 'mentor']] },
+    { id: '08', role: 'Both', name: 'Participant leaves an active session early', trigger: 'During an active session, the participant selects Leave session before the scheduled end.', links: [['Mentee view — Confirm early exit', '/c08/session', 'mentee'], ['Mentor view — Confirm early exit', '/c08/session', 'mentor']] },
+    { id: '09', role: 'Mentee', name: 'Mentee completed-session acknowledgement', trigger: "The backend confirms that the mentee's mentoring session was completed.", links: [['Screen 1 — Thank you', '/c09/acknowledgement']] },
+    { id: '10', role: 'Mentor', name: 'Mentor completed-session acknowledgement', trigger: "The backend confirms that the mentor's mentoring session was completed.", links: [['Screen 1 — Thank you', '/c10/acknowledgement']] },
+    { id: '11', role: 'Mentee', name: 'Mentee reflection after a completed session', trigger: "The mentee's 10-second completed-session acknowledgement ends.", links: [['Screen 1 — Session reflection', '/c11/reflection']] },
+    { id: '12', role: 'Mentor', name: 'Mentor reflection after a completed session', trigger: "The mentor's 10-second completed-session acknowledgement ends.", links: [['Screen 1 — Session reflection', '/c12/reflection']] },
+    { id: '13', role: 'Both', name: 'Experience check-in after a completed session', trigger: 'The participant continues or skips their role-specific reflection.', links: [['Screen 1 — Experience check-in', '/c13/experience']] }
   ];
 
   function indexScreen() {
     return '<div class="hx-index"><header><span class="hx-tag">Prototype harness — not a product screen</span><h1>Zoom integration flow — case index</h1>' +
-      '<p class="hx-note">Ten cases from the latest approved case-wise ASCII specification. The controls dock supplies deterministic backend events and failure states.</p></header>' +
+      '<p class="hx-note">Thirteen cases from the latest approved case-wise ASCII specification. The controls dock supplies deterministic backend events and failure states.</p></header>' +
       '<div class="hx-grid">' + CASES.map(function (item) {
         return '<article class="hx-case"><div class="hx-case-head"><span class="hx-num">Case ' + item.id + '</span><span class="hx-role">' + item.role + '</span></div>' +
           '<h2>' + esc(item.name) + '</h2><p>' + esc(item.trigger) + '</p><div class="hx-links">' + item.links.map(function (link) {
@@ -474,9 +515,9 @@
     var mentor = state.bridgeRole === 'mentor';
     return '<div class="hx-screen"><section class="hx-card"><span class="hx-tag">Prototype bridge — not a product screen</span><h1>In-session experience</h1>' +
       '<p>The approved specification hands off to the established in-session experience, so this harness only exposes documented outcomes.</p><div class="hx-links">' +
-      '<button class="hx-btn go" type="button" data-action="complete-session" data-role="' + (mentor ? 'mentor' : 'mentee') + '">Session completed → Case ' + (mentor ? '09' : '08') + '</button>' +
-      '<button class="hx-btn" type="button" data-action="start-early-exit" data-role="' + (mentor ? 'mentor' : 'mentee') + '">Leave session early → Case 07</button>' +
-      (mentor ? '<button class="hx-btn" type="button" data-action="go" data-route="/c05/outcome">Mentee did not join → Case 05</button>' : '') +
+      '<button class="hx-btn go" type="button" data-action="complete-session" data-role="' + (mentor ? 'mentor' : 'mentee') + '">Session completed → Case ' + (mentor ? '10' : '09') + '</button>' +
+      '<button class="hx-btn" type="button" data-action="start-early-exit" data-role="' + (mentor ? 'mentor' : 'mentee') + '">Leave session early → Case 08</button>' +
+      (mentor ? '<button class="hx-btn" type="button" data-action="start-waiting-complete" data-missing="mentee">Mentee did not join → Case 03</button>' : '') +
       '<button class="hx-btn" type="button" data-action="open-case" data-route="/">Case index</button></div></section></div>';
   }
 
@@ -490,15 +531,18 @@
     '/c01/welcome': function () { return welcomeScreen('mentee'); },
     '/c01/device': function () { return deviceScreen('mentee'); },
     '/c02/waiting': waitingScreen,
-    '/c03/outcome': menteeOutcomeScreen,
-    '/c04/welcome': function () { return welcomeScreen('mentor'); },
-    '/c04/device': function () { return deviceScreen('mentor'); },
-    '/c05/outcome': mentorOutcomeScreen,
-    '/c06/expired': expiredMeetingScreen,
-    '/c07/session': activeSessionScreen,
-    '/c08/reflection': function () { return reflectionScreen('mentee'); },
-    '/c09/reflection': function () { return reflectionScreen('mentor'); },
-    '/c10/experience': experienceScreen,
+    '/c03/waiting-complete': waitingCompleteScreen,
+    '/c04/outcome': menteeOutcomeScreen,
+    '/c05/welcome': function () { return welcomeScreen('mentor'); },
+    '/c05/device': function () { return deviceScreen('mentor'); },
+    '/c06/outcome': mentorOutcomeScreen,
+    '/c07/expired': expiredMeetingScreen,
+    '/c08/session': activeSessionScreen,
+    '/c09/acknowledgement': function () { return acknowledgementScreen('mentee'); },
+    '/c10/acknowledgement': function () { return acknowledgementScreen('mentor'); },
+    '/c11/reflection': function () { return reflectionScreen('mentee'); },
+    '/c12/reflection': function () { return reflectionScreen('mentor'); },
+    '/c13/experience': experienceScreen,
     '/bridge': bridgeScreen,
     '/end': endScreen
   };
@@ -546,7 +590,7 @@
       }
     }
 
-    if (currentRoute === '/c07/session' && state.earlyExitPrompt && !dialog.open) {
+    if (currentRoute === '/c08/session' && state.earlyExitPrompt && !dialog.open) {
       state.earlyExitPrompt = false;
       window.setTimeout(openEarlyExitDialog, 0);
     }
@@ -585,7 +629,15 @@
 
   function paintTimer() {
     var number = document.getElementById('cd-num');
-    if (number && timerState) { number.textContent = mmss(timerState.seconds); }
+    if (number && timerState) {
+      number.textContent = number.dataset.format === 'seconds' ? timerState.seconds : mmss(timerState.seconds);
+    }
+  }
+
+  function enterWaitingComplete(missingRole) {
+    state.waitingMissing = missingRole;
+    state.participantRole = missingRole === 'mentor' ? 'mentee' : 'mentor';
+    go('/c03/waiting-complete');
   }
 
   function startWaitingTimer() {
@@ -594,16 +646,21 @@
         state.waitPhase = 'after';
         render();
         announce('The scheduled start has passed. The timer now counts down to the join deadline.');
-        startTimer(S.waiting_deadline_seconds, function () { go('/c03/outcome'); });
+        startTimer(S.waiting_deadline_seconds, function () { enterWaitingComplete('mentor'); });
       });
     } else {
-      startTimer(S.waiting_deadline_seconds, function () { go('/c03/outcome'); });
+      startTimer(S.waiting_deadline_seconds, function () { enterWaitingComplete('mentor'); });
     }
   }
 
   function startRouteTimer() {
     if (route() === '/c01/welcome') { startTimer(S.time_until_start_seconds, null); }
     if (route() === '/c02/waiting') { startWaitingTimer(); }
+    if (route() === '/c03/waiting-complete') {
+      startTimer(S.transition_seconds, function () { go(state.waitingMissing === 'mentor' ? '/c04/outcome' : '/c06/outcome'); });
+    }
+    if (route() === '/c09/acknowledgement') { startTimer(S.transition_seconds, function () { go('/c11/reflection'); }); }
+    if (route() === '/c10/acknowledgement') { startTimer(S.transition_seconds, function () { go('/c12/reflection'); }); }
   }
 
   function openDialog(config) {
@@ -626,7 +683,7 @@
       actions: [{ id: 'cancel', kind: 'ghost', label: 'Cancel' }, { id: 'leave', kind: 'destructive', label: 'Leave session' }],
       onAction: function (id) {
         if (id === 'leave') {
-          state.endLabel = 'Case 07';
+          state.endLabel = 'Case 08';
           state.endMessage = 'The requesting participant exited. The other participant remains connected.';
           go('/end');
         }
@@ -785,13 +842,17 @@
     }
     if (action === 'complete-session') {
       state.feedbackRole = control.dataset.role;
-      go(control.dataset.role === 'mentor' ? '/c09/reflection' : '/c08/reflection');
+      go(control.dataset.role === 'mentor' ? '/c10/acknowledgement' : '/c09/acknowledgement');
       return;
     }
     if (action === 'start-early-exit') {
       state.participantRole = control.dataset.role;
       state.earlyExitPrompt = true;
-      go('/c07/session');
+      go('/c08/session');
+      return;
+    }
+    if (action === 'start-waiting-complete') {
+      enterWaitingComplete(control.dataset.missing);
       return;
     }
   });
@@ -831,9 +892,9 @@
   });
 
   function afterFeedback(form) {
-    if (form === 'c08') { state.feedbackRole = 'mentee'; go('/c10/experience'); return; }
-    if (form === 'c09') { state.feedbackRole = 'mentor'; go('/c10/experience'); return; }
-    state.endLabel = 'Case 10';
+    if (form === 'c11') { state.feedbackRole = 'mentee'; go('/c13/experience'); return; }
+    if (form === 'c12') { state.feedbackRole = 'mentor'; go('/c13/experience'); return; }
+    state.endLabel = 'Case 13';
     go('/end');
   }
 
@@ -868,7 +929,10 @@
       { id: 'timer-zero', label: 'Advance current timer to 0:00' },
       { id: 'wait-pre', label: 'Show before-start timing state' },
       { id: 'wait-after', label: 'Show join-deadline timing state' }
-    ]
+    ],
+    '/c03/waiting-complete': [{ id: 'timer-zero', label: 'Advance transition to 0 seconds' }],
+    '/c09/acknowledgement': [{ id: 'timer-zero', label: 'Advance transition to 0 seconds' }],
+    '/c10/acknowledgement': [{ id: 'timer-zero', label: 'Advance transition to 0 seconds' }]
   };
 
   /* Screens reserve bottom padding for the floating dock. Measuring the dock
@@ -884,7 +948,7 @@
     if (currentRoute === '/') { dock.hidden = true; syncDockClearance(); return; }
     dock.hidden = false;
     var simulations = SIMULATIONS[currentRoute] || [];
-    var canFail = ['/c01/device', '/c04/device', '/c08/reflection', '/c09/reflection', '/c10/experience'].indexOf(currentRoute) !== -1;
+    var canFail = ['/c01/device', '/c05/device', '/c11/reflection', '/c12/reflection', '/c13/experience'].indexOf(currentRoute) !== -1;
     dockBody.hidden = !dockOpen;
     document.getElementById('dock-toggle').textContent = dockOpen ? 'Hide' : 'Show';
     document.getElementById('dock-toggle').setAttribute('aria-expanded', String(dockOpen));
@@ -907,14 +971,19 @@
     if (!control) { return; }
     var simulation = control.dataset.sim;
     if (simulation === 'index') { openCase('/'); return; }
-    if (simulation === 'restart') { openCase(CASE_START[ROUTES[route()].caseId]); return; }
+    if (simulation === 'restart') {
+      var caseId = ROUTES[route()].caseId;
+      var variant = caseId === '03' ? state.waitingMissing + '-missing' : ((caseId === '07' || caseId === '08') ? state.participantRole : undefined);
+      openCase(CASE_START[caseId], variant);
+      return;
+    }
     if (simulation === 'mentor-joins') { stopTimer(); state.bridgeRole = 'mentee'; go('/bridge'); return; }
     if (simulation === 'wait-pre') { stopTimer(); state.waitPhase = 'pre'; render(); startWaitingTimer(); return; }
     if (simulation === 'wait-after') { stopTimer(); state.waitPhase = 'after'; render(); startWaitingTimer(); return; }
     if (simulation === 'timer-zero' && timerState) {
       var callback = timerState.onZero;
       var number = document.getElementById('cd-num');
-      if (number) { number.textContent = '0:00'; }
+      if (number) { number.textContent = number.dataset.format === 'seconds' ? '0' : '0:00'; }
       stopTimer();
       if (callback) { callback(); }
     }
