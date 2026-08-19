@@ -27,6 +27,7 @@ prototype-hub/
 ├── prototypes.json
 ├── assets/
 │   ├── previews/
+│   │   ├── all-mentors-taxonomy-filters.webp
 │   │   ├── gift-mentorship.png
 │   │   ├── mentorship-credits-pricing.webp
 │   │   └── placeholder.svg
@@ -36,6 +37,14 @@ prototype-hub/
 │       ├── app.js
 │       └── styles.css
 └── prototypes/
+    ├── all-mentors-taxonomy-filters/
+    │   ├── index.html
+    │   ├── app.js
+    │   ├── icons.js
+    │   ├── mentors-varied.js
+    │   ├── styles.css
+    │   ├── taxonomy.js
+    │   └── assets/
     ├── gift-mentorship/
     │   ├── index.html
     │   ├── app.js
@@ -144,6 +153,16 @@ Before publishing a change, confirm:
 Prototype interactions may intentionally simulate product actions. Any inert policy, contact, authentication, or purchase control must be documented as a prototype limitation rather than represented as a live service.
 
 ### Current prototype limitations
+
+#### All Mentors — Taxonomy Filters
+
+`all-mentors-taxonomy-filters/index.html` is a front-end review prototype. Search,
+sorting, taxonomy filters, mentor-card controls, and the booking sheet run entirely
+in the browser against twelve illustrative mentor records; no production mentor,
+availability, credit, scheduling, or profile service is called. Scheduling and
+navigation actions are simulated. Mentor names, roles, ratings, call counts,
+availability, agendas, and secondary filter attributes are sample data. Inter is
+an optional Google Fonts request with a system fallback.
 
 #### Zoom Integration Flow
 

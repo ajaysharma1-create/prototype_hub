@@ -1,6 +1,23 @@
 {
-  "updatedAt": "2026-08-18",
+  "updatedAt": "2026-08-19",
   "prototypes": [
+    {
+      "id": "all-mentors-taxonomy-filters",
+      "name": "All Mentors — Taxonomy Filters",
+      "project": "Mentor Taxonomy Filters",
+      "description": "Responsive mentor discovery with agenda shortcuts, advanced split-panel taxonomy filters, global search, deterministic sorting, and consistent mentor cards.",
+      "type": "Discovery experience",
+      "status": "approved",
+      "version": "",
+      "updatedAt": "2026-08-19",
+      "preview": "assets/previews/all-mentors-taxonomy-filters.webp",
+      "previewAlt": "MentorUnion All Mentors prototype showing search, quick filters, sorting controls, and a responsive grid of mentor cards.",
+      "prototypePath": "prototypes/all-mentors-taxonomy-filters/index.html",
+      "sourcePath": "",
+      "approvedBy": "Product Manager",
+      "approvalReference": "Direct PM instruction to publish the fresh All Mentors taxonomy filters prototype - 2026-08-19",
+      "device": "Responsive web"
+    },
     {
       "id": "zoom-integration-flow",
       "name": "Zoom Integration Flow",
