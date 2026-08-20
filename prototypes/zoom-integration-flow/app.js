@@ -261,9 +261,6 @@
       '<button class="btn tertiary" type="button" data-action="test-speaker" data-fk="test-speaker"' + (state.speakerTest === 'playing' ? ' disabled' : '') + '>' + (state.speakerTest === 'playing' ? '<span class="spin"></span>Playing test sound' : icon('speaker') + 'Test speaker') + '</button>' +
       '</div>' +
       (!state.microphone ? '<p class="fineprint" id="microphone-note">Turn the microphone on to test it.</p>' : '') + testStatus +
-      '<div class="consent-row"><input id="recording-consent" type="checkbox" data-field="consent"' + (state.recordingConsent ? ' checked' : '') + '>' +
-      '<div class="consent-copy"><label class="consent-label" for="recording-consent">Allow this session to be recorded (optional)</label>' +
-      '<p class="consent-note">Used only for quality and safety review.</p></div></div>' +
       '</section>' +
 
       '<section class="prejoin-card card" aria-labelledby="device-title">' +
@@ -279,6 +276,8 @@
       (state.refreshing ? '<span class="spin"></span>Refreshing devices…' : icon('refresh') + 'Refresh devices') + '</button></div></div>' +
       '<div class="stack-sm"><h2 class="section-title">Before you join</h2><ul class="tips">' + tips.map(function (tip) { return '<li>' + esc(tip) + '</li>'; }).join('') + '</ul></div>' +
       (state.joinStatus === 'error' ? '<div class="notice error" role="alert">' + icon('alert') + '<div><p class="notice-title">Could not join the session</p><p class="body-copy">Check your connection and try again.</p></div></div>' : '') +
+      '<div class="consent-row"><input id="recording-consent" type="checkbox" data-field="consent"' + (state.recordingConsent ? ' checked' : '') + '>' +
+      '<label class="consent-label" for="recording-consent">Allow recording for quality and safety review <span class="consent-optional">(optional)</span></label></div>' +
       '<button class="btn primary full" type="button" data-action="join" data-fk="join"' + (joining ? ' disabled aria-busy="true"' : '') + '>' + (joining ? '<span class="spin"></span>Joining session…' : 'Join session') + '</button>' +
       '<div class="notice">' + icon('info') + '<div><h2 class="section-title">Mobile notice</h2><p class="fineprint">You can view a shared screen, but mobile browsers cannot start one. Use a supported desktop browser if you need to present.</p></div></div>' +
       '</section></div></div>';
