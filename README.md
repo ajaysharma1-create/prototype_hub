@@ -34,9 +34,13 @@ The only supported statuses are:
 - `not-started` → **Not Started**
 - `parked` → **Parked**
 
-The default directory view shows In Progress and Completed projects. Not Started and Parked
-projects remain in the data and can be revealed from the Status filter. Status labels accompany
-all colour marks; Not Started uses the required red mark.
+The default directory view shows only projects with a prototype that opens. Every other
+project stays in the data and is reached from the Status filter. Projects without an accessible
+prototype are filed under **Parked or unavailable**, whatever their status; this is a filing
+rule, not a status change. A card filed there still displays its own status, so an active
+project with no publishable prototype reads In Progress inside that bucket, and the
+In Progress filter still lists it. Status labels accompany all colour marks; Not Started uses
+the required red mark.
 
 Each entry uses this structure:
 

@@ -281,6 +281,28 @@
     return card;
   }
 
+  /* Where a project is filed and what its status says are two different things.
+     A project reaches the default view only when it has a prototype that opens;
+     everything else stays in the directory under the Parked option, including
+     active work whose prototype is not publishable yet. The status recorded in
+     prototypes.json is never rewritten to match the bucket, so a card filed
+     under Parked can still read In Progress. */
+  function matchesStatus(prototype, status) {
+    if (status === "all") {
+      return true;
+    }
+
+    if (status === "default") {
+      return DEFAULT_VISIBLE_STATUSES.has(prototype.status) && prototype.prototypeAvailable;
+    }
+
+    if (status === "parked") {
+      return prototype.status === "parked" || !prototype.prototypeAvailable;
+    }
+
+    return prototype.status === status;
+  }
+
   function hasActiveFilters() {
     return Boolean(
       elements.search.value.trim() ||
@@ -313,7 +335,7 @@
     var hiddenCount = state.prototypes.length - prototypes.length;
     elements.resultCount.textContent = active
       ? pluralise(prototypes.length, "result") + " of " + pluralise(state.prototypes.length, "project")
-      : pluralise(prototypes.length, "project") + (hiddenCount ? " · " + pluralise(hiddenCount, "project") + " hidden by status" : "");
+      : pluralise(prototypes.length, "project") + (hiddenCount ? " · " + pluralise(hiddenCount, "project") + " hidden by status or availability" : "");
   }
 
   function applyFilters() {
@@ -323,13 +345,8 @@
 
     var filtered = state.prototypes.filter(function (prototype) {
       var searchText = (prototype.name + " " + prototype.project + " " + prototype.description + " " + STATUS[prototype.status].label).toLowerCase();
-      var statusMatches = status === "all"
-        ? true
-        : status === "default"
-          ? DEFAULT_VISIBLE_STATUSES.has(prototype.status)
-          : prototype.status === status;
       return (!search || searchText.includes(search)) &&
-        statusMatches &&
+        matchesStatus(prototype, status) &&
         (!type || prototype.type === type);
     });
 
