@@ -192,21 +192,14 @@
     var counterpart = mentee ? S.mentor_name : S.mentee_name;
     var listTitle = mentee ? 'Make the most of your session' : 'Help the mentee leave with clarity';
     var items = mentee ? [
-      'Bring one clear outcome instead of several unrelated questions.',
-      'Share relevant context, what you tried and where you are stuck.',
-      'Stay with the booked agenda, listen actively and ask for clarity.',
-      "Treat the mentor's guidance as perspective, not a promised result.",
-      'Use the final five minutes to agree clear next steps.'
+      'Bring one clear outcome, not several unrelated questions.',
+      'Share what you have tried and where you are stuck.',
+      'Use the last five minutes to agree next steps.'
     ] : [
-      'Confirm one primary outcome and stay with the booked agenda.',
-      'Listen actively and ask questions before offering advice.',
-      "Keep guidance practical and relevant to the mentee's context.",
-      'Frame guidance as perspective, not a guarantee, promise or referral.',
-      'Use the final five minutes to agree clear next steps.'
+      'Confirm one outcome and stay with the booked agenda.',
+      'Frame guidance as perspective, not a promise or referral.',
+      'Use the last five minutes to agree next steps.'
     ];
-    var closing = mentee
-      ? 'You do not need every answer. Bring an honest goal and be ready to turn the conversation into action.'
-      : 'A useful session does not need to solve everything. It should help the mentee make a better decision or take a clear next action.';
     var timing = mentee
       ? '<div class="session-timing"><span>Starts at <strong>' + esc(S.scheduled_time) + '</strong> | ' + esc(S.timezone) + '</span>' +
         '<span>Session begins in <strong id="cd-num">' + mmss(S.time_until_start_seconds) + '</strong></span></div>'
@@ -220,7 +213,6 @@
       timing +
       '<div class="stack-sm"><h2 class="section-title">' + esc(listTitle) + '</h2>' +
       '<ol class="guide">' + items.map(function (item) { return '<li>' + esc(item) + '</li>'; }).join('') + '</ol></div>' +
-      '<p class="body-copy">' + esc(closing) + '</p>' +
       '<button class="btn primary full" type="button" data-action="go" data-route="' + (mentee ? '/c01/device' : '/c05/device') + '">Continue to device check</button>' +
       '</section></div>';
   }
@@ -305,7 +297,7 @@
     return '<div class="screen"><div class="room-shell">' +
       '<div class="room-topline"><div class="room-copy"><h1 class="title small">Waiting for ' + esc(S.mentor_name) + '</h1>' +
       '<p class="lede">You joined successfully at ' + esc(S.mentee_join_time) + '.</p>' +
-      '<p class="body-copy">' + esc(S.mentor_name) + ' can join until <span class="text-strong">' + esc(S.join_deadline) + '</span>. Stay on this screen until then so the full waiting period is recorded.</p></div>' +
+      '<p class="body-copy">Stay on this screen until the waiting period ends.</p></div>' +
       '<div class="timer-chip">' + icon('clock') + '<span id="cd-label">' + (preStart ? 'Time remaining until scheduled start' : 'Time remaining until join deadline') + '<strong id="cd-num">' + timerValue(fallback) + '</strong></span></div></div>' +
       '<div class="room-stage"><div class="waiting-person"><span class="camera-avatar">' + esc(initials(S.mentee_name)) + '</span><p>Waiting for mentor</p></div>' +
       '<span class="participant-chip">' + esc(S.mentee_name) + '</span></div>' +
@@ -331,7 +323,7 @@
     var otherParticipant = missingMentor ? S.mentor_name : S.mentee_name;
     return '<div class="screen outcome-wrap"><section class="outcome-card card transition-card" aria-labelledby="waiting-complete-title">' +
       '<div class="outcome-heading"><span class="outcome-icon">' + icon('clock') + '</span><h1 class="title small" id="waiting-complete-title">The waiting time is over</h1>' +
-      '<p class="subtitle">' + esc(otherParticipant) + ' did not join before ' + esc(S.join_deadline) + '.</p>' +
+      '<p class="subtitle">' + esc(otherParticipant) + ' did not join.</p>' +
       '<p class="body-copy">The joining window has now closed.</p></div>' +
       '<p class="body-copy transition-copy">We will show the attendance status on the next screen.</p>' +
       transitionCountdown('Continuing in') + '</section></div>';
@@ -351,13 +343,14 @@
 
   function menteeOutcomeScreen() {
     return '<div class="screen outcome-wrap"><section class="outcome-card card" aria-labelledby="outcome-title">' +
-      '<div class="outcome-heading"><span class="outcome-icon">' + icon('session') + '</span><h1 class="title small" id="outcome-title">The session could not start</h1>' +
-      '<p class="subtitle">' + esc(S.mentor_name) + ' did not join by ' + esc(S.join_deadline) + '.</p><p class="body-copy">We recorded that you joined and remained available.</p></div>' +
+      '<div class="outcome-heading"><span class="outcome-icon">' + icon('session') + '</span><h1 class="title small" id="outcome-title">The session did not take place</h1>' +
+      '<p class="subtitle">' + esc(S.mentor_name) + ' did not join.</p></div>' +
+      '<div class="stack-sm"><h2 class="section-title">Session status</h2><div class="status-box"><strong>Mentor did not join</strong><span>Status: Confirmed</span>' +
+      '<span>We recorded that you joined at ' + esc(S.mentee_join_time) + ' and remained available.</span></div></div>' +
       '<div class="stack-sm"><h2 class="section-title">What happens next</h2><ul class="bullet-list">' +
-      '<li>We are verifying the session outcome against the attendance record.</li><li>Expected update: ' + esc(S.outcome_update_window) + '.</li>' +
-      '<li>If mentor no-show is confirmed, your session credit will be restored.</li><li>Report a problem if a platform or timing issue affected the session.</li>' +
+      '<li>Your session credit will be restored.</li><li>Expected within ' + esc(S.outcome_update_window) + '.</li>' +
+      '<li>Report a problem if a platform or timing issue affected the session.</li>' +
       '</ul></div>' +
-      '<div class="stack-sm"><h2 class="section-title">Session status</h2><div class="status-box"><strong>Verification in progress</strong></div></div>' +
       '<div class="actions"><button class="btn tertiary" type="button" data-action="report">Report a problem</button><span class="spacer"></span>' +
       '<button class="btn primary" type="button" data-action="dashboard" data-label="Case 04">Go to dashboard</button></div>' +
       '<p class="fineprint">Report an attendance or technical issue by ' + esc(S.support_deadline) + '.</p>' +
@@ -366,10 +359,11 @@
 
   function mentorOutcomeScreen() {
     return '<div class="screen outcome-wrap"><section class="outcome-card card" aria-labelledby="outcome-title">' +
-      '<div class="outcome-heading"><span class="outcome-icon">' + icon('session') + '</span><h1 class="title small" id="outcome-title">The session could not start</h1>' +
-      '<p class="subtitle">' + esc(S.mentee_name) + ' did not join by ' + esc(S.join_deadline) + '.</p><p class="body-copy">We recorded that you joined at ' + esc(S.mentor_join_time) + ' and remained available.</p></div>' +
-      '<div class="stack-sm"><h2 class="section-title">Recorded outcome</h2><div class="status-box"><strong>Mentee did not join</strong><span>Status: Outcome being confirmed</span></div></div>' +
-      '<div class="stack-sm"><h2 class="section-title">What happens next</h2><ul class="bullet-list"><li>Your payout result will appear after the outcome is confirmed.</li><li>Report a platform, attendance, or timing issue if one occurred.</li></ul></div>' +
+      '<div class="outcome-heading"><span class="outcome-icon">' + icon('session') + '</span><h1 class="title small" id="outcome-title">The session did not take place</h1>' +
+      '<p class="subtitle">' + esc(S.mentee_name) + ' did not join.</p></div>' +
+      '<div class="stack-sm"><h2 class="section-title">Recorded outcome</h2><div class="status-box"><strong>Mentee did not join</strong><span>Status: Confirmed</span>' +
+      '<span>We recorded that you joined at ' + esc(S.mentor_join_time) + ' and remained available.</span></div></div>' +
+      '<div class="stack-sm"><h2 class="section-title">What happens next</h2><ul class="bullet-list"><li>This session is closed as a mentee no-show. No action is needed from you.</li><li>Report a platform, attendance, or timing issue if one occurred.</li></ul></div>' +
       '<div class="actions"><button class="btn tertiary" type="button" data-action="report">Report a problem</button><span class="spacer"></span>' +
       '<button class="btn primary" type="button" data-action="dashboard" data-label="Case 06">Go to dashboard</button></div>' +
       '<p class="fineprint">Report an attendance or technical issue by ' + esc(S.support_deadline) + '.</p>' +

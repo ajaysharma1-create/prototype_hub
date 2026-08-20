@@ -26,7 +26,7 @@
       "type": "Product flow",
       "status": "in-progress",
       "version": "",
-      "updatedAt": "2026-08-18",
+      "updatedAt": "2026-08-20",
       "preview": "assets/previews/zoom-integration-flow.png",
       "previewAlt": "MentorUnion Zoom integration prototype case index showing access to ten documented session cases.",
       "prototypePath": "prototypes/zoom-integration-flow/index.html",
