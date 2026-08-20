@@ -170,6 +170,16 @@ h1,h2,h3,p{margin-top:0}
 .prejoin-card .stack-sm{gap:6px}
 .prejoin-card .tips{gap:6px}
 .prejoin-card>.notice{padding:12px 14px}
+/* Section heading with a trailing action; the negative inline-end margin sets
+   the action's label flush with the card edge despite its own padding. */
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.btn.section-action{position:relative;min-height:0;padding:4px 8px;margin-inline-end:-8px;gap:6px;border-color:transparent;border-radius:var(--radius-2);background:transparent;color:var(--text-muted);font-size:var(--fs-2xs);line-height:var(--lh-2xs);font-weight:var(--fw-medium)}
+/* Restores the 44px touch target the full-size button had, without the bulk. */
+.btn.section-action::after{content:"";position:absolute;inset:-9px -4px}
+.btn.section-action svg{width:14px;height:14px}
+.btn.section-action .spin{width:12px;height:12px;border-width:2px}
+.btn.section-action:hover:not(:disabled){background:var(--surface-card);color:var(--text-primary)}
+.btn.section-action:disabled{color:var(--text-disabled);cursor:not-allowed}
 .device-grid{display:grid;gap:10px}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 select,input[type="text"],textarea{width:100%;border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface-input);color:var(--text-primary);transition:border-color var(--motion-fast),box-shadow var(--motion-fast),background var(--motion-fast)}

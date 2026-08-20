@@ -270,10 +270,11 @@
       '<dt>Agenda</dt><dd>' + esc(S.session_agenda) + '</dd>' +
       '<dt>Date and time</dt><dd class="detail-stack"><span>' + esc(S.session_date) + ' · ' + esc(S.scheduled_time) + '</span><span>' + esc(S.timezone) + ' · 30 minutes</span></dd>' +
       '</dl></div>' +
-      '<div class="stack-sm"><h2 class="section-title">Devices</h2><div class="device-grid">' +
-      deviceSelect('camera', 'Camera') + deviceSelect('microphone', 'Microphone') + deviceSelect('speaker', 'Speaker') + '</div>' +
-      '<div><button class="btn ghost" type="button" data-action="refresh-devices" data-fk="refresh-devices"' + (state.refreshing ? ' disabled aria-busy="true"' : '') + '>' +
-      (state.refreshing ? '<span class="spin"></span>Refreshing devices…' : icon('refresh') + 'Refresh devices') + '</button></div></div>' +
+      '<div class="stack-sm"><div class="section-head"><h2 class="section-title">Devices</h2>' +
+      '<button class="btn section-action" type="button" data-action="refresh-devices" data-fk="refresh-devices"' + (state.refreshing ? ' disabled aria-busy="true"' : '') + '>' +
+      (state.refreshing ? '<span class="spin"></span>Refreshing…' : icon('refresh') + 'Refresh<span class="sr"> devices</span>') + '</button></div>' +
+      '<div class="device-grid">' +
+      deviceSelect('camera', 'Camera') + deviceSelect('microphone', 'Microphone') + deviceSelect('speaker', 'Speaker') + '</div></div>' +
       '<div class="stack-sm"><h2 class="section-title">Before you join</h2><ul class="tips">' + tips.map(function (tip) { return '<li>' + esc(tip) + '</li>'; }).join('') + '</ul></div>' +
       (state.joinStatus === 'error' ? '<div class="notice error" role="alert">' + icon('alert') + '<div><p class="notice-title">Could not join the session</p><p class="body-copy">Check your connection and try again.</p></div></div>' : '') +
       '<div class="consent-row"><input id="recording-consent" type="checkbox" data-field="consent"' + (state.recordingConsent ? ' checked' : '') + '>' +
