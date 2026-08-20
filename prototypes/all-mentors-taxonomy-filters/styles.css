@@ -5,8 +5,8 @@
    block below is those token files, copied so this prototype opens from the
    file system with no build step and no path into the schema folder.
 
-   Mentor card, top bar and booking geometry is measured off
-   live/mu_taxonomy_filters/Credits.svg at its native 1440px width. Navigation
+   Mentor card, top bar and booking geometry is measured off the product
+   reference design at its native 1440px width. Navigation
    and filtering are not: the rail is a compact icon-over-label component and the
    taxonomy lives in a filter workspace that only exists while it is open, so the
    page itself is results-first. Both use the same tokens, chips, checkboxes and
@@ -61,7 +61,7 @@
   --text-quiet: var(--mu-500);
   --text-disabled: var(--mu-600);
   --text-on-accent: var(--mu-black);
-  /* The muted value Side nav.svg paints an unavailable section in. */
+  /* The muted value the reference navigation paints an unavailable section in. */
   --nav-off: #777777;
 
   /* Type — tokens/typography.css */
@@ -85,6 +85,10 @@
   --motion-base: 180ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ring-focus: 0 0 0 3px rgba(240, 185, 98, 0.28);
+  /* A plain-neutral alternative to --ring-focus for surfaces that should not
+     carry the accent colour on focus (the search fields: focus is not a
+     selected/active state here, just "you are typing"). */
+  --ring-focus-neutral: 0 0 0 3px rgba(255, 255, 255, 0.14);
   --shadow-e0: 8px 8px 32px 1px rgba(8, 8, 8, 0.12);
 
   /* Frame */
@@ -304,14 +308,21 @@ dialog.msheet::backdrop { background: rgba(7, 7, 7, 0.72); }
               background var(--motion-fast) var(--ease-standard);
 }
 .search:hover { border-color: var(--border-strong); }
-.search:focus-within { border-color: var(--accent-300); box-shadow: var(--ring-focus); }
+/* Neutral on focus, not the accent amber: a search field being typed into is
+   not a selected or active choice the way a pressed chip or an open menu is,
+   so it does not borrow that colour. */
+.search:focus-within { border-color: var(--border-strong); box-shadow: var(--ring-focus-neutral); }
 .search input {
-  flex: 1; min-width: 0;
+  flex: 1; min-width: 0; padding: 0;
   border: 0; background: none; color: var(--text-primary);
   font: 400 var(--fs-sm)/20px var(--font-sans);
 }
 .search input::placeholder { color: var(--text-muted); }
-.search input:focus { outline: none; }
+/* The input also matches the page's global :focus-visible rule directly — a
+   clicked text field counts as focus-visible in Chromium — which would paint
+   its own amber ring on top of the container's now-neutral one. The container
+   already carries the visible focus state, so the input's own is silenced. */
+.search input:focus { outline: none; box-shadow: none; }
 .search input::-webkit-search-cancel-button { appearance: none; }
 .search__clear { display: none; color: var(--text-muted); }
 .search__clear:hover { color: var(--text-primary); }
@@ -373,20 +384,47 @@ dialog.msheet::backdrop { background: rgba(7, 7, 7, 0.72); }
 
 /* ── Results toolbar ────────────────────────────────────────────────────── */
 
-.toolbar { display: flex; align-items: center; gap: 12px; margin-top: 16px; min-width: 0; }
+/* Filters on the left decides which mentors are in the set; the view toggle and
+   sort on the right decide how that set is drawn. All three stand 40px tall —
+   the control height the search field and the schema Dropdown already use — so
+   the row reads as one strip and every target clears 40px on touch. */
+.toolbar {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 10px 12px; margin-top: 16px; min-width: 0;
+}
 
+/* This button sat at #171717 behind a #303030 border on a #121212 page: 1.04:1
+   surface and 1.42:1 border against that page, so only the border did any work
+   and the control read as unlit text at 34px tall. It now stands on the raised
+   surface behind the strong border — 1.34:1 and 1.67:1 — with the icon lifted
+   from tertiary to secondary (7.76:1 on its own surface) and the height taken
+   to 40px, and it holds a real open state while the panel is showing.
+
+   Known limit: at 1.67:1 the boundary still does not reach the 3:1 that WCAG
+   1.4.11 asks of a non-text UI component. Clearing that needs a border around
+   #727272, which is lighter than every other border on this page and would put
+   this one control out of balance with the sort trigger and the view toggle
+   beside it. Raising it is a design-system decision about the border tokens,
+   not a decision about this button. */
 .toolbar__filters {
-  display: inline-flex; align-items: center; gap: 8px;
-  height: 34px; padding: 0 13px;
-  border: 1px solid var(--border-control); border-radius: var(--radius-2);
-  background: var(--surface-panel);
+  display: inline-flex; align-items: center; gap: 8px; flex: none;
+  height: 40px; padding: 0 15px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-2);
+  background: var(--surface-raised);
   color: var(--text-primary);
   font-size: var(--fs-xs); font-weight: 500;
   transition: border-color var(--motion-fast) var(--ease-standard),
-              background var(--motion-fast) var(--ease-standard);
+              background var(--motion-fast) var(--ease-standard),
+              color var(--motion-fast) var(--ease-standard);
 }
-.toolbar__filters:hover { border-color: var(--border-strong); background: var(--mu-800); }
-.toolbar__filters svg { color: var(--text-tertiary); }
+.toolbar__filters:hover { border-color: var(--mu-600); background: var(--mu-700); }
+.toolbar__filters:active { background: var(--surface-raised); }
+.toolbar__filters svg { color: var(--text-secondary); }
+/* The same amber edge the sort control takes while its list is open. */
+.toolbar__filters[aria-expanded="true"] {
+  border-color: var(--accent-300); background: var(--mu-700);
+}
+.toolbar__filters[aria-expanded="true"] svg { color: var(--accent-300); }
 
 .toolbar__badge {
   display: inline-grid; place-items: center;
@@ -397,8 +435,43 @@ dialog.msheet::backdrop { background: rgba(7, 7, 7, 0.72); }
 }
 .toolbar__badge[hidden] { display: none; }
 
+/* Grid / List — the segmented control the mentor cards already use for
+   Domain/Expertise, in the toolbar's 40px height. Track sits in the well shade
+   so it reads as an inset switch on the page surface rather than a third
+   button; the selected half lifts to the control border shade, as on the card.
+   Icon plus word: this prototype nowhere establishes a bare-icon control, so
+   neither half is left to an icon alone. */
+.toolbar__views {
+  display: inline-flex; align-items: center; flex: none;
+  margin-left: auto; padding: 4px;
+  border: 1px solid var(--border-control); border-radius: var(--radius-pill);
+  background: var(--surface-well);
+}
+.toolbar__view {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 13px;
+  border-radius: var(--radius-pill);
+  color: var(--text-tertiary);
+  font-size: var(--fs-xs); font-weight: 500; line-height: 30px;
+  white-space: nowrap;
+  transition: background var(--motion-fast) var(--ease-standard),
+              color var(--motion-fast) var(--ease-standard);
+}
+/* The pill is 30px so it reads as a thumb inside the track, but the target it
+   offers must be the full 40px the toolbar's other controls give. This takes
+   the hit area out to the track edge without moving anything visible; the two
+   halves grow vertically only, so they never overlap each other. */
+.toolbar__view::after { content: ""; position: absolute; inset: -5px 0; }
+.toolbar__view svg { color: currentColor; }
+.toolbar__view:hover { color: var(--text-primary); }
+.toolbar__view[aria-pressed="true"] { background: var(--border-control); color: var(--mu-000); }
+
+/* Sort keeps its place at the end of the row; the view toggle now carries the
+   auto margin that pushes the pair right, so the two never split the free
+   space between them. */
 .toolbar__sort {
-  display: flex; justify-content: flex-end; margin-left: auto; min-width: 0;
+  display: flex; justify-content: flex-end; min-width: 0; flex: 0 1 auto;
   position: relative; z-index: 20;
 }
 
@@ -511,9 +584,23 @@ dialog.msheet::backdrop { background: rgba(7, 7, 7, 0.72); }
   column-gap: 12px; row-gap: 18px;
   align-items: stretch;
 }
+/* Column counts are chosen against card width, not viewport width: the card's
+   portrait, tag row and CTA are legible down to ~266px, which is the narrowest
+   this prototype has always shipped (two-up at a 600px viewport). Each step is
+   therefore placed where the next column still clears that floor.
+
+     ≥1430px of results width -> 5 at 278px   (1590px viewport and wider)
+     ≥1180px                  -> 4 at 311px   (1440px viewport)
+     ≥800px                   -> 3 at 280px
+     ≥500px                   -> 2 at 266px
+
+   Taking 5 columns any lower — at a 1440px viewport it would mean 246px cards —
+   pushes the portrait to 81% of the card width and cuts the tag cap to 110px,
+   so the fifth column is bought back out of readability. It waits for 1590px. */
 @container (min-width: 500px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @container (min-width: 800px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @container (min-width: 1180px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@container (min-width: 1430px) { .grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 
 .results__empty {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
@@ -648,13 +735,157 @@ dialog.msheet::backdrop { background: rgba(7, 7, 7, 0.72); }
 }
 .mentor__cta:hover,
 /* The reference paints one card's CTA amber; that card carries data-cta. */
-.mentor[data-cta="accent"] .mentor__cta {
+.mentor[data-cta="accent"] .mentor__cta,
+.mrow[data-cta="accent"] .mentor__cta {
   background: var(--accent-300);
   color: var(--text-on-accent); font-weight: 600;
 }
 .mentor__cta:hover { border-color: var(--accent-300); }
-.mentor[data-cta="accent"] .mentor__cta:hover { background: var(--accent-200); }
+.mentor[data-cta="accent"] .mentor__cta:hover,
+.mrow[data-cta="accent"] .mentor__cta:hover { background: var(--accent-200); }
 .mentor__cta:active { background: var(--accent-400); border-color: var(--accent-400); transform: translateY(0.5px); }
+
+/* ── Mentor list row ────────────────────────────────────────────────────── */
+
+/* List is the same result set laid along the row instead of down the card, and
+   it is built to be read as a column of records rather than as wide cards. Every
+   row carries the card's four groups in one order — identity, rating and
+   experience, domain/expertise, action — so the eye can run straight down any
+   one of them. The row surface, border, radius, tag, toggle, rating chip and CTA
+   are the card's own components; only the arrangement and the type scale change.
+
+   Density: a grid result costs 107px of column height at four-up (410px card
+   plus an 18px row gap, over four); a list result costs 72px. */
+.rows { display: flex; flex-direction: column; gap: 6px; }
+
+.mrow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 12px; row-gap: 10px;
+  min-width: 0; padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-3);
+  background: var(--surface-mentor-body);
+  transition: border-color var(--motion-base) var(--ease-standard),
+              background var(--motion-base) var(--ease-standard);
+}
+/* Card hover moves the border; a dense row also needs the surface to move, the
+   same lift the filter workspace's browse rows use. */
+.mrow:hover { border-color: var(--border-control); background: var(--surface-panel); }
+
+.mrow__portrait {
+  grid-column: 1; grid-row: 1;
+  width: 44px; height: 44px; flex: none;
+  border-radius: var(--radius-3);
+  background: var(--mu-800);
+  overflow: hidden;
+}
+.mrow__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+
+.mrow__identity { grid-column: 2; grid-row: 1; min-width: 0; }
+.mrow__name {
+  display: flex; align-items: center; gap: 7px;
+  font-size: var(--fs-sm); font-weight: 500; line-height: 20px;
+}
+.mrow__name > span:first-child {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* On the card the mark is pushed to the far edge; in a row it belongs against
+   the name, or it drifts away from what it verifies. */
+.mrow__name .mentor__linkedin { margin-left: 0; }
+.mrow__role {
+  margin-top: 1px;
+  color: var(--text-secondary);
+  font-size: var(--fs-2xs); line-height: 16px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.mrow__stats { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; min-width: 0; }
+/* The card's rating chip, un-positioned: on a card it is pinned over the
+   portrait, in a row it sits at the head of the metadata group. */
+.mrow__rating { position: static; height: 22px; flex: none; }
+/* Two lines of this still fit inside the row's 66px, so the experience and call
+   counts wrap rather than being cut mid-word against the toggle beside them. */
+.mrow__meta {
+  min-width: 0;
+  color: var(--text-quiet);
+  font-size: var(--fs-2xs); font-style: italic; line-height: 16px;
+  overflow-wrap: anywhere;
+}
+
+.mrow__detail {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0;
+}
+.mrow__detail .mentor__toggle { flex: none; padding: 3px; }
+.mrow__detail .mentor__toggle button {
+  height: 24px; padding: 0 11px; font-size: var(--fs-2xs); line-height: 24px;
+}
+/* Stacked rows let the tags wrap, but the area is capped at the same two rows
+   the card reserves, so an unusually long tag pair can add one line to a row
+   and never more. */
+.mrow__tags {
+  display: flex; align-items: flex-start; align-content: flex-start;
+  flex-wrap: wrap; gap: 5px; min-width: 0;
+  max-height: 45px; overflow: hidden;
+}
+/* Tags shrink and ellipsise inside themselves; the +N control never does, or
+   the row loses the only way to reach the rest of them. */
+.mrow__tags .tag { flex: 0 1 auto; min-width: 0; }
+.mrow__tags .tag--more { flex: none; }
+
+.mrow__cta {
+  grid-column: 1 / -1;
+  height: 38px; width: 100%; margin-top: 0; padding: 0 16px;
+  border-radius: var(--radius-3);
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+/* Two lines: identity and metadata above, detail and action below. The portrait
+   aligns to the name rather than floating between the two lines, and the tags
+   stop wrapping here — a third line of tags under the toggle would cost more
+   height than the truncation it saves. */
+@container (min-width: 560px) {
+  .mrow {
+    grid-template-columns: auto minmax(0, 1.1fr) minmax(0, 0.9fr) auto;
+    column-gap: 14px; row-gap: 8px;
+    padding: 11px 14px;
+  }
+  .mrow__portrait { grid-row: 1 / span 2; align-self: start; }
+  .mrow__stats { grid-column: 3 / span 2; grid-row: 1; justify-self: start; }
+  .mrow__detail { grid-column: 2 / span 2; grid-row: 2; flex-wrap: nowrap; }
+  .mrow__tags { align-items: center; flex-wrap: nowrap; max-height: none; }
+  .mrow__cta { grid-column: 4; grid-row: 2; width: auto; justify-self: end; }
+}
+
+/* One line, four zones plus the action. The minmax floors are what decide this
+   threshold: below roughly 820px of results width the five zones cannot all
+   hold their floor, so the row stays in its two-row form rather than crushing
+   the tags. */
+@container (min-width: 1080px) {
+  .mrow {
+    /* Weights, not equal columns: the tag zone is the one that can always use
+       more room, and the metadata column is sized to hold the longest
+       experience string on one line at 1440px and above. The detail floor is
+       410px because the Domain/Expertise toggle takes 146px of that zone before
+       a single tag is drawn; the remaining 264px is what two readable tags and
+       the +N control need. Sized any lower, the tags collapse to one letter and
+       an ellipsis. Those floors set the threshold: below 1080px of results
+       width the five zones cannot all hold theirs, so the row keeps its
+       two-line form rather than shrinking the tags past use. */
+    grid-template-columns:
+      auto minmax(160px, 0.85fr) minmax(190px, 0.9fr) minmax(410px, 1.5fr) auto;
+    column-gap: 18px; row-gap: 0;
+    min-height: 66px; padding: 9px 14px;
+  }
+  .mrow__portrait { grid-row: 1; align-self: center; }
+  .mrow__identity { grid-row: 1; }
+  .mrow__stats { grid-column: 3; grid-row: 1; }
+  .mrow__detail { grid-column: 4; grid-row: 1; }
+  .mrow__cta { grid-column: 5; grid-row: 1; }
+}
 
 /* ── Filter workspace ───────────────────────────────────────────────────── */
 
@@ -705,8 +936,10 @@ dialog.fsheet::backdrop { background: rgba(7, 7, 7, 0.72); }
   letter-spacing: 0.08em; text-transform: uppercase;
 }
 .fstages__item {
+  /* No explicit second track: an item without a summary would otherwise carry
+     its row gap anyway and sit taller than its content. */
   display: grid; grid-template-columns: minmax(0, 1fr) auto 16px;
-  grid-template-rows: auto auto; align-items: center; gap: 4px 8px;
+  align-items: center; gap: 4px 8px;
   width: 100%; min-height: 62px; padding: 10px;
   border-radius: var(--radius-3); color: var(--text-tertiary);
   text-align: left;
@@ -722,6 +955,9 @@ dialog.fsheet::backdrop { background: rgba(7, 7, 7, 0.72); }
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   font-size: var(--fs-xs); font-weight: 600;
 }
+/* The rail has room for the full label; the mobile strip does not, and five
+   categories at full length would push Company off the visible run. */
+.fstages__label--short { display: none; }
 .fstages__count {
   display: grid; place-items: center;
   min-width: 20px; height: 20px; padding: 0 6px;
@@ -737,38 +973,79 @@ dialog.fsheet::backdrop { background: rgba(7, 7, 7, 0.72); }
 }
 .fsheet__workspace { min-width: 0; min-height: 0; display: flex; }
 .fsheet__body {
+  /* One text column, one spacing scale.
+     ------------------------------------------------------------------
+     Every row in here carries an internal inset so its hover background is
+     wider than its text. Previously that inset pushed the text inward while
+     the headings above stayed flush, so a panel showed five different left
+     edges at once: heading and eyebrow at 0, browse-row name at +10, checkbox
+     at +10, option label and search text at +35, inline child label at +70.
+
+     `--row-inset` is now cancelled by an equal negative margin on every row, so
+     each row's leading element — checkbox, name, icon — starts on the heading's
+     line and only the background bleeds outward. This is the same relationship
+     the category rail beside it already had.
+
+     Two vertical values, and no others: --block-gap between blocks,
+     --label-gap between a label and the thing it labels. */
+  --row-inset: 10px;
+  --block-gap: 16px;
+  --label-gap: 8px;
+
   flex: 1; min-width: 0; min-height: 0; overflow-y: auto;
   padding: 22px 28px 28px;
 }
+
+/* The rows that hang their background into the inset. */
+.fsearch, .brow, .opt, .fback, .fmore {
+  margin-inline: calc(var(--row-inset) * -1);
+  padding-inline: var(--row-inset);
+}
+/* A bordered row spends one of those pixels on its own border, so it takes one
+   less of padding and its content still lands on the column. */
+.fsearch, .fmore { padding-inline: calc(var(--row-inset) - 1px); }
 .fsheet__body::-webkit-scrollbar { width: 6px; }
 .fsheet__body::-webkit-scrollbar-thumb { background: var(--mu-800); border-radius: 3px; }
 
-.fworkspace__head { margin-bottom: 18px; }
+.fworkspace__head { margin-bottom: var(--block-gap); }
 .fworkspace__head h3 { font-size: var(--fs-lg); font-weight: 600; letter-spacing: -0.01em; }
 
+/* Full width, not a 560px cap: it heads a list that runs the full column, and a
+   control that stops short of the rows beneath it reads as misplaced. The 16px
+   icon and 10px gap put the placeholder on the same column as an option label
+   (16px box + 10px gap), so the field and the rows below it share one text
+   line. */
 .fsearch {
-  display: flex; align-items: center; gap: 8px;
-  width: min(100%, 560px); height: 40px; margin-bottom: 16px; padding: 0 12px;
+  display: flex; align-items: center; gap: 10px;
+  width: auto; height: 40px; margin-bottom: var(--block-gap);
   border: 1px solid var(--border-control); border-radius: var(--radius-2);
   background: var(--surface-page); color: var(--text-muted);
+  cursor: text;
 }
-.fsearch:focus-within { box-shadow: var(--ring-focus); }
+.fsearch:focus-within { border-color: var(--border-strong); box-shadow: var(--ring-focus-neutral); }
+/* The UA gives an input its own 1px/2px padding; zeroed here so the placeholder
+   starts exactly on the option-label column rather than two pixels past it. */
 .fsearch input {
-  flex: 1; min-width: 0; border: 0; background: none; color: var(--text-primary);
+  flex: 1; min-width: 0; padding: 0;
+  border: 0; background: none; color: var(--text-primary);
   font: 400 var(--fs-xs)/18px var(--font-sans);
 }
-.fsearch input:focus { outline: none; }
+.fsearch input:focus { outline: none; box-shadow: none; }
 .fsearch input::placeholder { color: var(--text-muted); }
 .fsearch [data-stage-clear] { display: none; color: var(--text-muted); border-radius: var(--radius-2); }
 .fsearch[data-filled="true"] [data-stage-clear] { display: block; }
 .fsearch [data-stage-clear]:hover { color: var(--text-primary); }
 
-.fstage__title { margin: 2px 0 12px; font-size: var(--fs-md); font-weight: 600; }
-.fstage__rule { display: block; height: 1px; margin: 8px 0; background: var(--border-subtle); }
+.fstage__title { margin: 0 0 var(--label-gap); font-size: var(--fs-md); font-weight: 600; }
+/* The rule separates rows, so it spans the rows rather than the text column. */
+.fstage__rule {
+  display: block; height: 1px; margin: var(--label-gap) calc(var(--row-inset) * -1);
+  background: var(--border-subtle);
+}
 
 .fcontext {
   display: flex; align-items: flex-start; gap: 10px;
-  margin: -6px 0 16px; min-width: 0;
+  margin: 0 0 var(--block-gap); min-width: 0;
 }
 .fcontext__label {
   flex: none; padding-top: 5px;
@@ -777,18 +1054,26 @@ dialog.fsheet::backdrop { background: rgba(7, 7, 7, 0.72); }
 .fcontext__chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
 
 .fbrowse {
-  margin: 18px 0 7px;
+  margin: var(--block-gap) 0 var(--label-gap);
   color: var(--text-quiet);
   font-size: var(--fs-3xs); font-weight: 700; letter-spacing: 0.07em;
   text-transform: uppercase;
 }
 
 .flist { display: flex; flex-direction: column; min-width: 0; }
-.flist--domains { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; }
+/* Each cell's row bleeds --row-inset outward, so the gap carries that on both
+   sides or the two columns' backgrounds touch. */
+.flist--domains {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: calc(18px + 2 * var(--row-inset));
+}
 
-.fexpert-group + .fexpert-group { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--border-subtle); }
+.fexpert-group + .fexpert-group {
+  margin-top: 20px; padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+}
 .fexpert-group h4 {
-  margin: 0 0 8px; color: var(--text-muted);
+  margin: 0 0 var(--label-gap); color: var(--text-muted);
   font-size: var(--fs-3xs); font-weight: 700; letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -796,7 +1081,12 @@ dialog.fsheet::backdrop { background: rgba(7, 7, 7, 0.72); }
 /* A row you open to reach a compact child list. */
 .brow {
   display: flex; align-items: center; gap: 10px;
-  width: 100%; min-height: 46px; padding: 8px 10px;
+  /* A button does not stretch on its own, and a plain 100% would resolve
+     against the container and leave the row short of the inset it bleeds into
+     on each side — which is what made browse rows end before the search field
+     above them. */
+  width: calc(100% + 2 * var(--row-inset));
+  min-height: 46px; padding-block: 8px;
   border-radius: var(--radius-2); color: var(--text-secondary); text-align: left;
   transition: background var(--motion-fast) var(--ease-standard),
               color var(--motion-fast) var(--ease-standard);
@@ -822,31 +1112,47 @@ dialog.fsheet::backdrop { background: rgba(7, 7, 7, 0.72); }
 /* Standard-height laptop and desktop windows keep one child group open beneath
    its parent row. Short and narrow windows never render this element: they use
    the existing dedicated drill screen instead. */
+/* One nesting step, not a second inset system: the panel indents by 20px and
+   the rows inside it bleed onto its rule exactly as top-level rows bleed onto
+   the body's content edge. */
 .finline {
-  margin: 2px 8px 10px 20px; padding: 8px 0 10px 14px;
+  margin: 2px 0 10px 20px;
+  padding: 8px 0 10px var(--row-inset);
   border-left: 2px solid var(--border-control);
 }
-.finline .fsearch { width: 100%; margin: 2px 0 10px; }
-.finline .fstage__rule { margin: 6px 0; }
-.finline .opt { padding-left: 8px; }
+.finline .fsearch { margin-block: 2px 10px; }
+.finline .fstage__rule { margin-block: 6px; }
 .brow--more + .finline { margin-top: -1px; padding-top: 6px; }
 
 .fback {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-bottom: 12px; padding: 5px 6px 5px 2px;
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-bottom: var(--block-gap); padding-block: 5px;
   border-radius: var(--radius-2); color: var(--text-tertiary); font-size: var(--fs-2xs);
 }
 .fback svg { transform: rotate(90deg); }
 .fback:hover { color: var(--accent-300); }
 
-.fnone { padding: 20px 2px; }
+.fnone { padding: 20px 0; }
 .fnone p, .fgroup__empty { color: var(--text-muted); font-size: var(--fs-xs); line-height: 18px; }
-.fnone button {
-  margin-top: 10px; height: 32px; padding: 0 12px;
+.fnone button,
+.fmore {
+  min-height: 34px; padding-block: 0;
   border: 1px solid var(--border-control); border-radius: var(--radius-2);
   color: var(--text-primary); font-size: var(--fs-2xs);
 }
-.fnone button:hover { background: var(--mu-800); border-color: var(--border-strong); }
+.fnone button { margin-top: 10px; padding-inline: 12px; }
+.fnone button:hover,
+.fmore:hover { background: var(--mu-800); border-color: var(--border-strong); }
+
+/* Sits under the capped option list; the negative inline margin is inherited
+   from the shared row rule above, so its label starts on the text column. It is
+   the control that reveals the rest of a 45-row list, so it carries a target
+   the size of the rows it reveals rather than the size of its own text. */
+.fmore {
+  display: inline-flex; align-items: center;
+  min-height: 38px; margin-top: var(--label-gap); width: auto;
+  padding-inline: calc(var(--row-inset) - 1px);
+}
 
 /* Option rows — one row shape wherever a value sits. */
 .opt {
@@ -988,6 +1294,8 @@ dialog.sheet::backdrop { background: rgba(7, 7, 7, 0.72); }
   }
   .fsheet__stages::-webkit-scrollbar { height: 0; }
   .fstages__eyebrow, .fstages__summary, .fstages__chev { display: none; }
+  .fstages__label { display: none; }
+  .fstages__label--short { display: block; }
   .fstages__item {
     display: inline-flex; align-items: center; gap: 6px; flex: none;
     width: auto; min-height: 44px; padding: 0 11px;
@@ -999,8 +1307,9 @@ dialog.sheet::backdrop { background: rgba(7, 7, 7, 0.72); }
   .fsheet__workspace { flex: 1; }
   .fsheet__body { padding: 18px 16px 24px; }
   .flist--domains { grid-template-columns: minmax(0, 1fr); }
-  .opt { min-height: 44px; padding: 11px 10px; }
+  .opt { min-height: 44px; padding-block: 11px; }
   .brow { min-height: 52px; }
+  .fmore, .fnone button { min-height: 44px; }
 }
 
 @media (max-width: 519px) {
@@ -1009,7 +1318,11 @@ dialog.sheet::backdrop { background: rgba(7, 7, 7, 0.72); }
   .chip-control:not(.chip-control--credits) svg { display: none; }
   .fstages__item { padding: 0 9px; }
   .quick__nav { width: 28px; height: 28px; }
-  .toolbar__sort { flex: 1; }
+  /* Three controls no longer fit on one line. Rather than shrink them, Filters
+     and the view toggle hold the line at its two ends and sort takes the next
+     line whole — the basis of 100% is what forces that wrap. */
+  .toolbar__sort { flex: 1 0 100%; }
   .sortmenu { width: 100%; }
   .sortmenu__label { display: none; }
+  .toolbar__view { padding: 0 11px; }
 }

@@ -1,8 +1,9 @@
 /* All Mentors — rendering, navigation and filter behaviour.
 
    ── The filter model ────────────────────────────────────────────────────────
-   The taxonomy specifies filter behaviour for industry only. Everything else
-   below is a documented prototype proposal rather than an invisible convention:
+   The taxonomy folder specifies filter behaviour for industry only. Everything
+   else below is a proposal, stated here rather than left as invisible
+   convention, and recorded in README.md as a decision still open:
 
      1. Within one axis, values OR.   Tech & Product OR Data Science & AI.
      2. Across axes, they AND.        That agenda AND that domain AND that industry.
@@ -25,10 +26,15 @@
    The workspace keeps Industry independent and shows only the relationship
    supported by the sources:
 
-     · Functional Domain -> Expertise is present in the taxonomy, so selecting
-       domains narrows the expertise browse list from 243 values to 12 or 13.
-     · Industry -> Functional Domain is not present. Mentors carry the two axes
-       independently, so selecting an industry does not narrow the domain list.
+     · Functional Domain -> Expertise  IS in the source (the column headers of
+       new_expertises.json), so selecting domains narrows the expertise browse
+       list from 243 values to 12 or 13.
+     · Industry -> Functional Domain is NOT in the source. Nothing in this
+       folder, and nothing in the workspace's canonical taxonomy reference,
+       relates an industry to a functional domain; mentors carry the two axes
+       independently. Selecting an industry therefore does not narrow or alter
+       the domain list. Inferring that, say, a technology industry implies Tech
+       & Product would be invented product truth.
 
    Industry Group -> Industry is in the source and is used: groups are the entry
    point to the 40 industries, and selecting a group absorbs its leaves.
@@ -44,7 +50,7 @@ const missing = ['MU_ICONS', 'MU_TAXONOMY', 'MU_MENTORS'].filter((k) => !window[
 if (missing.length) {
   document.body.innerHTML = `<p style="margin:40px;font:16px/1.6 system-ui;color:#F0B962">`
     + `This page could not load its data (${missing.join(', ')}).<br>`
-    + `Check that icons.js, taxonomy.js and mentors.js sit next to index.html.</p>`;
+    + `Check that icons.js, taxonomy.js and mentors-varied.js sit next to index.html.</p>`;
   throw new Error('Missing data globals: ' + missing.join(', '));
 }
 
@@ -76,6 +82,12 @@ function paintIcons(root = document) {
 const STAR = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
   + '<path d="M12 2.7l2.75 5.57 6.15.9-4.45 4.33 1.05 6.12L12 16.73l-5.5 2.89 1.05-6.12L3.1 9.17l6.15-.9L12 2.7z"/></svg>';
 
+/* One source for the verified mark: the card and the list row both carry it. */
+const LINKEDIN_BADGE = '<span class="mentor__linkedin" aria-label="LinkedIn verified">'
+  + '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+  + '<path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05a3.74 3.74 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13Zm1.78 13.02H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0Z"/>'
+  + '</svg></span>';
+
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -94,13 +106,46 @@ functionalDomains.forEach((d) => expertiseByDomain[d.name].forEach((e) => {
   expertiseToDomains.get(e).push(d.name);
 }));
 
-const companies = [...new Set(mentors.map((m) => m.company))].sort((a, b) => a.localeCompare(b));
+/* Companies a mentee can filter by.
+
+   The mentor sample supplies the ones that currently have a mentor behind them.
+   The directory below adds the large employers a mentee would reasonably try
+   first — a filter that only offers the twelve companies this sample happens to
+   contain reads as broken long before it reads as accurate.
+
+   SAMPLE, NOT PRODUCT TRUTH. In the product this list comes from the mentor
+   records themselves. Here, a company with no mentor behind it returns the
+   standard "No mentors match these filters." state rather than being hidden,
+   which is the same answer the other axes give for a combination nobody covers.
+
+   No counts are attached, in line with the no-mentor-counts rule. */
+const COMPANY_DIRECTORY = [
+  // Technology and consumer internet
+  'Adobe', 'Airbnb', 'Apple', 'Atlassian', 'LinkedIn', 'Meta', 'Netflix', 'Nvidia',
+  'Oracle', 'Salesforce', 'SAP', 'Stripe', 'Uber',
+  // Consulting and professional services
+  'Accenture', 'Boston Consulting Group', 'Deloitte', 'EY', 'KPMG', 'PwC',
+  // Finance
+  'American Express', 'Goldman Sachs', 'HDFC Bank', 'JPMorgan Chase',
+  'Morgan Stanley', 'Visa',
+  // India
+  'Flipkart', 'Infosys', 'PhonePe', 'Reliance Industries', 'Swiggy',
+  'Tata Consultancy Services', 'Wipro', 'Zomato',
+];
+
+/* One list, de-duplicated: a directory name that a mentor already carries must
+   not appear twice. */
+const companies = [...new Set([...mentors.map((m) => m.company), ...COMPANY_DIRECTORY])]
+  .sort((a, b) => a.localeCompare(b));
 
 /* ── State ─────────────────────────────────────────────────────────────── */
 
 const TAX_AXES = ['industry', 'domain', 'expertise'];
-const MORE_AXES = ['company', 'experience', 'rating', 'timezone', 'availability'];
-const AXES = ['agenda', ...TAX_AXES, ...MORE_AXES];
+/* Company is a primary axis with a category of its own, not a More filter:
+   it is the value a mentee is most likely to arrive already knowing. */
+const PRIMARY_AXES = [...TAX_AXES, 'company'];
+const MORE_AXES = ['experience', 'rating', 'timezone', 'availability'];
+const AXES = ['agenda', ...PRIMARY_AXES, ...MORE_AXES];
 
 const AXIS_LABEL = {
   agenda: 'Agenda',
@@ -122,6 +167,7 @@ const TAX_STAGES = [
 
 const FILTER_CATEGORIES = [
   ...TAX_STAGES,
+  { id: 'company', label: 'Company', short: 'Company' },
   { id: 'more', label: 'More filters', short: 'More' },
 ];
 
@@ -134,20 +180,29 @@ const SORTS = [
 ];
 
 const MORE_GROUPS = [
-  { id: 'company', title: 'Company/Brand', kind: 'check', searchable: true, options: () => companies },
   { id: 'experience', title: 'Experience Level', kind: 'check', options: () => experienceLevels },
   { id: 'rating', title: 'Rating', kind: 'radio-band', options: () => ratingBands },
   { id: 'timezone', title: 'Location/Time Zone', kind: 'check', options: () => timeZones },
   { id: 'availability', title: 'Availability', kind: 'radio-band', options: () => availabilityWindows },
 ];
 
+/* Grid and List are two presentations of one result set. Only `state.view`
+   changes between them; the filter, sort, search and per-card state below are
+   untouched by the switch, so the same mentors come back in the same order. */
+const VIEWS = [
+  { id: 'grid', label: 'Grid', icon: 'layout-grid', hint: 'Show mentors as cards' },
+  { id: 'list', label: 'List', icon: 'menu2', hint: 'Show mentors as rows' },
+];
+
 const state = {
   query: '',
   sort: 'best',
+  view: 'grid',
   selected: Object.fromEntries(AXES.map((a) => [a, new Set()])),
   stage: 'industry',
   drill: { industry: null, expertise: null, more: null },
-  stageQuery: { industry: '', domain: '', expertise: '' },
+  stageQuery: { industry: '', domain: '', expertise: '', company: '' },
+  companyExpanded: false,
   funnelExpanded: new Set(),
   moreQuery: {},
   cardView: Object.fromEntries(mentors.map((m) => [m.id, 'Expertise'])),
@@ -159,10 +214,16 @@ const wide = window.matchMedia('(min-width: 768px)');
    the workspace preserves usable vertical space and avoids a cramped inline
    accordion. Standard laptop and desktop windows keep children under parents. */
 const inlineSubfilters = window.matchMedia('(min-width: 768px) and (min-height: 700px)');
+/* A window this short cannot show a long option list and its category headings
+   at the same time, so the Company preview gets smaller rather than the panel
+   getting taller. */
+const shortScreen = window.matchMedia('(max-height: 700px)');
 
 const taxCount = () => TAX_AXES.reduce((n, a) => n + state.selected[a].size, 0);
 const moreCount = () => MORE_AXES.reduce((n, a) => n + state.selected[a].size, 0);
-const advancedCount = () => taxCount() + moreCount();
+/* Still every advanced selection, Company included — moving it out of More
+   changed where it is chosen, not whether the badge counts it. */
+const advancedCount = () => PRIMARY_AXES.reduce((n, a) => n + state.selected[a].size, 0) + moreCount();
 const filterCount = () => AXES.reduce((n, a) => n + state.selected[a].size, 0);
 const anyApplied = () => filterCount() > 0 || state.sort !== 'best' || !!state.query;
 
@@ -239,7 +300,7 @@ const matching = () => mentors.filter(matches);
 
 /* ── Navigation ────────────────────────────────────────────────────────── */
 
-/* Items and states follow the reference navigation; labels are shortened
+/* Item order and labels are shortened
    where the rail's 76px cannot hold them ("Call Records" -> "Calls"), with the
    full label kept as the title. Goal Tracker is drawn muted there, so it is
    disabled here rather than merely grey.
@@ -443,7 +504,7 @@ function noMatch(what, q) {
 function searchRow(stage, placeholder) {
   const q = state.stageQuery[stage];
   return `<div class="fsearch" data-filled="${!!q}">
-    ${iconSvg('search', 14)}
+    ${iconSvg('search', 16)}
     <label class="sr-only" for="stage-search">${esc(placeholder)}</label>
     <input id="stage-search" type="search" autocomplete="off" spellcheck="false" data-stagesearch
            value="${esc(q)}" placeholder="${esc(placeholder)}">
@@ -615,7 +676,7 @@ function moreBrowseRow(group) {
 function moreGroupContent(group) {
   return (group.searchable
     ? `<div class="fsearch" data-filled="${!!state.moreQuery[group.id]}">
-         ${iconSvg('search', 14)}
+         ${iconSvg('search', 16)}
          <label class="sr-only" for="more-search">Search ${esc(group.title)}</label>
          <input id="more-search" type="search" autocomplete="off" spellcheck="false"
                 data-moresearch="${esc(group.id)}" value="${esc(state.moreQuery[group.id] || '')}"
@@ -644,10 +705,64 @@ function moreBody() {
     + moreGroupContent(group);
 }
 
+/* Company is the one axis whose option list is longer than the panel. It is a
+   flat list with no parentage to browse through, so the drill pattern the other
+   categories use has nothing to drill into; instead the list itself is kept
+   short until the reader asks for more:
+
+     · the search field is always the first thing under the heading, so finding
+       a known company never requires scrolling;
+     · anything already selected is pinned above the rest and survives both the
+       preview cap and the current search term, so a selection never disappears
+       below the fold or behind a query;
+     · the remainder is capped, and searching lifts the cap because a query has
+       already done the narrowing.
+
+   Multi-select, unchanged: these are the same checkbox rows the axis used while
+   it lived under More filters. */
+const COMPANY_PREVIEW = 8;
+const COMPANY_PREVIEW_SHORT = 5;
+
+function companyPreviewCap() {
+  return shortScreen.matches ? COMPANY_PREVIEW_SHORT : COMPANY_PREVIEW;
+}
+
+function companyBody() {
+  const q = state.stageQuery.company;
+  const term = q.trim().toLowerCase();
+  const searching = !!term;
+
+  const picked = [...state.selected.company].sort((a, b) => a.localeCompare(b));
+  const rest = companies.filter((c) => !state.selected.company.has(c)
+    && (!searching || c.toLowerCase().includes(term)));
+
+  /* The cap counts unselected rows only. Pinning a newly selected company to
+     the top must not push a different one off the bottom — the list would
+     appear to lose an option at the moment the reader touched it. */
+  const capped = !searching && !state.companyExpanded;
+  const shown = capped ? rest.slice(0, companyPreviewCap()) : rest;
+  const hidden = rest.length - shown.length;
+
+  const head = workspaceHeading('Company') + searchRow('company', 'Search companies...');
+
+  if (!picked.length && !rest.length) return head + noMatch('company', q);
+
+  return head
+    + `<div class="flist">${[...picked, ...shown]
+      .map((v) => optRow('company', { value: v })).join('')}</div>`
+    + (hidden > 0
+      ? `<button class="fmore" type="button" data-company-expand="true">
+           Show all ${companies.length} companies</button>`
+      : (!searching && state.companyExpanded
+        ? '<button class="fmore" type="button" data-company-expand="false">Show fewer</button>'
+        : ''));
+}
+
 const STAGE_BODY = {
   industry: industryBody,
   domain: domainBody,
   expertise: expertiseBody,
+  company: companyBody,
   more: moreBody,
 };
 
@@ -689,8 +804,10 @@ function renderFunnel() {
   const industry = resultStage('industry');
   const domain = resultStage('domain');
   const expertise = resultStage('expertise');
+  /* Company sits with the secondary chips rather than inside the taxonomy
+     grouping: it is an independent axis, not a step in the industry path. */
   const aside = [...[...state.selected.agenda].map((v) => ({ axis: 'agenda', value: v })),
-    ...MORE_AXES.flatMap((a) => [...state.selected[a]].map((v) => ({ axis: a, value: v })))];
+    ...['company', ...MORE_AXES].flatMap((a) => [...state.selected[a]].map((v) => ({ axis: a, value: v })))];
   const el = document.getElementById('funnel');
 
   if (!industry && !domain && !expertise && !aside.length) {
@@ -736,19 +853,16 @@ function renderStages() {
       role="tab" data-stage="${category.id}" aria-selected="${active}"
       aria-controls="fsheet-body" tabindex="${active ? '0' : '-1'}">
       <span class="fstages__label">${esc(category.label)}</span>
+      <span class="fstages__label fstages__label--short" aria-hidden="true">${esc(category.short)}</span>
       ${n ? `<span class="fstages__count">${n}</span>` : ''}
       <span class="fstages__chev">${iconSvg('chevron-down', 16)}</span>
       ${summary ? `<span class="fstages__summary" title="${esc(summary)}">${esc(summary)}</span>` : ''}
     </button>`;
   };
 
-  const [industry, domain, expertise, more] = FILTER_CATEGORIES;
   document.getElementById('fsheet-stages').innerHTML = `
     <span class="fstages__eyebrow">Filter by</span>
-    ${item(industry)}
-    ${item(domain)}
-    ${item(expertise)}
-    ${item(more)}`;
+    ${FILTER_CATEGORIES.map(item).join('')}`;
 }
 
 function renderStageBody(preserveScroll = true) {
@@ -773,13 +887,33 @@ function renderWorkspace() {
 
 /* ── Cards ─────────────────────────────────────────────────────────────── */
 
-function cardHtml(m, index) {
+/* Grid and List read the same mentor fields, in the same order, through these
+   two helpers — the tag set a card shows is the tag set its row shows. */
+function tagState(m) {
   const view = state.cardView[m.id];
   const all = view === 'Domain' ? m.domains : m.expertise;
-  const expanded = state.expanded.has(m.id);
-  const shown = expanded ? all : all.slice(0, 2);
-  const extra = all.length - shown.length;
+  const shown = state.expanded.has(m.id) ? all : all.slice(0, 2);
+  return { view, all, shown, extra: all.length - shown.length };
+}
 
+function tagsHtml(m) {
+  const { view, all, shown, extra } = tagState(m);
+  return shown.map((t) => `<span class="tag">${esc(t)}</span>`).join('')
+    + (extra > 0 ? `<button class="tag tag--more" type="button" data-more
+        aria-label="Show ${extra} more ${view === 'Domain' ? 'domains' : 'expertise'}"
+        title="${esc(all.slice(2).join(', '))}">+</button>` : '');
+}
+
+function toggleHtml(m) {
+  const { view } = tagState(m);
+  return `<div class="mentor__toggle" role="group" aria-label="Show domains or expertise">
+      <button type="button" data-view="Domain" aria-pressed="${view === 'Domain'}">Domain</button>
+      <button type="button" data-view="Expertise" aria-pressed="${view === 'Expertise'}">Expertise</button>
+    </div>`;
+}
+
+function cardHtml(m, index) {
+  const { view, all, shown, extra } = tagState(m);
   const accentCta = index === ACCENT_CTA_INDEX ? ' data-cta="accent"' : '';
 
   return `<article class="mentor" data-mentor="${esc(m.id)}"${accentCta}>
@@ -792,19 +926,14 @@ function cardHtml(m, index) {
     <div class="mentor__body">
       <h3 class="mentor__name">
         <span>${esc(m.name)}</span>
-        <span class="mentor__linkedin" aria-label="LinkedIn verified">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05a3.74 3.74 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13Zm1.78 13.02H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0Z"/></svg>
-        </span>
+        ${LINKEDIN_BADGE}
       </h3>
       <p class="mentor__role">${esc(m.title)}</p>
       <p class="mentor__meta">${m.years}+ Yrs of Experience | ${m.calls}+ Calls</p>
 
       <span class="mentor__rule" aria-hidden="true"></span>
 
-      <div class="mentor__toggle" role="group" aria-label="Show domains or expertise">
-        <button type="button" data-view="Domain" aria-pressed="${view === 'Domain'}">Domain</button>
-        <button type="button" data-view="Expertise" aria-pressed="${view === 'Expertise'}">Expertise</button>
-      </div>
+      ${toggleHtml(m)}
 
       <div class="mentor__tags">
         ${shown.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}
@@ -816,6 +945,68 @@ function cardHtml(m, index) {
       <button class="mentor__cta" type="button" data-book>Schedule a Call</button>
     </div>
   </article>`;
+}
+
+/* The list row is not a stretched card. It re-lays the same fields into four
+   fixed zones so every row reads down the same columns:
+
+     identity (portrait, name, role) | rating and experience | domain or
+     expertise tags | the one action
+
+   Nothing the card carries is dropped, and nothing the card does not carry is
+   added. Below the row breakpoints the zones stack in that same order rather
+   than shrinking past legibility. */
+function rowHtml(m, index) {
+  const accentCta = index === ACCENT_CTA_INDEX ? ' data-cta="accent"' : '';
+
+  return `<article class="mrow" data-mentor="${esc(m.id)}"${accentCta}>
+    <div class="mrow__portrait">
+      <img src="assets/mentor-portrait.png" alt="">
+    </div>
+
+    <div class="mrow__identity">
+      <h3 class="mrow__name">
+        <span>${esc(m.name)}</span>
+        ${LINKEDIN_BADGE}
+      </h3>
+      <p class="mrow__role">${esc(m.title)}</p>
+    </div>
+
+    <div class="mrow__stats">
+      <span class="mentor__rating mrow__rating">${STAR}${m.rating.toFixed(1)}</span>
+      <span class="mrow__meta">${m.years}+ Yrs of Experience | ${m.calls}+ Calls</span>
+    </div>
+
+    <div class="mrow__detail">
+      ${toggleHtml(m)}
+      <div class="mrow__tags">${tagsHtml(m)}</div>
+    </div>
+
+    <button class="mentor__cta mrow__cta" type="button" data-book>Schedule a Call</button>
+  </article>`;
+}
+
+/* ── Result layout (Grid / List) ────────────────────────────────── */
+
+/* The toggle is the segmented control the mentor cards already use for
+   Domain/Expertise: one pill track, aria-pressed on the selected half. */
+function renderViewToggle() {
+  document.getElementById('toolbar-views').innerHTML = VIEWS.map((v) => `
+    <button class="toolbar__view" type="button" data-view-mode="${v.id}"
+      aria-pressed="${state.view === v.id}" title="${esc(v.hint)}">
+      ${iconSvg(v.icon, 15)}<span>${esc(v.label)}</span>
+    </button>`).join('');
+}
+
+/* Only the presentation changes. Filters, sort, search, the per-card
+   Domain/Expertise choice and any expanded tag lists are left alone, so the
+   same mentors return in the same order on the other side of the switch. */
+function chooseView(id) {
+  if (!VIEWS.some((v) => v.id === id) || state.view === id) return;
+  state.view = id;
+  renderViewToggle();
+  renderResults();
+  requestAnimationFrame(() => document.querySelector(`[data-view-mode="${id}"]`)?.focus());
 }
 
 /* ── Results ───────────────────────────────────────────────────────────── */
@@ -881,12 +1072,20 @@ function chooseSort(value) {
   requestAnimationFrame(() => document.querySelector('[data-sort-trigger]')?.focus());
 }
 
+/* One result set, two presentations. `matching()` and the sorter run before the
+   view is consulted, so Grid and List are always the same mentors in the same
+   order — the view only decides which builder lays them out. */
 function renderResults() {
   const list = matching().sort(SORTERS[state.sort]);
   const grid = document.getElementById('grid');
+  const rows = state.view === 'list';
+
+  const region = document.getElementById('results');
+  region.dataset.view = state.view;
+  region.setAttribute('aria-label', rows ? 'Mentors, list view' : 'Mentors, grid view');
 
   if (!list.length) {
-    grid.classList.remove('grid');
+    grid.classList.remove('grid', 'rows');
     grid.innerHTML = `<div class="results__empty">
       <h2>No mentors match these filters.</h2>
       <p>Filters narrow the list, they never widen it.</p>
@@ -896,8 +1095,9 @@ function renderResults() {
       </div>
     </div>`;
   } else {
-    grid.classList.add('grid');
-    grid.innerHTML = list.map((m, i) => cardHtml(m, i)).join('');
+    grid.classList.toggle('grid', !rows);
+    grid.classList.toggle('rows', rows);
+    grid.innerHTML = list.map((m, i) => (rows ? rowHtml(m, i) : cardHtml(m, i))).join('');
   }
 
   renderFunnel();
@@ -911,8 +1111,11 @@ function syncChrome() {
   const badge = document.getElementById('filters-badge');
   badge.textContent = String(n);
   badge.hidden = n === 0;
-  document.querySelector('.toolbar__filters').setAttribute('aria-label',
-    n ? `Filters, ${n} active` : 'Filters');
+  const filters = document.querySelector('.toolbar__filters');
+  filters.setAttribute('aria-label', n ? `Filters, ${n} active` : 'Filters');
+  /* The button carries its own open state, so it stays visibly the control the
+     panel belongs to while the panel is on screen. */
+  filters.setAttribute('aria-expanded', String(isSheetOpen()));
   document.querySelector('.fsheet__clear').disabled = !anyApplied();
   document.querySelector('.fsheet__reset').disabled = !anyApplied();
 }
@@ -954,6 +1157,8 @@ function afterSelectionChange(axis) {
     const bodyDependsOnSelection = (axis === 'industry' && state.stage === 'industry' && state.drill.industry)
       || (axis === 'domain' && state.stage === 'expertise')
       || (axis === 'expertise' && state.stage === 'expertise')
+      // Selecting a company pins it above the preview cap, so the list re-sorts.
+      || (axis === 'company' && state.stage === 'company')
       || (MORE_AXES.includes(axis) && state.stage === 'more' && state.drill.more);
     if (bodyDependsOnSelection) {
       renderStageBody();
@@ -975,6 +1180,7 @@ let sheetOpener = null;
 function render() {
   renderNav();
   renderAgendas();
+  renderViewToggle();
   renderSort();
   renderResults();
 }
@@ -984,6 +1190,7 @@ function openSheet() {
   sheetOpener = document.activeElement;
   renderWorkspace();
   sheet.showModal();
+  document.querySelector('.toolbar__filters').setAttribute('aria-expanded', 'true');
   requestAnimationFrame(() => document.querySelector('.fstages__item[aria-selected="true"]')?.focus());
 }
 
@@ -1028,6 +1235,9 @@ document.addEventListener('click', (e) => {
     return;
   }
 
+  const viewMode = e.target.closest('[data-view-mode]');
+  if (viewMode) { chooseView(viewMode.dataset.viewMode); return; }
+
   if (e.target.closest('[data-sheet-open]')) { openSheet(); return; }
   if (e.target.closest('[data-sheet-close]')) { document.getElementById('filter-sheet').close(); return; }
 
@@ -1065,6 +1275,16 @@ document.addEventListener('click', (e) => {
     return;
   }
 
+  const companyExpand = e.target.closest('[data-company-expand]');
+  if (companyExpand) {
+    state.companyExpanded = companyExpand.dataset.companyExpand === 'true';
+    renderStageBody(state.companyExpanded);
+    /* Collapsing scrolls back to the field rather than leaving the reader
+       somewhere in a list that no longer has that many rows. */
+    if (!state.companyExpanded) document.getElementById('fsheet-body').scrollTop = 0;
+    return;
+  }
+
   const funnelExpand = e.target.closest('[data-funnel-expand]');
   if (funnelExpand) {
     const id = funnelExpand.dataset.funnelExpand;
@@ -1093,7 +1313,8 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('[data-clear-all]')) {
     AXES.forEach((a) => state.selected[a].clear());
     state.sort = 'best';
-    state.stageQuery = { industry: '', domain: '', expertise: '' };
+    state.stageQuery = { industry: '', domain: '', expertise: '', company: '' };
+    state.companyExpanded = false;
     state.drill = { industry: null, expertise: null, more: null };
     state.stage = 'industry';
     state.moreQuery = {};
@@ -1228,13 +1449,50 @@ document.querySelector('.search__clear').addEventListener('click', () => {
   input.focus();
 });
 
-/* InputField is one visual control in the design schema. The icon, padding and
-   border therefore focus the input as well; the clear button keeps its own
-   action and already restores input focus after clearing. */
-document.getElementById('search').addEventListener('click', (e) => {
-  if (e.target.closest('.search__clear')) return;
-  document.getElementById('search-input').focus();
+/* ── Search surfaces ───────────────────────────────────────────────────── */
+
+/* InputField is one visual control in the design schema, so its whole box is
+   the target: the border, the padding, the icon and the space around the
+   placeholder all focus the field. Three things made that untrue before:
+
+   · only the results-page bar was wired, and it was wired to one element by id.
+     The panel's own fields are rebuilt by innerHTML on every keystroke, so a
+     bound listener would not have survived anyway — hence delegation on the
+     document, matching how the rest of this file handles rebuilt markup.
+   · it listened for `click`, which fires on release. Pressing in the padding
+     left the field unfocused for the length of the press, and a press-and-drag
+     that began in the padding selected nothing because focus had not moved yet.
+     Pointerdown puts the caret in on press.
+   · preventDefault stops the browser handing focus to the dialog or the body
+     first, which is what produced the visible flash before the caret arrived.
+
+   Touch is deliberately left on the click path: preventing default on a
+   pointerdown would swallow a vertical swipe that happened to start on the bar,
+   and a tap already focuses correctly through click. */
+const SEARCH_SURFACE = '.search, .fsearch';
+/* Anything that carries its own action keeps it — the clear buttons above all. */
+const SEARCH_INTERACTIVE = 'button, a, input, textarea, select, [role="button"]';
+
+function focusSearchSurface(e) {
+  const surface = e.target.closest(SEARCH_SURFACE);
+  if (!surface) return false;
+  if (e.target.closest(SEARCH_INTERACTIVE)) return false;
+  const field = surface.querySelector('input');
+  if (!field || field === document.activeElement) return false;
+  field.focus();
+  return true;
+}
+
+document.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'touch' || e.button !== 0) return;
+  const surface = e.target.closest(SEARCH_SURFACE);
+  if (!surface || e.target.closest(SEARCH_INTERACTIVE)) return;
+  // Focus before the browser retargets it, and keep the press from blurring.
+  e.preventDefault();
+  surface.querySelector('input')?.focus();
 });
+
+document.addEventListener('click', focusSearchSurface);
 
 /* Crossing the breakpoint swaps the rail for the tab bar; the More sheet only
    belongs to the tab bar. */
@@ -1248,9 +1506,16 @@ inlineSubfilters.addEventListener('change', () => {
   if (isSheetOpen()) renderStageBody(false);
 });
 
+/* Crossing the short-window threshold changes only how many company rows the
+   preview shows, so nothing but the open body needs repainting. */
+shortScreen.addEventListener('change', () => {
+  if (isSheetOpen() && state.stage === 'company') renderStageBody(false);
+});
+
 document.getElementById('agenda-list').addEventListener('scroll', syncAgendaControls, { passive: true });
 window.addEventListener('resize', syncAgendaControls);
 document.getElementById('filter-sheet').addEventListener('close', () => {
+  document.querySelector('.toolbar__filters').setAttribute('aria-expanded', 'false');
   if (sheetOpener?.isConnected) sheetOpener.focus();
 });
 

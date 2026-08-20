@@ -83,13 +83,21 @@
         </div>
       </section>
 
-      <!-- Results controls: advanced filters on the left, sort on the right. -->
+      <!-- Results controls. Left: which mentors are in the set. Right: how that
+           same set is presented — view first, then order. All three controls
+           share the 40px height the search field and the schema Dropdown use. -->
       <div class="toolbar">
-        <button class="toolbar__filters" type="button" data-sheet-open aria-haspopup="dialog">
+        <button class="toolbar__filters" type="button" data-sheet-open
+                aria-haspopup="dialog" aria-expanded="false" aria-controls="filter-sheet">
           <span data-icon="adjustments-horizontal" data-size="16"></span>
           <span>Filters</span>
           <span class="toolbar__badge" id="filters-badge" hidden></span>
         </button>
+
+        <!-- Grid/List. Same aria-pressed segmented pattern as the per-card
+             Domain/Expertise toggle, sized for the toolbar. -->
+        <div class="toolbar__views" id="toolbar-views" role="group" aria-label="Result layout"></div>
+
         <div class="toolbar__sort" id="toolbar-sort"></div>
       </div>
 
