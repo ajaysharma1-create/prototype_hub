@@ -3,9 +3,12 @@
 
   var PLACEHOLDER_PREVIEW = "assets/previews/placeholder.svg";
   var STATUS = {
-    "in-progress": { label: "Build in progress", className: "status-value--in-progress" },
-    "management-approved": { label: "Approved by management", className: "status-value--management-approved" }
+    "in-progress": { label: "In Progress", className: "status-value--in-progress" },
+    "completed": { label: "Completed", className: "status-value--completed" },
+    "not-started": { label: "Not Started", className: "status-value--not-started" },
+    "parked": { label: "Parked", className: "status-value--parked" }
   };
+  var DEFAULT_VISIBLE_STATUSES = new Set(["in-progress", "completed"]);
   var state = {
     prototypes: [],
     updatedAt: ""
@@ -14,8 +17,7 @@
   var elements = {
     form: document.getElementById("filters"),
     search: document.getElementById("prototype-search"),
-    project: document.getElementById("project-filter"),
-    projectField: document.getElementById("project-filter-field"),
+    status: document.getElementById("status-filter"),
     type: document.getElementById("type-filter"),
     typeField: document.getElementById("type-filter-field"),
     reset: document.getElementById("clear-filters"),
@@ -82,10 +84,9 @@
       updatedAt: cleanText(item.updatedAt),
       preview: cleanText(item.preview),
       previewAlt: cleanText(item.previewAlt),
+      prototypeAvailable: item.prototypeAvailable === true,
       prototypePath: cleanText(item.prototypePath),
       sourcePath: sourcePath,
-      approvedBy: cleanText(item.approvedBy),
-      approvalReference: cleanText(item.approvalReference),
       device: cleanText(item.device)
     };
 
@@ -98,10 +99,7 @@
       prototype.status,
       prototype.updatedAt,
       prototype.preview,
-      prototype.previewAlt,
-      prototype.prototypePath,
-      prototype.approvedBy,
-      prototype.approvalReference
+      prototype.previewAlt
     ];
 
     if (requiredText.some(function (field) { return !field; })) {
@@ -124,8 +122,12 @@
       throw new Error("Preview path is invalid.");
     }
 
-    if (!isSafeRelativePath(prototype.prototypePath, "prototypes/") || !/\.html$/i.test(prototype.prototypePath)) {
-      throw new Error("Prototype path is invalid.");
+    if (prototype.prototypeAvailable) {
+      if (!isSafeRelativePath(prototype.prototypePath, "prototypes/") || !/\.html$/i.test(prototype.prototypePath)) {
+        throw new Error("Available prototype path is invalid.");
+      }
+    } else if (prototype.prototypePath) {
+      throw new Error("Unavailable projects cannot have a prototype path.");
     }
 
     return prototype;
@@ -196,11 +198,11 @@
 
   function createCard(prototype, index) {
     var card = document.createElement("article");
-    card.className = "prototype-card";
+    card.className = "prototype-card prototype-card--" + prototype.status;
     card.dataset.prototypeId = prototype.id;
 
     var preview = document.createElement("div");
-    preview.className = "preview-frame";
+    preview.className = "preview-frame" + (prototype.prototypeAvailable ? "" : " preview-frame--unavailable");
 
     var image = document.createElement("img");
     image.src = prototype.preview;
@@ -236,18 +238,29 @@
     addMetadata(metadata, "Status", STATUS[prototype.status].label,
       "status-value " + STATUS[prototype.status].className);
     addMetadata(metadata, "Device", prototype.device);
-    addMetadata(metadata, "Updated", formatDate(prototype.updatedAt));
+    addMetadata(metadata, "Reviewed", formatDate(prototype.updatedAt));
     addMetadata(metadata, "Version", prototype.version);
-
-    var link = document.createElement("a");
-    link.className = "card-link";
-    link.href = prototype.prototypePath;
-    link.textContent = "Open Prototype";
-    link.setAttribute("aria-label", "Open prototype: " + prototype.name);
 
     var actions = document.createElement("div");
     actions.className = "card-actions";
-    actions.appendChild(link);
+
+    if (prototype.prototypeAvailable) {
+      var link = document.createElement("a");
+      link.className = "card-link";
+      link.href = prototype.prototypePath;
+      link.textContent = "Open Prototype";
+      link.setAttribute("aria-label", "Open prototype: " + prototype.name);
+      actions.appendChild(link);
+    } else {
+      var unavailable = document.createElement("p");
+      unavailable.className = "prototype-unavailable";
+      unavailable.textContent = prototype.status === "not-started"
+        ? "Prototype not started"
+        : prototype.status === "parked"
+          ? "Prototype unavailable while parked"
+          : "Prototype not yet available";
+      actions.appendChild(unavailable);
+    }
 
     if (prototype.sourcePath) {
       var referenceLink = document.createElement("a");
@@ -271,7 +284,7 @@
   function hasActiveFilters() {
     return Boolean(
       elements.search.value.trim() ||
-      elements.project.value ||
+      elements.status.value !== "default" ||
       elements.type.value
     );
   }
@@ -291,26 +304,32 @@
     elements.reset.disabled = !active;
 
     if (prototypes.length === 0) {
-      elements.emptyTitle.textContent = active ? "No matching prototypes" : "No prototypes";
+      elements.emptyTitle.textContent = active ? "No matching projects" : "No projects";
       elements.emptyDescription.textContent = active
         ? "Change or reset the current search and filters."
-        : "Published prototypes will appear here.";
+        : "Projects will appear here when they match the selected status and filters.";
     }
 
+    var hiddenCount = state.prototypes.length - prototypes.length;
     elements.resultCount.textContent = active
-      ? pluralise(prototypes.length, "result") + " of " + pluralise(state.prototypes.length, "prototype")
-      : pluralise(prototypes.length, "prototype");
+      ? pluralise(prototypes.length, "result") + " of " + pluralise(state.prototypes.length, "project")
+      : pluralise(prototypes.length, "project") + (hiddenCount ? " · " + pluralise(hiddenCount, "project") + " hidden by status" : "");
   }
 
   function applyFilters() {
     var search = elements.search.value.trim().toLowerCase();
-    var project = elements.project.value;
+    var status = elements.status.value;
     var type = elements.type.value;
 
     var filtered = state.prototypes.filter(function (prototype) {
-      var searchText = (prototype.name + " " + prototype.description).toLowerCase();
+      var searchText = (prototype.name + " " + prototype.project + " " + prototype.description + " " + STATUS[prototype.status].label).toLowerCase();
+      var statusMatches = status === "all"
+        ? true
+        : status === "default"
+          ? DEFAULT_VISIBLE_STATUSES.has(prototype.status)
+          : prototype.status === status;
       return (!search || searchText.includes(search)) &&
-        (!project || prototype.project === project) &&
+        statusMatches &&
         (!type || prototype.type === type);
     });
 
@@ -329,12 +348,12 @@
 
   function bindEvents() {
     elements.search.addEventListener("input", applyFilters);
-    elements.project.addEventListener("change", applyFilters);
+    elements.status.addEventListener("change", applyFilters);
     elements.type.addEventListener("change", applyFilters);
     elements.form.addEventListener("reset", function (event) {
       event.preventDefault();
       elements.search.value = "";
-      elements.project.value = "";
+      elements.status.value = "default";
       elements.type.value = "";
       applyFilters();
       elements.search.focus();
@@ -362,10 +381,10 @@
       state.prototypes = prototypes;
       state.updatedAt = cleanText(data.updatedAt);
 
-      configureFilter(elements.project, elements.projectField, uniqueValues(prototypes, "project"));
       configureFilter(elements.type, elements.typeField, uniqueValues(prototypes, "type"));
-      elements.summary.textContent = pluralise(prototypes.length, "prototype") +
-        " · Updated " + formatDate(state.updatedAt);
+      var availableCount = prototypes.filter(function (prototype) { return prototype.prototypeAvailable; }).length;
+      elements.summary.textContent = pluralise(prototypes.length, "project") + " · " +
+        pluralise(availableCount, "prototype") + " available · Updated " + formatDate(state.updatedAt);
       elements.grid.setAttribute("aria-busy", "false");
       applyFilters();
     } catch (error) {

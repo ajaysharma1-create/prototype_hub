@@ -11,7 +11,9 @@
   --accent-hover: #24553a;
   --focus: #1f6f46;
   --status-progress: #c88b17;
-  --status-approved: #2f6848;
+  --status-completed: #2f6848;
+  --status-not-started: #b42318;
+  --status-parked: #68716b;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -182,10 +184,11 @@ h1 {
 }
 
 .directory-summary {
-  flex: none;
+  flex: 0 1 auto;
   margin: 0 0 0.125rem;
   color: var(--muted-text);
   font-size: 0.8125rem;
+  text-align: right;
 }
 
 .directory {
@@ -311,6 +314,11 @@ input::placeholder {
   box-shadow: var(--shadow);
 }
 
+.prototype-card--parked {
+  border-color: #cfd4d0;
+  background: #fbfcfa;
+}
+
 .preview-frame {
   overflow: hidden;
   aspect-ratio: 16 / 10;
@@ -322,6 +330,11 @@ input::placeholder {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.preview-frame--unavailable img {
+  filter: grayscale(0.65);
+  opacity: 0.72;
 }
 
 .card-body {
@@ -405,8 +418,16 @@ input::placeholder {
   --status-mark: var(--status-progress);
 }
 
-.status-value--management-approved {
-  --status-mark: var(--status-approved);
+.status-value--completed {
+  --status-mark: var(--status-completed);
+}
+
+.status-value--not-started {
+  --status-mark: var(--status-not-started);
+}
+
+.status-value--parked {
+  --status-mark: var(--status-parked);
 }
 
 .card-actions {
@@ -436,6 +457,22 @@ input::placeholder {
 .card-link:hover {
   border-color: var(--accent-hover);
   background: var(--accent-hover);
+}
+
+.prototype-unavailable {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.625rem var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-muted);
+  color: var(--secondary-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 .reference-link {
@@ -509,6 +546,7 @@ input::placeholder {
 
   .directory-summary {
     margin: 0;
+    text-align: left;
   }
 
   .directory {

@@ -1,8 +1,13 @@
 # Prototype Hub
 
-Prototype Hub is the Product Manager-authorised publication directory for MentorUnion product and design prototypes. It is a static HTML, CSS, and JavaScript project with no build step or environment variables.
+Prototype Hub is the centralized directory for MentorUnion product projects tracked in
+`live/` and `parked/`. It shows current project status and opens a prototype only when a
+publishable hub copy exists. Projects without an accessible prototype remain visible as
+non-linking cards.
 
-Only a prototype with explicit Product Manager approval for publication may appear in `prototypes.json`. Publication approval and build status are separate: a published card may be marked **Build in progress** or **Approved by management**. Neither status represents production launch approval.
+The hub is static HTML, CSS, and JavaScript. It has no application build step or runtime
+environment variables. The Credit Purchase route contains a checked-in Vite build generated
+from the existing source app.
 
 ## Local usage
 
@@ -13,179 +18,152 @@ cd prototype-hub
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000/`. Opening `index.html` directly is not supported because browsers restrict local `fetch()` requests to `prototypes.json`.
+Open `http://localhost:8000/`. Opening `index.html` directly is not supported because browsers
+restrict local `fetch()` requests to `prototypes.json`.
 
-No package installation, build command, or environment file is required.
+## Inventory model
 
-## Folder structure
+`prototypes.json` contains one entry per meaningful product/project, not one entry per file,
+research artifact, or design experiment. Related specifications and prototypes remain grouped
+under their product.
 
-```text
-prototype-hub/
-├── favicon.ico
-├── index.html
-├── README.md
-├── prototypes.json
-├── assets/
-│   ├── previews/
-│   │   ├── all-mentors-taxonomy-filters.webp
-│   │   ├── gift-mentorship.png
-│   │   ├── mentorship-credits-pricing.webp
-│   │   └── placeholder.svg
-│   ├── icons/
-│   │   └── hub-mark.svg
-│   └── shared/
-│       ├── app.js
-│       └── styles.css
-└── prototypes/
-    ├── all-mentors-taxonomy-filters/
-    │   ├── index.html
-    │   ├── app.js
-    │   ├── icons.js
-    │   ├── mentors-varied.js
-    │   ├── styles.css
-    │   ├── taxonomy.js
-    │   └── assets/
-    ├── gift-mentorship/
-    │   ├── index.html
-    │   ├── app.js
-    │   ├── styles.css
-    │   └── assets/
-    │       ├── fonts/
-    │       └── logos/
-    ├── zoom-integration-flow/
-    │   ├── index.html
-    │   ├── app.js
-    │   ├── styles.css
-    │   ├── assets/
-    │   │   └── logo-on-dark.svg
-    │   └── design-system/
-    │       ├── styles.css
-    │       ├── components/
-    │       └── tokens/
-    ├── mentee-direct-onboarding/
-    │   ├── onboarding-app.html
-    │   ├── mentorunion-schema.css
-    │   └── assets/
-    │       ├── favicon.png
-    │       └── mentor-union-logo.png
-    └── proposed_pricing_unified.html
-```
+The only supported statuses are:
 
-The local `audit/` directory contains ignored validation evidence. It is not part of the public repository or Vercel deployment.
+- `in-progress` → **In Progress**
+- `completed` → **Completed**
+- `not-started` → **Not Started**
+- `parked` → **Parked**
 
-## Add a prototype
-
-1. Confirm explicit Product Manager approval for the exact artifact being published.
-2. Copy the final shareable artifact and any required local assets into `prototypes/` using relative, stable paths.
-3. Capture an accurate 16:10 preview from a clean default or documented entry state and place it in `assets/previews/`.
-4. Add complete, verified metadata to `prototypes.json`.
-5. Confirm that the copied artifact and metadata contain no private paths, credentials, personal data, or confidential notes.
-6. Validate the preview, directory link, prototype interactions, search, applicable filters, keyboard use, and responsive layout.
-7. Update the top-level `updatedAt` date in `prototypes.json`.
-8. Commit the change with a summary that identifies the prototype and approval reference.
-
-Drafts, alternatives, rejected concepts, superseded files, and internal working material must not be published.
+The default directory view shows In Progress and Completed projects. Not Started and Parked
+projects remain in the data and can be revealed from the Status filter. Status labels accompany
+all colour marks; Not Started uses the required red mark.
 
 Each entry uses this structure:
 
 ```json
 {
-  "id": "",
-  "name": "",
-  "project": "",
-  "description": "",
-  "type": "",
+  "id": "example-project",
+  "name": "Example Project",
+  "project": "Example Programme",
+  "description": "Evidence-backed product summary.",
+  "type": "Product flow",
   "status": "in-progress",
-  "version": "",
   "updatedAt": "YYYY-MM-DD",
   "preview": "assets/previews/example.webp",
-  "previewAlt": "",
-  "prototypePath": "prototypes/example.html",
-  "sourcePath": "",
-  "approvedBy": "",
-  "approvalReference": "",
-  "device": ""
+  "previewAlt": "What the preview shows.",
+  "prototypeAvailable": true,
+  "prototypePath": "prototypes/example-project/index.html",
+  "device": "Responsive web"
 }
 ```
 
-Use an empty `version` when the artifact has no documented version. Do not infer names, dates, ownership, purpose, approval, or version from a filename. `sourcePath` may be empty; if used, copy the public reference under `prototypes/` and use its relative path. The card renders it as a secondary `Related reference` link. Approval fields are publicly downloadable metadata, so record only the minimum non-confidential evidence required.
+`prototypePath` must be an empty string when `prototypeAvailable` is `false`. This prevents
+placeholder cards from linking to missing implementations. `version`, `device`, and
+`sourcePath`, `approvedBy`, and `approvalReference` are optional. `sourcePath`, when used, must
+point to a public file under `prototypes/`. Approval fields preserve existing publication
+evidence and must not be invented for placeholders or newly copied artifacts.
 
-`status` accepts `in-progress` and `management-approved`. The directory renders
-these as **Build in progress** with a yellow mark and **Approved by management**
-with a green mark. The renderer rejects incomplete entries, unsupported status
-values, duplicate IDs, invalid dates, absolute paths, traversal paths, and
-prototype routes that are not HTML files.
+## Folder structure
 
-## Preview assets
+```text
+prototype-hub/
+├── index.html
+├── prototypes.json
+├── assets/
+│   ├── icons/
+│   ├── previews/
+│   └── shared/
+│       ├── app.js
+│       └── styles.css
+└── prototypes/
+    ├── all-mentors-taxonomy-filters/
+    ├── credit-purchase/
+    ├── gift-mentorship/
+    ├── mentee-direct-onboarding/
+    ├── zoom-integration-flow/
+    └── proposed_pricing_unified.html  # retained legacy pricing artifact; not listed
+```
 
-Use a 16:10 image, preferably 960 × 600 pixels in WebP format. Capture a clean default or documented entry state without incidental menus, selections, tooltips, or test data. An intentional flow-entry panel may be open when it is the clearest representation of the prototype. Do not use stock imagery. Add factual alternative text that describes what is visible.
+The local `audit/` directory contains ignored audit and validation evidence. It is not part of
+the public repository.
 
-If a preview fails to load, the directory replaces it with `assets/previews/placeholder.svg`. The fallback is a safeguard, not a substitute for checking the real preview before publication.
+## Add or update a project
 
-## Vercel deployment
+1. Audit the corresponding `live/` or `parked/` project and confirm its product boundary.
+2. Use only the four supported statuses; every source project under `parked/` is `parked`.
+3. Add evidence-backed metadata without inventing scope, screens, progress, or ownership.
+4. Set `prototypeAvailable` to `false` and leave `prototypePath` empty when there is no safe,
+   publishable hub prototype.
+5. When a real prototype is publishable, copy only the required static artifact and local assets
+   into a deterministic lowercase kebab-case route under `prototypes/`.
+6. Confirm the copied artifact contains no credentials, personal data, private paths, or
+   confidential notes.
+7. Add a factual 16:10 preview when available; otherwise use the neutral placeholder.
+8. Update the top-level `updatedAt` date and run the release checks.
 
-Import the repository into Vercel as a static project:
+Do not publish drafts, rejected concepts, superseded files, or internal working material as
+prototype routes. Listing a project card does not imply production launch or management approval.
 
-1. Select the repository in Vercel.
-2. Choose **Other** as the framework preset.
-3. Keep the project root at `.`.
-4. Leave the build command and output directory unset.
-5. Deploy and repeat the release checks against the generated URL.
+## Existing prototype limitations
 
-The project needs no `vercel.json`, rewrite, build output, server function, or environment variable. All internal deployment routes use relative paths and resolve to physical files, so direct prototype routes and refreshes work without a fallback rule.
+### All Mentors Taxonomy Filters
 
-The Gift Direction and pricing prototypes request optional Google-hosted typography, while the onboarding prototype requests Google-hosted Material Symbols. Their core flows remain local; system fallbacks preserve Gift Direction and pricing typography, but onboarding icon glyphs may not render correctly when its request is unavailable. The hub itself has no external runtime dependency.
+Search, sorting, taxonomy filters, mentor-card controls, and the booking sheet run entirely in the
+browser against illustrative mentor records. No production mentor, availability, credit,
+scheduling, or profile service is called. Scheduling and navigation actions are simulated.
 
-Do not connect or deploy a Vercel project until the repository owner authorises it.
+### Credit Purchase
+
+The checked-in route is a static build of the active React/Vite prototype. Plan selection,
+checkout, wallet changes, booking, transaction history, and support requests are simulated. Its
+demo state uses local browser storage; no payment, booking, refund, or message is processed.
+
+### Gift a Career
+
+Payment, email and WhatsApp delivery, scheduling, code issuance, recipient sign-in, balance
+allocation, and PDF generation are simulated in the browser. No money moves and no message is
+sent. The simulated code ledger and credit balance are not production-grade or secure.
+
+### Mentee Direct Onboarding
+
+OAuth, phone verification, OTP resend, account/profile persistence, welcome-credit allocation,
+mentor matching, and booking are simulated. Verification writes entered values only to page
+memory and the browser console. Reviewers should not enter real personal data.
+
+### Zoom Integration
+
+Zoom connectivity, attendance persistence, credit and payout updates, support handoff, and
+dashboard navigation are simulated. No production Zoom or MentorUnion backend is called. The case
+index and prototype controls expose deterministic documented states for review.
+
+The hub itself has no external runtime dependency. Individual prototypes may request optional
+Google-hosted fonts or icon fonts; their core local files remain available when those requests
+fail, although some typography or icon glyphs may fall back.
 
 ## Release checks
 
 Before publishing a change, confirm:
 
-- every listed artifact has explicit Product Manager publication approval;
-- no draft, alternate, rejected, or superseded prototype is listed;
-- the directory loads through a static server without a build process;
-- every directory prototype link and preview returns successfully;
-- search and each visible metadata filter can be combined and reset;
-- missing previews show the neutral fallback;
-- there are no browser console errors or failed local requests;
-- no absolute path, credential, personal data, confidential note, or private evidence is exposed;
-- focus order, visible focus states, native control labels, and touch targets remain usable;
-- the page has no horizontal overflow at 320, 360, 375, 390, 430, 768, 1024, 1280, 1440, and 1920 pixels;
-- landscape mobile, 200% browser zoom, long names, missing previews, and empty results remain usable.
+- every meaningful product in `live/` and `parked/` is represented once;
+- only the four supported statuses appear and every parked source is marked Parked;
+- In Progress and Completed are visible by default;
+- Not Started and Parked are hidden by default but retrievable through Status;
+- Not Started has a red mark and all statuses retain readable labels;
+- every available prototype route and preview resolves successfully;
+- unavailable projects render a non-linking state;
+- search, Status, Type, Reset, keyboard focus, and empty results work together;
+- no absolute path, traversal path, credential, personal data, or private evidence is exposed;
+- there is no horizontal overflow at 320, 360, 375, 390, 430, 768, 1024, 1280, 1440, and
+  1920 pixels;
+- long names, missing previews, mobile controls, 200% zoom, and touch targets remain usable.
 
-Prototype interactions may intentionally simulate product actions. Any inert policy, contact, authentication, or purchase control must be documented as a prototype limitation rather than represented as a live service.
+## Deployment
 
-### Current prototype limitations
-
-#### All Mentors — Taxonomy Filters
-
-`all-mentors-taxonomy-filters/index.html` is a front-end review prototype. Search,
-sorting, taxonomy filters, mentor-card controls, and the booking sheet run entirely
-in the browser against twelve illustrative mentor records; no production mentor,
-availability, credit, scheduling, or profile service is called. Scheduling and
-navigation actions are simulated. Mentor names, roles, ratings, call counts,
-availability, agendas, and secondary filter attributes are sample data. Inter is
-an optional Google Fonts request with a system fallback.
-
-#### Zoom Integration Flow
-
-`zoom-integration-flow/index.html` is a front-end review prototype. Zoom connectivity, attendance persistence, credit and payout updates, support handoff, and dashboard navigation are simulated; no production Zoom or MentorUnion backend is called. The case index, in-session bridge, and prototype-control dock expose deterministic documented states for review. Participant names and session times are sample data. MentorUnion typography uses optional Google-hosted font requests with system fallbacks.
-
-#### Gift a Career
-
-`gift-mentorship/index.html` is a front-end review prototype. Payment, email and WhatsApp delivery, scheduling, code issuance, recipient sign-in, balance allocation, and PDF generation are simulated in the browser; no money moves and no message is sent. Gift configuration lasts only for the current page; the simulated code ledger, claimed-gift wallet, and credit balance persist in local browser storage and are not production-grade or secure. Policy and navigation links outside the gifting journey are intentionally inactive. Montserrat is an optional Google Fonts request; Instrument Serif and both logo masters are local.
-
-#### Mentorship Credits Pricing
-
-`proposed_pricing_unified.html` is a review prototype, not a live purchase surface. Authentication, checkout, and recommendation actions are simulated; refund, terms, privacy, and contact links are intentionally inactive. Pack naming, selected pack benefits, and USD readiness remain proposals for review rather than launch commitments. Its only external dependency is optional Google Fonts typography.
-
-#### Mentee Direct Onboarding
-
-`onboarding-app.html` is a front-end review prototype. OAuth, phone verification, OTP resend, account/profile persistence, welcome-credit allocation, mentor matching, and booking are simulated. Verification writes entered values only to page memory and the browser console; reviewers should not enter real personal data. Mentor identities are generic fictional labels in the public copy, while roles, ratings, and counts are illustrative. Several mentor-directory controls are presentational only. Google-hosted Material Symbols is its only external runtime dependency. The card temporarily uses the neutral preview placeholder until an accurate flow-entry capture is generated.
+The directory can be hosted as a static site with the repository root at `.` and no hub build
+command or output directory. Do not connect or deploy a hosting project without repository-owner
+authorization.
 
 ## Maintenance ownership
 
-**Owner:** TBD - assign a Product or Design Operations maintainer before public deployment.
-
-The maintainer owns approval verification, metadata accuracy, preview quality, link checks, responsive regression checks, and publication hygiene.
+**Owner:** TBD. Product or Design Operations should own inventory accuracy, prototype publication
+safety, preview quality, route checks, responsive regression checks, and release hygiene.

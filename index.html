@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Published MentorUnion product and design prototypes with current build status.">
+  <meta name="description" content="Central directory of MentorUnion product projects and their current prototype status.">
   <meta name="color-scheme" content="light">
   <title>Prototype Hub</title>
   <link rel="icon" href="assets/icons/hub-mark.svg" type="image/svg+xml">
@@ -24,15 +24,15 @@
     <header class="page-header" aria-labelledby="page-title">
       <div>
         <h1 id="page-title">Prototype Hub</h1>
-        <p>Published product and design prototypes with current build status.</p>
+        <p>One view of active, completed, not started, and parked product work.</p>
       </div>
-      <p class="directory-summary" id="directory-summary">Loading prototypes&hellip;</p>
+      <p class="directory-summary" id="directory-summary">Loading projects&hellip;</p>
     </header>
 
     <section class="directory" id="prototype-directory" aria-labelledby="directory-title">
-      <h2 class="visually-hidden" id="directory-title">Available prototypes</h2>
+      <h2 class="visually-hidden" id="directory-title">Product projects</h2>
 
-      <form class="filters" id="filters" role="search" aria-label="Search and filter prototypes">
+      <form class="filters" id="filters" role="search" aria-label="Search and filter projects">
         <div class="filter-field search-field">
           <label for="prototype-search">Search</label>
           <div class="search-control">
@@ -43,10 +43,15 @@
           </div>
         </div>
 
-        <div class="filter-field" id="project-filter-field" hidden>
-          <label for="project-filter">Project</label>
-          <select id="project-filter" name="project" disabled>
-            <option value="">All projects</option>
+        <div class="filter-field">
+          <label for="status-filter">Status</label>
+          <select id="status-filter" name="status">
+            <option value="default">Active and completed</option>
+            <option value="all">All statuses</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="not-started">Not Started</option>
+            <option value="parked">Parked</option>
           </select>
         </div>
 
@@ -61,14 +66,14 @@
       </form>
 
       <div class="result-row">
-        <p class="result-count" id="result-count" aria-live="polite">Loading prototypes&hellip;</p>
+        <p class="result-count" id="result-count" aria-live="polite">Loading projects&hellip;</p>
       </div>
 
       <div class="prototype-grid" id="prototype-grid" aria-busy="true"></div>
 
       <div class="empty-state" id="empty-state" hidden>
-        <h3 id="empty-title">No prototypes</h3>
-        <p id="empty-description">Published prototypes will appear here.</p>
+        <h3 id="empty-title">No projects</h3>
+        <p id="empty-description">Projects will appear here when they match the selected status and filters.</p>
       </div>
 
       <noscript>
