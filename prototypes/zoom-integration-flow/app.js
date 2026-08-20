@@ -10,24 +10,24 @@
 
   var LOGO = 'assets/logo-on-dark.svg';
   var S = {
-    mentee_first_name: 'Ananya',
-    mentee_name: 'Ananya Rao',
-    mentor_first_name: 'Vikram',
-    mentor_name: 'Vikram Mehta',
-    session_agenda: 'Moving from analytics into product management',
-    session_date: 'Tuesday, 18 August 2026',
-    scheduled_time: '6:30 PM',
-    timezone: 'IST (GMT+5:30)',
-    join_deadline: '6:37 PM',
-    mentee_join_time: '6:26 PM',
-    mentor_join_time: '6:27 PM',
-    outcome_update_window: 'within 24 hours',
-    support_deadline: '20 August 2026, 6:30 PM',
-    time_until_start_seconds: 277,
-    waiting_pre_seconds: 100,
-    waiting_deadline_seconds: 297,
-    transition_seconds: 10
-  };
+  mentee_first_name: '{{mentee_first_name}}',
+  mentee_name: '{{mentee_name}}',
+  mentor_first_name: '{{mentor_first_name}}',
+  mentor_name: '{{mentor_name}}',
+  session_agenda: '{{session_agenda}}',
+  session_date: '{{session_date}}',
+  scheduled_time: '{{scheduled_time}}',
+  timezone: '{{timezone}}',
+  join_deadline: '{{join_deadline}}',
+  mentee_join_time: '{{mentee_join_time}}',
+  mentor_join_time: '{{mentor_join_time}}',
+  outcome_update_window: '{{outcome_update_window}}',
+  support_deadline: '{{support_deadline}}',
+  time_until_start_seconds: 277,
+  waiting_pre_seconds: 100,
+  waiting_deadline_seconds: 297,
+  transition_seconds: 10
+};
 
   var DEVICE_BASE = {
     camera: ['Integrated webcam (built-in)', 'Logitech C920 HD Pro'],
