@@ -1,8 +1,8 @@
 # Prototype Hub
 
-Prototype Hub is the published directory for Product Manager-approved MentorUnion product and design prototypes. It is a static HTML, CSS, and JavaScript project with no build step or environment variables.
+Prototype Hub is the Product Manager-authorised publication directory for MentorUnion product and design prototypes. It is a static HTML, CSS, and JavaScript project with no build step or environment variables.
 
-Only a prototype with explicit Product Manager approval for publication may appear in `prototypes.json`. “Approved for review” means approved for prototype review; it does not indicate that the proposed product behaviour is approved for launch.
+Only a prototype with explicit Product Manager approval for publication may appear in `prototypes.json`. Publication approval and build status are separate: a published card may be marked **Build in progress** or **Approved by management**. Neither status represents production launch approval.
 
 ## Local usage
 
@@ -73,7 +73,7 @@ prototype-hub/
 
 The local `audit/` directory contains ignored validation evidence. It is not part of the public repository or Vercel deployment.
 
-## Add an approved prototype
+## Add a prototype
 
 1. Confirm explicit Product Manager approval for the exact artifact being published.
 2. Copy the final shareable artifact and any required local assets into `prototypes/` using relative, stable paths.
@@ -95,7 +95,7 @@ Each entry uses this structure:
   "project": "",
   "description": "",
   "type": "",
-  "status": "approved",
+  "status": "in-progress",
   "version": "",
   "updatedAt": "YYYY-MM-DD",
   "preview": "assets/previews/example.webp",
@@ -110,7 +110,11 @@ Each entry uses this structure:
 
 Use an empty `version` when the artifact has no documented version. Do not infer names, dates, ownership, purpose, approval, or version from a filename. `sourcePath` may be empty; if used, copy the public reference under `prototypes/` and use its relative path. The card renders it as a secondary `Related reference` link. Approval fields are publicly downloadable metadata, so record only the minimum non-confidential evidence required.
 
-The renderer rejects incomplete entries, non-approved status values, duplicate IDs, invalid dates, absolute paths, traversal paths, and prototype routes that are not HTML files.
+`status` accepts `in-progress` and `management-approved`. The directory renders
+these as **Build in progress** with a yellow mark and **Approved by management**
+with a green mark. The renderer rejects incomplete entries, unsupported status
+values, duplicate IDs, invalid dates, absolute paths, traversal paths, and
+prototype routes that are not HTML files.
 
 ## Preview assets
 

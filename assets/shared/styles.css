@@ -10,6 +10,8 @@
   --accent: #2f6848;
   --accent-hover: #24553a;
   --focus: #1f6f46;
+  --status-progress: #c88b17;
+  --status-approved: #2f6848;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -387,7 +389,7 @@ input::placeholder {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  color: var(--accent);
+  color: var(--primary-text);
 }
 
 .status-value::before {
@@ -395,8 +397,16 @@ input::placeholder {
   height: 0.4375rem;
   flex: none;
   border-radius: 50%;
-  background: currentColor;
+  background: var(--status-mark);
   content: "";
+}
+
+.status-value--in-progress {
+  --status-mark: var(--status-progress);
+}
+
+.status-value--management-approved {
+  --status-mark: var(--status-approved);
 }
 
 .card-actions {

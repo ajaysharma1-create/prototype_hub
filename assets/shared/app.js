@@ -2,6 +2,10 @@
   "use strict";
 
   var PLACEHOLDER_PREVIEW = "assets/previews/placeholder.svg";
+  var STATUS = {
+    "in-progress": { label: "Build in progress", className: "status-value--in-progress" },
+    "management-approved": { label: "Approved by management", className: "status-value--management-approved" }
+  };
   var state = {
     prototypes: [],
     updatedAt: ""
@@ -91,6 +95,7 @@
       prototype.project,
       prototype.description,
       prototype.type,
+      prototype.status,
       prototype.updatedAt,
       prototype.preview,
       prototype.previewAlt,
@@ -107,8 +112,8 @@
       throw new Error("Prototype ID is invalid.");
     }
 
-    if (prototype.status !== "approved") {
-      throw new Error("Only approved prototypes may be published.");
+    if (!STATUS[prototype.status]) {
+      throw new Error("Prototype status is invalid.");
     }
 
     if (!isValidDate(prototype.updatedAt)) {
@@ -228,7 +233,8 @@
     metadata.className = "card-metadata";
     addMetadata(metadata, "Project", prototype.project);
     addMetadata(metadata, "Type", prototype.type);
-    addMetadata(metadata, "Status", "Approved for review", "status-value");
+    addMetadata(metadata, "Status", STATUS[prototype.status].label,
+      "status-value " + STATUS[prototype.status].className);
     addMetadata(metadata, "Device", prototype.device);
     addMetadata(metadata, "Updated", formatDate(prototype.updatedAt));
     addMetadata(metadata, "Version", prototype.version);
@@ -285,15 +291,15 @@
     elements.reset.disabled = !active;
 
     if (prototypes.length === 0) {
-      elements.emptyTitle.textContent = active ? "No matching prototypes" : "No approved prototypes";
+      elements.emptyTitle.textContent = active ? "No matching prototypes" : "No prototypes";
       elements.emptyDescription.textContent = active
         ? "Change or reset the current search and filters."
-        : "Approved prototypes will appear here.";
+        : "Published prototypes will appear here.";
     }
 
     elements.resultCount.textContent = active
       ? pluralise(prototypes.length, "result") + " of " + pluralise(state.prototypes.length, "prototype")
-      : pluralise(prototypes.length, "approved prototype");
+      : pluralise(prototypes.length, "prototype");
   }
 
   function applyFilters() {
@@ -358,7 +364,7 @@
 
       configureFilter(elements.project, elements.projectField, uniqueValues(prototypes, "project"));
       configureFilter(elements.type, elements.typeField, uniqueValues(prototypes, "type"));
-      elements.summary.textContent = pluralise(prototypes.length, "approved prototype") +
+      elements.summary.textContent = pluralise(prototypes.length, "prototype") +
         " · Updated " + formatDate(state.updatedAt);
       elements.grid.setAttribute("aria-busy", "false");
       applyFilters();

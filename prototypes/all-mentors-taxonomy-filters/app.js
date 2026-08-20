@@ -44,7 +44,7 @@ const missing = ['MU_ICONS', 'MU_TAXONOMY', 'MU_MENTORS'].filter((k) => !window[
 if (missing.length) {
   document.body.innerHTML = `<p style="margin:40px;font:16px/1.6 system-ui;color:#F0B962">`
     + `This page could not load its data (${missing.join(', ')}).<br>`
-    + `Check that icons.js, taxonomy.js and mentors-varied.js sit next to index.html.</p>`;
+    + `Check that icons.js, taxonomy.js and mentors.js sit next to index.html.</p>`;
   throw new Error('Missing data globals: ' + missing.join(', '));
 }
 
@@ -126,7 +126,7 @@ const FILTER_CATEGORIES = [
 ];
 
 const SORTS = [
-  { id: 'best', label: 'Best Match (Recommended)' },
+  { id: 'best', label: 'Best Match', supporting: 'Recommended' },
   { id: 'soonest', label: 'Soonest Available' },
   { id: 'rated', label: 'Highest Rated' },
   { id: 'experience', label: 'Experience (High to Low)' },
@@ -155,6 +155,10 @@ const state = {
 };
 
 const wide = window.matchMedia('(min-width: 768px)');
+/* Wide but shallow windows behave like mobile for child navigation: replacing
+   the workspace preserves usable vertical space and avoids a cramped inline
+   accordion. Standard laptop and desktop windows keep children under parents. */
+const inlineSubfilters = window.matchMedia('(min-width: 768px) and (min-height: 700px)');
 
 const taxCount = () => TAX_AXES.reduce((n, a) => n + state.selected[a].size, 0);
 const moreCount = () => MORE_AXES.reduce((n, a) => n + state.selected[a].size, 0);
@@ -395,8 +399,25 @@ function optRow(axis, opt, kind = 'check') {
 
 /* A browse row: the parent you open to reach its children, carrying the child
    count and how many of them are already selected. */
+function inlinePanelId(stage, value) {
+  const slug = String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return `inline-${stage}-${slug}`;
+}
+
+function inlineDisclosure(stage, value, open) {
+  if (!inlineSubfilters.matches) return '';
+  const id = inlinePanelId(stage, value);
+  return ` id="${id}-trigger" aria-expanded="${open}" aria-controls="${id}"`;
+}
+
+function inlinePanel(stage, value, content) {
+  const id = inlinePanelId(stage, value);
+  return `<section class="finline" id="${id}" aria-labelledby="${id}-trigger">${content}</section>`;
+}
+
 function browseRow(stage, name, count, unit, selected, opts = {}) {
-  return `<button class="brow" type="button" data-drill-stage="${esc(stage)}" data-drill="${esc(name)}">
+  const disclosure = inlineDisclosure(stage, name, opts.open === true);
+  return `<button class="brow" type="button" data-drill-stage="${esc(stage)}" data-drill="${esc(name)}"${disclosure}>
     <span class="brow__name">${esc(name)}${opts.isNew ? ' <span class="opt__new">New</span>' : ''}</span>
     ${selected ? `<span class="brow__sel">${selected} selected</span>` : ''}
     <span class="brow__n">${count} ${esc(count === 1 ? unit.replace(/ies$/, 'y').replace(/s$/, '') : unit)}</span>
@@ -434,23 +455,36 @@ function workspaceHeading(title) {
   return `<header class="fworkspace__head"><h3 id="workspace-title">${esc(title)}</h3></header>`;
 }
 
+function industryGroupContent(g) {
+  const groupPicked = state.selected.industry.has(g.group);
+  return optRow('industry', { value: g.group, label: 'Select entire group' }, 'check')
+    + '<span class="fstage__rule" aria-hidden="true"></span>'
+    + `<div class="flist">${g.industries.map((i) => optRow('industry', {
+      value: i.name, isNew: i.isNew, includedBy: groupPicked ? g.group : null,
+    })).join('')}</div>`;
+}
+
+function industryBrowseGroup(g) {
+  const open = state.drill.industry === g.group;
+  const selected = state.selected.industry.has(g.group)
+    ? g.industries.length
+    : g.industries.filter((i) => state.selected.industry.has(i.name)).length;
+  return browseRow('industry', g.group, g.industries.length, 'industries', selected, { open })
+    + (open ? inlinePanel('industry', g.group, industryGroupContent(g)) : '');
+}
+
 function industryBody() {
   const q = state.stageQuery.industry;
   const open = state.drill.industry;
 
   // No search inside a group: the largest holds six industries, and a field
   // above six rows is clutter rather than help.
-  if (open) {
+  if (open && !inlineSubfilters.matches) {
     const g = groupByName.get(open);
-    const groupPicked = state.selected.industry.has(g.group);
     return workspaceHeading('Industry')
       + backRow('industry', 'All industry groups')
       + `<h4 class="fstage__title">${esc(g.group)}</h4>`
-      + optRow('industry', { value: g.group, label: 'Select entire group' }, 'check')
-      + '<span class="fstage__rule" aria-hidden="true"></span>'
-      + `<div class="flist">${g.industries.map((i) => optRow('industry', {
-        value: i.name, isNew: i.isNew, includedBy: groupPicked ? g.group : null,
-      })).join('')}</div>`;
+      + industryGroupContent(g);
   }
 
   const hits = industryHits(q);
@@ -460,8 +494,10 @@ function industryBody() {
     }
     return workspaceHeading('Industry') + searchRow('industry', 'Search industries...')
       + `<div class="flist">
-        ${hits.groups.map((g) => browseRow('industry', g.group, g.industries.length, 'industries',
-          g.industries.filter((i) => state.selected.industry.has(i.name)).length)).join('')}
+        ${hits.groups.map((g) => inlineSubfilters.matches
+          ? industryBrowseGroup(g)
+          : browseRow('industry', g.group, g.industries.length, 'industries',
+            g.industries.filter((i) => state.selected.industry.has(i.name)).length)).join('')}
         ${hits.leaves.map((o) => optRow('industry', {
           ...o, includedBy: state.selected.industry.has(o.crumb) ? o.crumb : null,
         })).join('')}
@@ -471,11 +507,11 @@ function industryBody() {
   return workspaceHeading('Industry')
     + searchRow('industry', 'Search industries...')
     + '<p class="fbrowse">Browse by industry group</p>'
-    + `<div class="flist">${industryGroups.map((g) => browseRow(
-      'industry', g.group, g.industries.length, 'industries',
-      (state.selected.industry.has(g.group) ? g.industries.length
-        : g.industries.filter((i) => state.selected.industry.has(i.name)).length),
-    )).join('')}</div>`;
+    + `<div class="flist">${industryGroups.map((g) => inlineSubfilters.matches
+      ? industryBrowseGroup(g)
+      : browseRow('industry', g.group, g.industries.length, 'industries',
+        (state.selected.industry.has(g.group) ? g.industries.length
+          : g.industries.filter((i) => state.selected.industry.has(i.name)).length))).join('')}</div>`;
 }
 
 function domainBody() {
@@ -506,6 +542,18 @@ function expertiseGroup(domain) {
   </section>`;
 }
 
+function expertiseBrowseGroup(domain) {
+  const open = state.drill.expertise === domain;
+  const selected = expertiseByDomain[domain].filter((e) => state.selected.expertise.has(e)).length;
+  const row = browseRow('expertise', domain, expertiseByDomain[domain].length, 'expertise', selected, {
+    isNew: functionalDomains.find((d) => d.name === domain)?.isNew,
+    open,
+  });
+  const content = `<div class="flist">${expertiseByDomain[domain]
+    .map((e) => optRow('expertise', { value: e })).join('')}</div>`;
+  return row + (open ? inlinePanel('expertise', domain, content) : '');
+}
+
 function expertiseBody() {
   const q = state.stageQuery.expertise;
   const open = state.drill.expertise;
@@ -524,7 +572,7 @@ function expertiseBody() {
       + content;
   }
 
-  if (open) {
+  if (open && !inlineSubfilters.matches) {
     const hits = expertiseHits(q, open);
     const kids = hits || expertiseByDomain[open].map((e) => ({ value: e }));
     return workspaceHeading('Expertise')
@@ -546,24 +594,44 @@ function expertiseBody() {
   return workspaceHeading('Expertise')
     + searchRow('expertise', 'Search any expertise...')
     + '<p class="fbrowse">Or browse by Functional Domain</p>'
-    + `<div class="flist">${functionalDomains.map((d) => browseRow(
-      'expertise', d.name, expertiseByDomain[d.name].length, 'expertise',
-      expertiseByDomain[d.name].filter((e) => state.selected.expertise.has(e)).length,
-      { isNew: d.isNew },
-    )).join('')}</div>`;
+    + `<div class="flist">${functionalDomains.map((d) => inlineSubfilters.matches
+      ? expertiseBrowseGroup(d.name)
+      : browseRow('expertise', d.name, expertiseByDomain[d.name].length, 'expertise',
+        expertiseByDomain[d.name].filter((e) => state.selected.expertise.has(e)).length,
+        { isNew: d.isNew })).join('')}</div>`;
 }
 
 function moreBrowseRow(group) {
   const selected = state.selected[group.id].size;
-  return `<button class="brow brow--more" type="button" data-drill-stage="more" data-drill="${esc(group.id)}">
+  const open = state.drill.more === group.id;
+  const disclosure = inlineDisclosure('more', group.id, open);
+  return `<button class="brow brow--more" type="button" data-drill-stage="more" data-drill="${esc(group.id)}"${disclosure}>
     <span class="brow__name">${esc(group.title)}</span>
     ${selected ? `<span class="brow__sel">${selected}</span>` : ''}
     <span class="brow__chev">${iconSvg('chevron-down', 16)}</span>
   </button>`;
 }
 
+function moreGroupContent(group) {
+  return (group.searchable
+    ? `<div class="fsearch" data-filled="${!!state.moreQuery[group.id]}">
+         ${iconSvg('search', 14)}
+         <label class="sr-only" for="more-search">Search ${esc(group.title)}</label>
+         <input id="more-search" type="search" autocomplete="off" spellcheck="false"
+                data-moresearch="${esc(group.id)}" value="${esc(state.moreQuery[group.id] || '')}"
+                placeholder="Search ${esc(group.title.toLowerCase())}...">
+       </div>` : '')
+    + `<div class="flist" id="more-options">${smallGroupOptions(group)}</div>`;
+}
+
 function moreBody() {
   const open = state.drill.more;
+  if (inlineSubfilters.matches) {
+    return workspaceHeading('More filters')
+      + `<div class="flist">${MORE_GROUPS.map((group) => moreBrowseRow(group)
+        + (open === group.id ? inlinePanel('more', group.id, moreGroupContent(group)) : '')).join('')}</div>`;
+  }
+
   if (!open) {
     return workspaceHeading('More filters')
       + `<div class="flist">${MORE_GROUPS.map(moreBrowseRow).join('')}</div>`;
@@ -573,15 +641,7 @@ function moreBody() {
   return workspaceHeading('More filters')
     + backRow('more', 'All more filters')
     + `<h4 class="fstage__title">${esc(group.title)}</h4>`
-    + (group.searchable
-      ? `<div class="fsearch" data-filled="${!!state.moreQuery[group.id]}">
-           ${iconSvg('search', 14)}
-           <label class="sr-only" for="more-search">Search ${esc(group.title)}</label>
-           <input id="more-search" type="search" autocomplete="off" spellcheck="false"
-                  data-moresearch="${esc(group.id)}" value="${esc(state.moreQuery[group.id] || '')}"
-                  placeholder="Search ${esc(group.title.toLowerCase())}...">
-         </div>` : '')
-    + `<div class="flist" id="more-options">${smallGroupOptions(group)}</div>`;
+    + moreGroupContent(group);
 }
 
 const STAGE_BODY = {
@@ -761,14 +821,64 @@ function cardHtml(m, index) {
 /* ── Results ───────────────────────────────────────────────────────────── */
 
 function renderSort() {
+  const selected = SORTS.find((sort) => sort.id === state.sort) || SORTS[0];
   document.getElementById('toolbar-sort').innerHTML = `
-    <label class="sortsel">
-      <span class="sortsel__label">Sort by</span>
-      <select id="mentor-sort" data-sort aria-label="Sort mentor results" aria-controls="grid">
-        ${SORTS.map((s) => `<option value="${s.id}"${state.sort === s.id ? ' selected' : ''}>${esc(s.label)}</option>`).join('')}
-      </select>
-      ${iconSvg('chevron-down', 14)}
-    </label>`;
+    <div class="sortmenu" data-sort-root data-open="false">
+      <button class="sortmenu__trigger" id="mentor-sort-trigger" type="button"
+        data-sort-trigger aria-label="Sort mentor results"
+        aria-haspopup="listbox" aria-expanded="false" aria-controls="mentor-sort-list">
+        <span class="sortmenu__label">Sort by</span>
+        <span class="sortmenu__value">${esc(selected.label)}${selected.supporting ? ` <span>(${esc(selected.supporting)})</span>` : ''}</span>
+        <span class="sortmenu__chev">${iconSvg('chevron-down', 16)}</span>
+      </button>
+      <div class="sortmenu__list" id="mentor-sort-list" role="listbox"
+        aria-labelledby="mentor-sort-trigger" aria-controls="grid" hidden>
+        ${SORTS.map((sort) => `<button class="sortmenu__option" id="sort-option-${sort.id}"
+          type="button" role="option" tabindex="-1" data-sort-option="${sort.id}"
+          aria-selected="${state.sort === sort.id}">
+          <span class="sortmenu__option-copy">
+            <span class="sortmenu__option-label">${esc(sort.label)}</span>
+            ${sort.supporting ? `<span class="sortmenu__option-support">${esc(sort.supporting)}</span>` : ''}
+          </span>
+          <span class="sortmenu__check" aria-hidden="true">${state.sort === sort.id ? iconSvg('check', 16) : ''}</span>
+        </button>`).join('')}
+      </div>
+    </div>`;
+}
+
+function sortOptions() {
+  return [...document.querySelectorAll('[data-sort-option]')];
+}
+
+function closeSortMenu({ focusTrigger = false } = {}) {
+  const root = document.querySelector('[data-sort-root]');
+  if (!root || root.dataset.open !== 'true') return;
+  root.dataset.open = 'false';
+  root.querySelector('[data-sort-trigger]').setAttribute('aria-expanded', 'false');
+  root.querySelector('[role="listbox"]').hidden = true;
+  if (focusTrigger) root.querySelector('[data-sort-trigger]').focus();
+}
+
+function openSortMenu(preferred = 'selected') {
+  const root = document.querySelector('[data-sort-root]');
+  if (!root) return;
+  root.dataset.open = 'true';
+  root.querySelector('[data-sort-trigger]').setAttribute('aria-expanded', 'true');
+  root.querySelector('[role="listbox"]').hidden = false;
+  const options = sortOptions();
+  const selected = options.find((option) => option.getAttribute('aria-selected') === 'true');
+  const target = preferred === 'last' ? options.at(-1)
+    : preferred === 'first' ? options[0]
+      : selected || options[0];
+  requestAnimationFrame(() => target?.focus());
+}
+
+function chooseSort(value) {
+  if (!SORTS.some((sort) => sort.id === value)) return;
+  state.sort = value;
+  renderSort();
+  renderResults();
+  requestAnimationFrame(() => document.querySelector('[data-sort-trigger]')?.focus());
 }
 
 function renderResults() {
@@ -843,7 +953,8 @@ function afterSelectionChange(axis) {
     renderStages();
     const bodyDependsOnSelection = (axis === 'industry' && state.stage === 'industry' && state.drill.industry)
       || (axis === 'domain' && state.stage === 'expertise')
-      || (axis === 'expertise' && state.stage === 'expertise');
+      || (axis === 'expertise' && state.stage === 'expertise')
+      || (MORE_AXES.includes(axis) && state.stage === 'more' && state.drill.more);
     if (bodyDependsOnSelection) {
       renderStageBody();
       if (activeInput) {
@@ -877,6 +988,18 @@ function openSheet() {
 }
 
 document.addEventListener('click', (e) => {
+  const sortOption = e.target.closest('[data-sort-option]');
+  if (sortOption) { chooseSort(sortOption.dataset.sortOption); return; }
+
+  const sortTrigger = e.target.closest('[data-sort-trigger]');
+  if (sortTrigger) {
+    const open = sortTrigger.getAttribute('aria-expanded') === 'true';
+    if (open) closeSortMenu({ focusTrigger: true }); else openSortMenu();
+    return;
+  }
+
+  if (!e.target.closest('[data-sort-root]')) closeSortMenu();
+
   const navItem = e.target.closest('[data-nav-item]');
   if (navItem) {
     if (navItem.getAttribute('aria-disabled') === 'true') { e.preventDefault(); return; }
@@ -921,9 +1044,16 @@ document.addEventListener('click', (e) => {
   const drill = e.target.closest('[data-drill-stage]');
   if (drill) {
     const s = drill.dataset.drillStage;
-    state.drill[s] = drill.dataset.drill || null;
-    if (s !== 'more') state.stageQuery[s] = '';
-    renderStageBody(false);
+    const next = drill.dataset.drill || null;
+    const keepInlineFocus = inlineSubfilters.matches && document.activeElement === drill;
+    state.drill[s] = inlineSubfilters.matches && next && state.drill[s] === next ? null : next;
+    if (s !== 'more' && !inlineSubfilters.matches) state.stageQuery[s] = '';
+    renderStageBody(inlineSubfilters.matches);
+    if (keepInlineFocus) {
+      const same = [...document.querySelectorAll(`[data-drill-stage="${s}"]`)]
+        .find((button) => button.dataset.drill === next);
+      if (same) same.focus({ preventScroll: true });
+    }
     return;
   }
 
@@ -1003,6 +1133,41 @@ document.addEventListener('click', (e) => {
 
 /* Arrow keys move through the persistent category navigation. */
 document.addEventListener('keydown', (e) => {
+  const sortTrigger = e.target.closest('[data-sort-trigger]');
+  if (sortTrigger) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      openSortMenu(e.key === 'ArrowUp' ? 'last' : 'selected');
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeSortMenu({ focusTrigger: true });
+    }
+    return;
+  }
+
+  const sortOption = e.target.closest('[data-sort-option]');
+  if (sortOption) {
+    const options = sortOptions();
+    const index = options.indexOf(sortOption);
+    if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) {
+      e.preventDefault();
+      const next = e.key === 'Home' ? 0
+        : e.key === 'End' ? options.length - 1
+          : e.key === 'ArrowDown' ? (index + 1) % options.length
+            : (index - 1 + options.length) % options.length;
+      options[next]?.focus();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeSortMenu({ focusTrigger: true });
+    } else if (e.key === 'Tab') {
+      closeSortMenu();
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const match = options.find((option) => option.textContent.trim().toLowerCase().startsWith(e.key.toLowerCase()));
+      if (match) { e.preventDefault(); match.focus(); }
+    }
+    return;
+  }
+
   if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
   const current = e.target.closest('.fstages__item');
   if (!current) return;
@@ -1022,9 +1187,6 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('change', (e) => {
-  const sort = e.target.closest('[data-sort]');
-  if (sort) { state.sort = sort.value; renderResults(); return; }
-
   const axis = e.target.dataset.axis;
   if (!axis) return;
 
@@ -1066,10 +1228,24 @@ document.querySelector('.search__clear').addEventListener('click', () => {
   input.focus();
 });
 
+/* InputField is one visual control in the design schema. The icon, padding and
+   border therefore focus the input as well; the clear button keeps its own
+   action and already restores input focus after clearing. */
+document.getElementById('search').addEventListener('click', (e) => {
+  if (e.target.closest('.search__clear')) return;
+  document.getElementById('search-input').focus();
+});
+
 /* Crossing the breakpoint swaps the rail for the tab bar; the More sheet only
    belongs to the tab bar. */
 wide.addEventListener('change', () => {
   if (wide.matches) document.getElementById('more-nav').close();
+});
+
+/* Moving between a standard-height laptop window and a short/mobile window
+   changes only how the same drill state is presented. */
+inlineSubfilters.addEventListener('change', () => {
+  if (isSheetOpen()) renderStageBody(false);
 });
 
 document.getElementById('agenda-list').addEventListener('scroll', syncAgendaControls, { passive: true });
