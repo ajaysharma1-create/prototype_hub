@@ -53,6 +53,7 @@
       refreshing: false,
       micTest: 'idle',
       speakerTest: 'idle',
+      recordingConsent: false,
       joinStatus: 'idle',
       waitPhase: 'after',
       sharing: false,
@@ -260,6 +261,9 @@
       '<button class="btn tertiary" type="button" data-action="test-speaker" data-fk="test-speaker"' + (state.speakerTest === 'playing' ? ' disabled' : '') + '>' + (state.speakerTest === 'playing' ? '<span class="spin"></span>Playing test sound' : icon('speaker') + 'Test speaker') + '</button>' +
       '</div>' +
       (!state.microphone ? '<p class="fineprint" id="microphone-note">Turn the microphone on to test it.</p>' : '') + testStatus +
+      '<div class="consent-row"><input id="recording-consent" type="checkbox" data-field="consent"' + (state.recordingConsent ? ' checked' : '') + '>' +
+      '<div class="consent-copy"><label class="consent-label" for="recording-consent">Allow this session to be recorded (optional)</label>' +
+      '<p class="consent-note">Used only for quality and safety review.</p></div></div>' +
       '</section>' +
 
       '<section class="prejoin-card card" aria-labelledby="device-title">' +
@@ -892,6 +896,11 @@
 
   view.addEventListener('change', function (event) {
     var control = event.target;
+    if (control.dataset.field === 'consent') {
+      state.recordingConsent = control.checked;
+      announce(control.checked ? 'Recording allowed for this session.' : 'Recording not allowed for this session.');
+      return;
+    }
     if (control.dataset.field === 'device') {
       state.devices[control.dataset.device] = Number(control.value);
       return;

@@ -145,6 +145,12 @@ h1,h2,h3,p{margin-top:0}
 .test-row .btn{flex:0 1 auto}
 .test-status{width:max-content;max-width:100%;margin-inline:auto;padding:11px 14px;display:flex;align-items:center;gap:10px;border-radius:var(--radius-control);border:1px solid var(--border-subtle);background:var(--surface-card);color:var(--text-tertiary);font-size:var(--fs-xs)}
 .prejoin-stage .fineprint{text-align:center}
+/* Consent sits in the stage column's slack, so the pre-join card never grows. */
+.consent-row{width:min(520px,100%);margin-inline:auto;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface-card);text-align:left}
+.consent-row input[type="checkbox"]{margin-top:1px;width:16px;height:16px;flex:none;accent-color:var(--accent-300);cursor:pointer}
+.consent-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
+.consent-label{color:var(--text-primary);font-size:var(--fs-xs);line-height:var(--lh-xs);font-weight:var(--fw-medium);cursor:pointer}
+.consent-note{margin:0;color:var(--text-muted);font-size:var(--fs-2xs);line-height:var(--lh-2xs)}
 .level-bars{height:18px;flex:none;display:flex;align-items:flex-end;gap:3px}
 .level-bars i{width:4px;height:5px;border-radius:2px;background:var(--accent-300);animation:level .8s ease-in-out infinite}
 .level-bars i:nth-child(2){animation-delay:.1s}.level-bars i:nth-child(3){animation-delay:.2s}.level-bars i:nth-child(4){animation-delay:.3s}
