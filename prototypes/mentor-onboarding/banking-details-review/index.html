@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mentor Profile Overview</title>
+    <script>
+      (function () {
+        try {
+          var savedTheme = localStorage.getItem("mentor-profile-theme");
+          var systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+          document.documentElement.dataset.theme = savedTheme || systemTheme;
+        } catch (error) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <div class="page-heading">
+        <h1>Profile Overview</h1>
+        <div class="page-heading-actions">
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme" aria-pressed="false">
+            <span class="theme-toggle-track" aria-hidden="true">
+              <span class="theme-toggle-knob"></span>
+            </span>
+            <span class="theme-toggle-text" data-theme-toggle-label>Dark</span>
+          </button>
+          <span>Joined 7 months ago</span>
+        </div>
+      </div>
+
+      <section class="profile-card" aria-label="Profile summary">
+        <div class="profile-summary">
+          <div class="avatar-card" aria-hidden="true">
+            <div class="avatar-head"></div>
+            <div class="avatar-body"></div>
+          </div>
+
+          <div class="profile-copy">
+            <h2>Vikram Nair</h2>
+            <div class="meta-row" aria-label="Profile metadata">
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 12.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" />
+                  <path d="M5.7 19.2c.8-3 3.2-4.9 6.3-4.9 3.1 0 5.5 1.9 6.3 4.9" />
+                </svg>
+                Employee, Masters' Union
+              </span>
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4.5 7.5 12 12.8l7.5-5.3" />
+                  <path d="M5.5 6.3h13c.9 0 1.6.7 1.6 1.6v8.2c0 .9-.7 1.6-1.6 1.6h-13c-.9 0-1.6-.7-1.6-1.6V7.9c0-.9.7-1.6 1.6-1.6Z" />
+                </svg>
+                vikram.nair@example.com
+              </span>
+              <span class="meta-item">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8.1 5.1 10 8.9 8.5 10c.9 1.8 2.3 3.2 4.1 4.1l1.1-1.5 3.8 1.9-.4 2.9c-.1.6-.6 1-1.2 1A11.1 11.1 0 0 1 4.2 6.7c0-.6.4-1.1 1-1.2l2.9-.4Z" />
+                </svg>
+                +91 98765 43210
+              </span>
+            </div>
+
+            <div class="rating-card" aria-label="Rating 3.0 based on 3 ratings">
+              <div><span class="star">&#9733;</span><strong>3.0</strong></div>
+              <em>Based on 3 ratings</em>
+            </div>
+          </div>
+        </div>
+
+        <nav class="profile-tabs" aria-label="Profile sections">
+          <button type="button" data-tab="profile">Profile Details</button>
+          <button type="button" data-tab="availability">Availability</button>
+          <button type="button" data-tab="invoice">Invoice</button>
+          <button type="button" class="active" data-tab="banking">Banking Details</button>
+          <button type="button" data-tab="agreement">Agreement</button>
+          <button type="button" data-tab="settings">Settings</button>
+        </nav>
+      </section>
+
+      <section class="details-panel" aria-live="polite">
+        <div id="screen-root"></div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

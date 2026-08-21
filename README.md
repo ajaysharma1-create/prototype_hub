@@ -84,9 +84,19 @@ prototype-hub/
     ├── credit-purchase/
     ├── gift-mentorship/
     ├── mentee-direct-onboarding/
+    │   └── all-mentors/                # the MU Taxonomy mentee-side screen, reused verbatim
+    ├── mentor-onboarding/
+    │   ├── onboarding-flow/            # the route the card opens
+    │   └── banking-details-review/     # payout-stage concept, linked from the flow's last step
+    ├── mu-taxonomy-mentor/
     ├── zoom-integration-flow/
     └── proposed_pricing_unified.html  # retained legacy pricing artifact; not listed
 ```
+
+Two routes are nested one level deeper than their project folder. That is deliberate: a
+project with more than one publishable artifact keeps them side by side, and the card's
+`prototypePath` names the one the card opens. Relative links between them resolve here
+exactly as they do in the source project.
 
 The local `audit/` directory contains ignored audit and validation evidence. It is not part of
 the public repository.
@@ -133,6 +143,32 @@ sent. The simulated code ledger and credit balance are not production-grade or s
 OAuth, phone verification, OTP resend, account/profile persistence, welcome-credit allocation,
 mentor matching, and booking are simulated. Verification writes entered values only to page
 memory and the browser console. Reviewers should not enter real personal data.
+
+Browsing mentors leaves the signup page for `all-mentors/`, which is the All Mentors Taxonomy
+Filters prototype copied in unchanged. Only one file differs from that copy —
+`onboarding-bridge.js`, plus the single script tag that loads it — and it adds a strip above
+the screen carrying the way back into signup and the matched-mentor line. It renders nothing
+unless the screen is opened from onboarding, so the same route also serves as that screen. The
+limitations recorded for All Mentors Taxonomy Filters apply to it unchanged.
+
+### MU Taxonomy — Mentor Side
+
+The mentor, their existing selections, and the counts of what changed are sample data derived
+from one sample profile, not from production. Saving updates page memory only; no profile,
+taxonomy, discovery, or notification service is called, and reloading returns the mentor to the
+pre-change state. The migration shown is the one the taxonomy files state — 23 existing
+industries carried forward, 4 net-new domains, and 39 expertise amendments — and nothing beyond
+it is claimed.
+
+### Mentor Onboarding
+
+The seven-step onboarding flow persists nothing. Submitting advances a screen; no account,
+profile, taxonomy, scheduling, or notification service is called, and reloading starts over.
+File pickers record the chosen filename only — no file is read or uploaded. No approval or
+verification state is shown after completion, because the current flow has none to show.
+Reviewers should not enter real personal data. The banking-details review screen at
+`mentor-onboarding/banking-details-review/` is a separate payout-stage concept and is reached
+from the flow's final step.
 
 ### Zoom Integration
 

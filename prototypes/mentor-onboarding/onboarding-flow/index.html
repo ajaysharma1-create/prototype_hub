@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Mentor Onboarding — a first-pass mentor profile setup journey, from welcome through basic and professional details, expertise, mentorship preferences, review and completion.">
+  <title>Mentor Onboarding · MentorUnion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Classic scripts, not modules: a page opened from the file system has
+       origin `null`, and module scripts are blocked by CORS there. `defer`
+       keeps them in document order and runs them after parsing.
+
+       taxonomy.js and icons.js are byte-for-byte the mentee-side prototype's
+       files (live/mu_taxonomy_filters/prototype). A mentor classifies against
+       exactly the taxonomy a mentee filters on; a separate onboarding copy that
+       could drift would be a second taxonomy. -->
+  <script src="icons.js" defer></script>
+  <script src="taxonomy.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#screen">Skip to content</a>
+
+  <header class="topbar">
+    <img class="topbar__logo" src="assets/logo-on-dark.svg" alt="MentorUnion" width="100" height="27">
+    <div class="topbar__role"><span>Mentor onboarding</span></div>
+  </header>
+
+  <main class="page" id="screen" tabindex="-1"></main>
+</body>
+</html>

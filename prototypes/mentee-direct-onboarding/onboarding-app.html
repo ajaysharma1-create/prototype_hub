@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MentorUnion - Find your mentor</title>
-<meta name="description" content="MentorUnion mentee onboarding - get matched 1:1 with senior leaders. Interactive prototype.">
+<title>MentorUnion — Find your mentor</title>
+<meta name="description" content="MentorUnion mentee onboarding — get matched 1:1 with senior leaders. Interactive prototype.">
 <meta name="theme-color" content="#121212">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="apple-touch-icon" href="assets/favicon.png">
 <meta property="og:type" content="website">
-<meta property="og:title" content="MentorUnion - Mentee Onboarding Prototype">
+<meta property="og:title" content="MentorUnion — Mentee Onboarding Prototype">
 <meta property="og:description" content="Interactive walkthrough: landing → guided signup → personalised mentor match.">
 <meta property="og:image" content="assets/favicon.png">
 <meta name="twitter:card" content="summary">
@@ -19,7 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
 <link rel="stylesheet" href="mentorunion-schema.css">
 <style>
-/* ============ working-site layout - every control is from mentorunion-schema.css ============ */
+/* ============ working-site layout — every control is from mentorunion-schema.css ============ */
 html{-webkit-text-size-adjust:100%}
 body{min-height:100vh;min-height:100dvh;overflow-x:hidden}
 .site{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
@@ -34,7 +34,7 @@ body{min-height:100vh;min-height:100dvh;overflow-x:hidden}
 .nav .login{color:var(--tx-3);font:600 13.5px var(--ff)}
 @media (max-width:760px){ .nav .links{display:none} .nav{padding:14px 18px} }
 
-/* hero - deliberately muted/dull so attention goes to the signup journey,
+/* hero — deliberately muted/dull so attention goes to the signup journey,
    not to the landing page itself. One amber CTA funnels users into the flow. */
 .hero{flex:1;display:flex;align-items:center;max-width:1120px;width:100%;margin:0 auto;padding:64px 34px}
 .hero-inner{max-width:600px}
@@ -68,18 +68,9 @@ body{min-height:100vh;min-height:100dvh;overflow-x:hidden}
 .pstate.session{background:var(--inset);color:var(--tx-4);border:1px solid var(--line-chip)}
 .pstate.saved{background:var(--acc-12);color:var(--acc);border:1px solid var(--acc-22)}
 
-/* mentors page */
-#mentors{display:none}
-#mentors.show{display:block}
-#mentors .am{min-height:100vh;min-height:100dvh}
-.matchbanner{display:flex;align-items:center;gap:11px;background:var(--acc-12);border:1px solid var(--acc-22);border-radius:12px;padding:13px 16px;margin-bottom:18px}
-.matchbanner .sym{color:var(--acc);font-size:20px}
-.matchbanner b{color:var(--tx-hi)}
-.matchbanner .x2{margin-left:auto;color:var(--mut);cursor:pointer;font-size:18px}
-@media (max-width:1180px){ #mentors .mcards{grid-template-columns:repeat(2,1fr)} }
-@media (max-width:1024px){ #mentors .filters{display:none} }
-@media (max-width:860px){ #mentors .am .topbar{flex-wrap:wrap;gap:12px} #mentors .am .search{width:100%;max-width:none;margin-left:0;order:2} }
-@media (max-width:760px){ #mentors .mcards{grid-template-columns:1fr} #mentors .filters{display:none} #mentors .am .rail{display:none} #mentors .am .main{padding:18px 16px 28px} #mentors .agendas{gap:18px} }
+/* The mentors page that used to live here has been removed. Mentee onboarding
+   now opens the MU Taxonomy mentee-side All Mentors screen at all-mentors/,
+   which is that prototype verbatim — its own layout, filters and styles. */
 
 /* booking toast */
 #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:200;background:var(--panel);border:1px solid var(--acc-22);border-radius:12px;padding:13px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-modal);opacity:0;transition:opacity .25s,transform .25s;font:600 13px var(--ff);color:var(--tx)}
@@ -99,14 +90,14 @@ body{min-height:100vh;min-height:100dvh;overflow-x:hidden}
     </div>
   </nav>
 
-  <!-- LANDING (intentionally plain - the signup journey is the focus) -->
+  <!-- LANDING (intentionally plain — the signup journey is the focus) -->
   <main class="hero" id="landing">
     <div class="hero-inner">
       <div class="kicker">MentorUnion · mentee onboarding</div>
       <h1>Get mentored by people who've done the job.</h1>
       <p class="lead">Tell us where you're headed and we'll match you 1:1 with senior leaders. Your first <b>2 credits are on us</b>.</p>
       <div class="cta">
-        <button class="btn primary lg" onclick="openFlow()">Sign up - claim 2 credits</button>
+        <button class="btn primary lg" onclick="openFlow()">Sign up — claim 2 credits</button>
         <button class="btn linklike" onclick="showMentors()">Browse mentors</button>
       </div>
       <div class="trustline">Mentors from Google · McKinsey · Swiggy · Unilever · Amazon · Bain · Microsoft</div>
@@ -120,49 +111,9 @@ body{min-height:100vh;min-height:100dvh;overflow-x:hidden}
   </footer>
 </div>
 
-<!-- MENTORS PAGE -->
-<section id="mentors">
-  <div class="am">
-    <div class="rail">
-      <div class="ico" onclick="backToLanding()" title="Home"><span class="sym">home</span></div>
-      <div class="ico"><span class="sym">call</span></div>
-      <div class="ico on"><span class="sym">group</span></div>
-      <div class="ico"><span class="sym">menu_book</span></div>
-      <div class="ico"><i class="coin"></i></div>
-      <div class="ico"><span class="sym">receipt_long</span></div>
-    </div>
-    <div class="main">
-      <div class="topbar">
-        <h2>All Mentors</h2>
-        <div class="search"><span class="sym">search</span>Search mentors, industries, domains and more…</div>
-      </div>
-      <div id="matchbanner"></div>
-      <div class="agendas" id="agendas"></div>
-      <div class="subchips" id="subchips">
-        <span class="sc on">All</span><span class="sc">Cover Letter</span><span class="sc">Resume Review</span><span class="sc">SOP &amp; Assignment</span><span class="sc">LinkedIn Profile</span><span class="sc">Professional Projects</span>
-      </div>
-      <div class="amlayout">
-        <aside class="filters">
-          <div class="fcard">
-            <div class="fh">Sort by<span class="sym">expand_less</span></div>
-            <div class="opt on"><span class="rd"></span>Best match (recommended)</div>
-            <div class="opt"><span class="rd"></span>Soonest available</div>
-            <div class="opt"><span class="rd"></span>Highest rated</div>
-            <div class="opt"><span class="rd"></span>Experience (high to low)</div>
-            <div class="grp">Functional Domain<span class="sym">expand_more</span></div>
-            <div class="grp">Expertise<span class="sym">expand_more</span></div>
-            <div class="grp">Industry<span class="sym">expand_more</span></div>
-            <div class="grp">Company / Brand<span class="sym">expand_more</span></div>
-            <div class="grp">Experience Level<span class="sym">expand_more</span></div>
-            <div class="grp">Rating<span class="sym">expand_more</span></div>
-            <div class="grp">Availability<span class="sym">expand_more</span></div>
-          </div>
-        </aside>
-        <div class="mcards" id="mcards"></div>
-      </div>
-    </div>
-  </div>
-</section>
+<!-- The All Mentors page is no longer built here. It is the MU Taxonomy
+     mentee-side prototype at all-mentors/index.html, copied in verbatim, and
+     onboarding navigates to it. See all-mentors/onboarding-bridge.js. -->
 
 <!-- ONBOARDING OVERLAY -->
 <div id="overlay">
@@ -182,28 +133,26 @@ const COMPANIES = ['Big Tech','Consulting (MBB / Big 4)','Banking & Finance','Hi
 const ATTRIB = ['LinkedIn','Instagram','YouTube','Google','Friend / referral','A mentor','College / university','Event / webinar',"Other / don't remember"];
 const STATUSES = ['Student / Fresher','Working professional','Founder / self-employed','On a career break / exploring'];
 const STAGES = {
-  'Student / Fresher':['In college - 1st/2nd year','In college - 3rd year','In college - final year','Postgrad','Graduated'],
+  'Student / Fresher':['In college — 1st/2nd year','In college — 3rd year','In college — final year','Postgrad','Graduated'],
   'Working professional':['<1 year','1–3 years','3–5 years','5–8 years','8–12 years','12+ years'],
   'Founder / self-employed':['<1 year','1–3 years','3–5 years','5–8 years','8–12 years','12+ years'],
   'On a career break / exploring':['No prior experience','<1 year','1–3 years','3–5 years','5+ years']
 };
 const GOALS = {
-  'Student / Fresher':['In college - preparing for placements','In college - looking for projects or skills under a mentor','Graduated - looking for my first job','Planning higher studies / study abroad','Still exploring career paths'],
-  'Working professional':['Employed - targeting a promotion','Employed - switching to another domain or role','Employed - switching to another company','Unemployed - restarting after a career break','Unemployed - looking for a job in my current domain','Unemployed - looking for a job in another domain','Growing as a leader / upskilling'],
+  'Student / Fresher':['In college — preparing for placements','In college — looking for projects or skills under a mentor','Graduated — looking for my first job','Planning higher studies / study abroad','Still exploring career paths'],
+  'Working professional':['Employed — targeting a promotion','Employed — switching to another domain or role','Employed — switching to another company','Unemployed — restarting after a career break','Unemployed — looking for a job in my current domain','Unemployed — looking for a job in another domain','Growing as a leader / upskilling'],
   'Founder / self-employed':['Building my startup from 0 to 1','Raising funds / investor readiness','Growth and GTM','Scaling operations and team'],
   'On a career break / exploring':['Restarting my career','Reskilling / changing direction','Exploring options']
 };
-const AGENDAS = ['Resume Prep','Mock Interview','Career Roadmap','Building Startup','Grow Your Brand','Case / Guesstimates','Pitchdeck Review'];
-// Fictional sample profiles and metrics for public prototype review.
 const MENTORS = [
-  {name:'Demo Mentor 01', role:'Director, Product · ex-Microsoft, ex-Swiggy', exp:'9+ yrs', calls:'140+ calls', rating:'4.9', domains:['Tech & Product','Data Science & AI'], agendas:['Career Roadmap','Mock Interview','Resume Prep'], credits:2},
-  {name:'Demo Mentor 02', role:'Partner · ex-McKinsey', exp:'12+ yrs', calls:'210+ calls', rating:'5.0', domains:['Consulting & Strategy'], agendas:['Case / Guesstimates','Career Roadmap'], credits:3},
-  {name:'Demo Mentor 03', role:'CXO · ex-Microsoft', exp:'15+ yrs', calls:'95+ calls', rating:'4.8', domains:['Communication & Leadership','Tech & Product'], agendas:['Career Roadmap','Grow Your Brand'], credits:2},
-  {name:'Demo Mentor 04', role:'VP Marketing · ex-Unilever', exp:'11+ yrs', calls:'130+ calls', rating:'4.9', domains:['Sales, Brand & Marketing'], agendas:['Grow Your Brand','Mock Interview'], credits:2},
-  {name:'Demo Mentor 05', role:'Founder · YC-backed', exp:'7+ yrs', calls:'80+ calls', rating:'4.7', domains:['Entrepreneurship & Startups'], agendas:['Building Startup','Pitchdeck Review'], credits:2},
-  {name:'Demo Mentor 06', role:'Sr Data Scientist · ex-Google', exp:'8+ yrs', calls:'110+ calls', rating:'5.0', domains:['Data Science & AI','Tech & Product'], agendas:['Mock Interview','Resume Prep'], credits:2},
-  {name:'Demo Mentor 07', role:'Principal PM · ex-Amazon', exp:'10+ yrs', calls:'120+ calls', rating:'4.8', domains:['Tech & Product',"Chief of Staff & Founder's Office"], agendas:['Resume Prep','Mock Interview','Career Roadmap'], credits:2},
-  {name:'Demo Mentor 08', role:'Director Strategy · ex-Bain', exp:'13+ yrs', calls:'160+ calls', rating:'4.9', domains:['Consulting & Strategy','PEVC, Banking & Investments'], agendas:['Case / Guesstimates','Career Roadmap'], credits:3}
+  {name:'Vikram Nair', role:'Director, Product · ex-Microsoft, ex-Swiggy', exp:'9+ yrs', calls:'140+ calls', rating:'4.9', domains:['Tech & Product','Data Science & AI'], agendas:['Career Roadmap','Mock Interview','Resume Prep'], credits:2},
+  {name:'Sara Iyer', role:'Partner · ex-McKinsey', exp:'12+ yrs', calls:'210+ calls', rating:'5.0', domains:['Consulting & Strategy'], agendas:['Case / Guesstimates','Career Roadmap'], credits:3},
+  {name:'Rohan Das', role:'CXO · ex-Microsoft', exp:'15+ yrs', calls:'95+ calls', rating:'4.8', domains:['Communication & Leadership','Tech & Product'], agendas:['Career Roadmap','Grow Your Brand'], credits:2},
+  {name:'Neha Kapoor', role:'VP Marketing · ex-Unilever', exp:'11+ yrs', calls:'130+ calls', rating:'4.9', domains:['Sales, Brand & Marketing'], agendas:['Grow Your Brand','Mock Interview'], credits:2},
+  {name:'Arjun Verma', role:'Founder · YC-backed', exp:'7+ yrs', calls:'80+ calls', rating:'4.7', domains:['Entrepreneurship & Startups'], agendas:['Building Startup','Pitchdeck Review'], credits:2},
+  {name:'Priya Menon', role:'Sr Data Scientist · ex-Google', exp:'8+ yrs', calls:'110+ calls', rating:'5.0', domains:['Data Science & AI','Tech & Product'], agendas:['Mock Interview','Resume Prep'], credits:2},
+  {name:'Karan Shah', role:'Principal PM · ex-Amazon', exp:'10+ yrs', calls:'120+ calls', rating:'4.8', domains:['Tech & Product',"Chief of Staff & Founder's Office"], agendas:['Resume Prep','Mock Interview','Career Roadmap'], credits:2},
+  {name:'Ananya Rao', role:'Director Strategy · ex-Bain', exp:'13+ yrs', calls:'160+ calls', rating:'4.9', domains:['Consulting & Strategy','PEVC, Banking & Investments'], agendas:['Case / Guesstimates','Career Roadmap'], credits:3}
 ];
 
 /* ============================================================
@@ -268,7 +217,7 @@ function render(){
   if(k==='entry'){
     h = `<div class="ctop"><div style="flex:1"></div><button class="x" onclick="closeFlow()"><span class="sym">close</span></button></div>
       <div class="brand"><img src="assets/mentor-union-logo.png" alt="MentorUnion" style="height:24px"></div>
-      <div class="q"><h3>Create your account</h3><p class="sub">Get matched 1:1 with senior leaders - CXOs, founders and operators who've done the job.</p></div>
+      <div class="q"><h3>Create your account</h3><p class="sub">Get matched 1:1 with senior leaders — CXOs, founders and operators who've done the job.</p></div>
       <div class="body">
         <button class="btn oauth full" onclick="pickOAuth('google')"><span class="gl">${GG}</span>Continue with Google</button>
         <button class="btn oauth full" onclick="pickOAuth('linkedin')"><span class="gl">${LI}</span>Continue with LinkedIn</button>
@@ -276,30 +225,30 @@ function render(){
         <label class="field"><span class="pfx">+91 <span class="sym" style="font-size:16px;color:var(--icon)">expand_more</span></span><input id="entryPhone" inputmode="numeric" placeholder="Phone number" value="${esc(S.phone)}" oninput="this.closest('.field').style.borderColor=''" onkeydown="if(event.key==='Enter')pickPhone()"></label>
         <button class="btn primary full" onclick="pickPhone()">Continue</button>
         <p class="fine">No email/password signup. We use your number only to secure your account. <a onclick="event.preventDefault()">Log in</a></p>
-        <p class="persist"><span class="sym">lock</span>Entry method & phone are held in this session only - not verified, no account yet.</p>
+        <p class="persist"><span class="sym">lock</span>Entry method & phone are held in this session only — not verified, no account yet.</p>
       </div>`;
   }
   else if(k==='name'){
     const fb = S.method==='linkedin';
     h = ctop() + `
-      <div class="q"><span class="steplbl">${fb?'Signed in with LinkedIn':'Phone signup'}</span><h3>${fb?'Confirm your name':'What should we call you?'}</h3><p class="sub">${fb?"LinkedIn didn't return a usable name, so we need it before continuing.":'First name is enough - last name is optional.'}</p></div>
+      <div class="q"><span class="steplbl">${fb?'Signed in with LinkedIn':'Phone signup'}</span><h3>${fb?'Confirm your name':'What should we call you?'}</h3><p class="sub">${fb?"LinkedIn didn't return a usable name, so we need it before continuing.":'First name is enough — last name is optional.'}</p></div>
       <div class="body">
         <div class="frow">
-          <label class="field lbl"><span class="flabel">First name <span class="req">*</span></span><div class="field"><input id="fn" placeholder="Demo" value="${esc(S.firstName)}" oninput="S.firstName=this.value;upd()"></div></label>
-          <label class="field lbl"><span class="flabel">Last name <span class="opt">optional</span></span><div class="field"><input id="ln" placeholder="User" value="${esc(S.lastName)}" oninput="S.lastName=this.value"></div></label>
+          <label class="field lbl"><span class="flabel">First name <span class="req">*</span></span><div class="field"><input id="fn" placeholder="Aarav" value="${esc(S.firstName)}" oninput="S.firstName=this.value;upd()"></div></label>
+          <label class="field lbl"><span class="flabel">Last name <span class="opt">optional</span></span><div class="field"><input id="ln" placeholder="Mehta" value="${esc(S.lastName)}" oninput="S.lastName=this.value"></div></label>
         </div>
         ${foot('next()','Continue',{enabled:!!S.firstName.trim()})}
-        <p class="persist"><span class="sym">lock</span>Saved to this session only - your account isn't created yet.</p>
+        <p class="persist"><span class="sym">lock</span>Saved to this session only — your account isn't created yet.</p>
       </div>`;
   }
   else if(k==='status'){
-    const oauthNote = S.method==='google' ? `<div class="calm"><span class="sym">check_circle</span><p>Signed in with Google as <b>${esc(S.email)}</b>. We've got your name - straight to matching.</p></div>` : '';
+    const oauthNote = S.method==='google' ? `<div class="calm"><span class="sym">check_circle</span><p>Signed in with Google as <b>${esc(S.email)}</b>. We've got your name — straight to matching.</p></div>` : '';
     h = ctop() + `
       <div class="q"><span class="steplbl">Step 1 of 5 · about you</span><h3>I'm currently…</h3><p class="sub">Sets your persona so we rank the right mentors first.</p></div>
       <div class="body">${oauthNote}${ddHTML('status','Select one',STATUSES)}
         <div style="height:90px"></div>
         ${foot('next()','Continue',{enabled:!!S.status})}
-        <p class="persist"><span class="sym">lock</span>Session only - editable later from your profile.</p>
+        <p class="persist"><span class="sym">lock</span>Session only — editable later from your profile.</p>
       </div>`;
   }
   else if(k==='stage'){
@@ -318,7 +267,7 @@ function render(){
         ${ddHTML('goal','Select one',GOALS[S.status]||[])}
         <div style="height:30px"></div>
         ${foot('next()','Continue',{enabled:!!S.goal})}
-        <p class="persist"><span class="sym">lock</span>Session only - durable trajectory signal.</p></div>`;
+        <p class="persist"><span class="sym">lock</span>Session only — durable trajectory signal.</p></div>`;
   }
   else if(k==='domains'){
     h = ctop() + `
@@ -336,7 +285,7 @@ function render(){
   }
   else if(k==='companies'){
     h = ctop() + `
-      <div class="q"><span class="steplbl">Optional · sharpen your match</span><h3>Where do you want to reach?</h3><p class="sub">Optional - it helps us prioritise mentors from the right rooms.</p></div>
+      <div class="q"><span class="steplbl">Optional · sharpen your match</span><h3>Where do you want to reach?</h3><p class="sub">Optional — it helps us prioritise mentors from the right rooms.</p></div>
       <div class="body">${chipsHTML('companies',COMPANIES,9)}
         <div class="calm" style="margin-top:6px"><span class="sym">auto_awesome</span><p>Shown only when it sharpens matching. You can <b>skip</b> straight to claiming your credits.</p></div>
         ${foot('next()','Continue',{skip:true})}
@@ -352,17 +301,17 @@ function render(){
       <div class="body" style="gap:14px">
         <div><span class="flabel">How did you hear about us? <span class="req">*</span></span>${ddHTML('attribution','Select one',ATTRIB)}</div>
         <div><span class="flabel">Email <span class="opt">recommended</span>
-          <span class="info" tabindex="0"><span class="sym">info</span><span class="tip">Add an email for booking confirmations, calendar invites, receipts and account recovery. Optional - you can add it later. We won't verify it now.</span></span></span>
+          <span class="info" tabindex="0"><span class="sym">info</span><span class="tip">Add an email for booking confirmations, calendar invites, receipts and account recovery. Optional — you can add it later. We won't verify it now.</span></span></span>
           <label class="field"><span class="sym" style="color:var(--icon);font-size:18px">mail</span><input placeholder="you@email.com (optional)" value="${esc(S.email)}" oninput="S.email=this.value"></label></div>
         <div><span class="flabel">Mobile number <span class="req">*</span></span>${phoneRow}</div>
         <div class="callout"><i class="coin"></i><p><b>Verify your number to claim 2 credits.</b> A credit is the unit used to book MentorUnion mentor sessions.</p></div>
         <button class="btn primary full lg" id="primaryBtn" ${claimReady()?'':'disabled'} onclick="next()"><span class="sym">verified</span>Verify &amp; claim 2 credits</button>
-        <p class="persist"><span class="sym">lock</span>Still session only - the next step (OTP) is what creates your account.</p>
+        <p class="persist"><span class="sym">lock</span>Still session only — the next step (OTP) is what creates your account.</p>
       </div>`;
   }
   else if(k==='otp'){
     h = ctop() + `
-      <div class="q"><h3>Enter the code</h3><p class="sub">Sent on <b id="otpChannel">WhatsApp</b> to <b style="color:var(--tx-3)">+91 ${esc(S.phone||'00000 00000')}</b>. <a onclick="go('claim')">Wrong number? Edit</a></p></div>
+      <div class="q"><h3>Enter the code</h3><p class="sub">Sent on <b id="otpChannel">WhatsApp</b> to <b style="color:var(--tx-3)">+91 ${esc(S.phone||'98765 43210')}</b>. <a onclick="go('claim')">Wrong number? Edit</a></p></div>
       <div class="body">
         <div class="calm" style="background:var(--acc-12);border-color:var(--acc-22)"><span class="sym" style="color:var(--acc)">chat</span><p style="color:var(--tx-3)">We sent it on <b>WhatsApp</b>. No WhatsApp? <a onclick="useSMS()">Get it by SMS instead</a>.</p></div>
         <div class="otp" id="otp">${[0,1,2,3,4,5].map(i=>`<input maxlength="1" inputmode="numeric" data-i="${i}">`).join('')}</div>
@@ -387,11 +336,11 @@ function render(){
             <div class="m-role">${esc(m.role)}</div>
             <div class="m-meta">${esc(m.exp)} of experience · ${esc(m.calls)}</div>
             <div class="m-tags">${m.domains.map(d=>`<span>${esc(d)}</span>`).join('')}</div>
-            <button class="btn primary full" onclick="book('${esc(m.name)}',${m.credits})"><span class="sym">videocam</span>Book - ${m.credits} credits (30 min)</button>
+            <button class="btn primary full" onclick="book('${esc(m.name)}',${m.credits})"><span class="sym">videocam</span>Book — ${m.credits} credits (30 min)</button>
           </div>
         </div>
         <button class="btn secondary full" style="margin-top:10px" onclick="goMentorsFromSuccess()">Browse all mentors</button>
-        <p class="persist ok"><span class="sym">cloud_done</span>Committed. Routed to a personalised recommendation - not a generic list.</p>
+        <p class="persist ok"><span class="sym">cloud_done</span>Committed. Routed to a personalised recommendation — not a generic list.</p>
       </div>`;
   }
   card.innerHTML=h;
@@ -402,8 +351,8 @@ function render(){
 /* ---- entry handlers ---- */
 function pickOAuth(p){
   S.method=p;
-  if(p==='google'){ S.firstName='Demo'; S.lastName='User'; S.email='demo.user@example.com'; }
-  else { S.firstName=''; S.lastName=''; S.email='demo.user@linkedin.example'; } // simulate: no usable name → fallback name step
+  if(p==='google'){ S.firstName='Aarav'; S.lastName='Mehta'; S.email='aarav.mehta@gmail.com'; }
+  else { S.firstName=''; S.lastName=''; S.email='aarav.mehta@linkedin'; } // simulate: no usable name → fallback name step
   S.phone='';
   next();
 }
@@ -484,55 +433,28 @@ function bestMentor(){
   return scored[0].m;
 }
 
-/* ---- success → mentors ---- */
+/* ---- success → All Mentors ---- */
+
+/* The All Mentors screen is no longer part of this file. It is the MU Taxonomy
+   mentee-side prototype, copied verbatim into all-mentors/, and onboarding
+   navigates to it rather than drawing its own version.
+
+   Two things travel across, because they belong to onboarding rather than to
+   discovery: that the visitor arrived from signup, and which mentor their
+   answers matched. all-mentors/onboarding-bridge.js reads both from the query
+   string and renders the strip above the screen. Nothing else about that screen
+   is ours to change. */
+const ALL_MENTORS = 'all-mentors/index.html';
+
+function showMentors(fromOnboarding){
+  const q = new URLSearchParams({ from: 'onboarding' });
+  if(fromOnboarding && bestName) q.set('match', bestName);
+  window.location.href = ALL_MENTORS + '?' + q.toString();
+}
 let bestName=null;
 function goMentorsFromSuccess(){ bestName=bestMentor().name; closeFlow(); showMentors(true); }
-function book(name,credits){ toast('Session requested with '+name+' - '+credits+' credits will be used at confirmation.'); }
+function book(name,credits){ toast('Session requested with '+name+' — '+credits+' credits will be used at confirmation.'); }
 
-/* ============================================================
-   Mentors page
-   ============================================================ */
-function renderAgendas(active){
-  document.getElementById('agendas').innerHTML = AGENDAS.map(a=>`<a class="${a===active?'on':''}" onclick="renderMentors('${a.replace(/'/g,"\\'")}')">${a}</a>`).join('');
-}
-function renderMentors(agenda){
-  agenda=agenda||'Resume Prep'; renderAgendas(agenda);
-  const list=MENTORS.filter(m=>m.agendas.includes(agenda));
-  const data=list.length?list:MENTORS;
-  // best match (if arrived from onboarding) floats first
-  data.sort((a,b)=> (a.name===bestName?-1:b.name===bestName?1:0) || (+b.rating)-(+a.rating));
-  document.getElementById('mcards').innerHTML = data.map(m=>{
-    const isBest=m.name===bestName;
-    const cta = isBest
-      ? `<button class="btn primary full" onclick="book('${esc(m.name)}',${m.credits})"><span class="sym">videocam</span>Book - ${m.credits} credits</button>`
-      : `<button class="btn ghost full" onclick="book('${esc(m.name)}',${m.credits})">Schedule a call</button>`;
-    return `<div class="m-card"><div class="ph"><span class="sym">person</span><span class="rt"><span class="sym">star</span>${m.rating}</span></div>
-      <div class="mb">${isBest?'<span class="bestfor"><span class="sym">target</span>Best match for your goal</span>':''}
-        <div class="m-name">${esc(m.name)}</div><div class="m-role">${esc(m.role)}</div>
-        <div class="m-meta">${esc(m.exp)} · ${esc(m.calls)}</div>
-        <div class="m-tags">${m.domains.slice(0,1).map(d=>`<span>${esc(d)}</span>`).join('')}<span>${esc(agenda)}</span></div>
-        ${cta}</div></div>`;
-  }).join('');
-}
-function showMentors(fromOnboarding){
-  document.getElementById('site').style.display='none';
-  document.getElementById('mentors').classList.add('show');
-  const banner=document.getElementById('matchbanner');
-  if(fromOnboarding){
-    banner.innerHTML=`<span class="sym">check_circle</span><div><b>You're in - 2 credits added.</b> Pre-filtered to your goal. Session Agendas below are filters here, not part of signup.</div><span class="x2" onclick="this.parentElement.innerHTML=''">close</span>`;
-  } else { banner.innerHTML=''; }
-  renderMentors('Resume Prep');
-  window.scrollTo(0,0);
-}
-function backToLanding(){
-  document.getElementById('mentors').classList.remove('show');
-  document.getElementById('site').style.display='';
-  window.scrollTo(0,0);
-}
-
-/* subchips + sort toggles on the mentors page */
-document.querySelectorAll('#subchips .sc').forEach(s=>s.addEventListener('click',()=>{document.querySelectorAll('#subchips .sc').forEach(x=>x.classList.remove('on'));s.classList.add('on');}));
-document.querySelectorAll('#mentors .filters .opt').forEach(o=>o.addEventListener('click',()=>{document.querySelectorAll('#mentors .filters .opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');}));
 
 /* toast */
 let toastT;
@@ -543,15 +465,12 @@ const GG='<svg viewBox="0 0 48 48" width="20" height="20"><path fill="#FFC107" d
 const LI='<svg viewBox="0 0 24 24" width="20" height="20"><rect width="24" height="24" rx="4" fill="#0A66C2"/><path fill="#fff" d="M7.1 9.3H4.5V18h2.6V9.3zM5.8 8.1c.85 0 1.4-.57 1.4-1.28C7.17 6.08 6.65 5.5 5.8 5.5s-1.4.58-1.4 1.32c0 .71.55 1.28 1.4 1.28zM18.5 18v-4.8c0-2.46-1.32-3.6-3.07-3.6-1.42 0-2.05.78-2.4 1.33V9.3h-2.6V18h2.6v-4.6c0-1.05.74-1.5 1.4-1.5.66 0 1.47.46 1.47 1.53V18h2.6z"/></svg>';
 const LIin='<svg class="in" viewBox="0 0 24 24"><rect width="24" height="24" rx="4" fill="#0A66C2"/><path fill="#fff" d="M7.1 9.3H4.5V18h2.6V9.3zM5.8 8.1c.85 0 1.4-.57 1.4-1.28C7.17 6.08 6.65 5.5 5.8 5.5s-1.4.58-1.4 1.32c0 .71.55 1.28 1.4 1.28zM18.5 18v-4.8c0-2.46-1.32-3.6-3.07-3.6-1.42 0-2.05.78-2.4 1.33V9.3h-2.6V18h2.6v-4.6c0-1.05.74-1.5 1.4-1.5.66 0 1.47.46 1.47 1.53V18h2.6z"/></svg>';
 
-/* init mentors grid (so Browse works even without onboarding) */
-renderMentors('Resume Prep');
-
 /* deep links: #signup opens the flow, #mentors shows the directory,
    #step:KEY jumps to a step with demo data (reviewer / QA shortcut) */
 function seedDemo(){
   S=freshSession();
-  S.method='phone'; S.firstName='Demo'; S.lastName='User'; S.phone='00000 00000';
-  S.status='Working professional'; S.stage='3–5 years'; S.goal='Employed - switching to another domain or role';
+  S.method='phone'; S.firstName='Aarav'; S.lastName='Mehta'; S.phone='98765 43210';
+  S.status='Working professional'; S.stage='3–5 years'; S.goal='Employed — switching to another domain or role';
   S.domains=['Consulting & Strategy','Tech & Product','Data Science & AI'];
   S.industries=['Tech, IT, Telecom, AI and ML','Consulting, Legal & Professional Services'];
   S.companies=['Big Tech','Consulting (MBB / Big 4)']; S.attribution='LinkedIn';
